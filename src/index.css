@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+  
+  --color-gold-300: #F3E5AB;
+  --color-gold-400: #E5C158;
+  --color-gold-500: #D4AF37;
+  --color-gold-600: #AA8C2C;
+  
+  --color-silver-300: #E0E0E0;
+  --color-silver-400: #BDBDBD;
+  --color-silver-500: #9E9E9E;
+  
+  --color-cinema-black: #050505;
+  --color-cinema-dark: #121212;
+  --color-cinema-gray: #1E1E1E;
+}
+
+body {
+  background-color: var(--color-cinema-black);
+  color: var(--color-silver-300);
+  font-family: var(--font-sans);
+}
+
+h1, h2, h3, h4, h5, h6, .font-serif {
+  font-family: var(--font-serif);
+}
+
+/* Custom scrollbar for table */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-cinema-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-cinema-gray);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gold-600);
+}
