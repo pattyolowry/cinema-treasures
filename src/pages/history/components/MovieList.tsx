@@ -1,5 +1,5 @@
 import React from 'react';
-import { MovieRecord } from '../types';
+import { MovieRecord } from '../../../types';
 import { Edit2, Trash2, Film } from 'lucide-react';
 
 interface MovieListProps {

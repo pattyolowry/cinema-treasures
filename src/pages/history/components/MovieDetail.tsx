@@ -1,6 +1,6 @@
 import React from 'react';
-import { MovieRecord } from '../types';
-import { MEMBERS } from '../data';
+import { MovieRecord } from '../../../types';
+import { MEMBERS } from '../../../data';
 import { X, Edit2, Star, Calendar, Globe, MonitorPlay, Hash } from 'lucide-react';
 
 interface MovieDetailProps {

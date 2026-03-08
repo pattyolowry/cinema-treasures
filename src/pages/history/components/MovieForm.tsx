@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { MovieRecord, Member } from '../types';
-import { MEMBERS } from '../data';
+import { MovieRecord, Member } from '../../../types';
+import { MEMBERS } from '../../../data';
 import { X } from 'lucide-react';
 
 interface MovieFormProps {
