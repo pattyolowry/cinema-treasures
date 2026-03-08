@@ -41,13 +41,10 @@ export function AppLayout() {
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-gold-400)] to-[var(--color-gold-600)] flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.4)]">
                 <Film className="text-black" size={20} />
               </div>
-              <div>
-                <h1 className="text-2xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-gold-300)] to-[var(--color-gold-600)] tracking-tight">
+              <div className="flex items-center">
+                <h1 className="text-3xl sm:text-4xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-gold-300)] to-[var(--color-gold-600)] tracking-tight leading-none">
                   Cinema Treasures
                 </h1>
-                <p className="text-[10px] uppercase tracking-widest text-[var(--color-silver-500)] font-semibold">
-                  "A celebration of the fine art of cinema" Est. 2023
-                </p>
               </div>
             </Link>
 
