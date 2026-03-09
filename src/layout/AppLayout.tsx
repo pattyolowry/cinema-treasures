@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, Outlet } from 'react-router-dom';
+import { Link, NavLink, Outlet } from 'react-router-dom';
 import { Film, LogIn, LogOut, User } from 'lucide-react';
 import { MEMBERS } from '../data';
 import type { Member } from '../types';
@@ -48,7 +48,17 @@ export function AppLayout() {
               </div>
             </Link>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 sm:gap-6">
+              <NavLink
+                to="/ctcstm-scale"
+                className={({ isActive }) =>
+                  `hidden sm:inline-block text-sm font-medium transition-colors ${
+                    isActive ? 'text-[var(--color-gold-400)]' : 'text-[var(--color-silver-400)] hover:text-[var(--color-gold-400)]'
+                  }`
+                }
+              >
+                CTCSTM Scale
+              </NavLink>
               {currentUser ? (
                 <div className="relative" ref={profileMenuRef}>
                   <button
