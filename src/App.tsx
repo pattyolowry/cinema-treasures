@@ -3,6 +3,7 @@ import { AppLayout } from './layout/AppLayout';
 import { CTCSTMScalePage } from './pages/ctcstm-scale';
 import { LandingPage } from './pages/landing';
 import { HistoryPage } from './pages/history';
+import { TreasureTrovePage } from './pages/treasure-trove';
 
 export default function App() {
   return (
@@ -10,6 +11,7 @@ export default function App() {
       <Route path="/" element={<AppLayout />}>
         <Route index element={<LandingPage />} />
         <Route path="history" element={<HistoryPage />} />
+        <Route path="treasure-trove" element={<TreasureTrovePage />} />
         <Route path="ctcstm-scale" element={<CTCSTMScalePage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

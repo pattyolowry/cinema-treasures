@@ -114,6 +114,18 @@ export function AppLayout() {
                         Film Log
                       </NavLink>
                       <NavLink
+                        to="/treasure-trove"
+                        className={({ isActive }) =>
+                          `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            isActive
+                              ? 'text-[var(--color-gold-400)] bg-[var(--color-cinema-gray)]'
+                              : 'text-[var(--color-silver-300)] hover:text-[var(--color-gold-400)] hover:bg-[var(--color-cinema-gray)]/70'
+                          }`
+                        }
+                      >
+                        Treasure Trove
+                      </NavLink>
+                      <NavLink
                         to="/ctcstm-scale"
                         className={({ isActive }) =>
                           `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -198,6 +210,18 @@ export function AppLayout() {
                   }
                 >
                   Film Log
+                </NavLink>
+                <NavLink
+                  to="/treasure-trove"
+                  className={({ isActive }) =>
+                    `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'text-[var(--color-gold-400)] bg-[var(--color-cinema-gray)]'
+                        : 'text-[var(--color-silver-300)] hover:text-[var(--color-gold-400)] hover:bg-[var(--color-cinema-gray)]/70'
+                    }`
+                  }
+                >
+                  Treasure Trove
                 </NavLink>
                 <NavLink
                   to="/ctcstm-scale"
