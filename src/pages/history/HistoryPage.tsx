@@ -5,7 +5,7 @@ import { DUMMY_MOVIES } from '../../data';
 import { useAppSession } from '../../context/AppSessionContext';
 import { MovieDetail } from './components/MovieDetail';
 import { MovieForm } from './components/MovieForm';
-import { MovieList } from './components/MovieList';
+import { MovieList, type MovieYearSection } from './components/MovieList';
 
 export default function HistoryPage() {
   const { currentUser } = useAppSession();
@@ -18,9 +18,32 @@ export default function HistoryPage() {
     return [...movies].sort((a, b) => b.clubNumber - a.clubNumber);
   }, [movies]);
 
+  const movieSections = useMemo<MovieYearSection[]>(() => {
+    const startYear = 2023;
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: currentYear - startYear + 1 }, (_, i) => currentYear - i);
+
+    const moviesByYear = sortedMovies.reduce<Record<number, MovieRecord[]>>((acc, movie) => {
+      if (!acc[movie.yearWatched]) {
+        acc[movie.yearWatched] = [];
+      }
+      acc[movie.yearWatched].push(movie);
+      return acc;
+    }, {});
+
+    return years.map((year) => ({
+      year,
+      movies: moviesByYear[year] ?? [],
+    }));
+  }, [sortedMovies]);
+
   const nextClubNumber = useMemo(() => {
     if (movies.length === 0) return 1;
     return Math.max(...movies.map((m) => m.clubNumber)) + 1;
+  }, [movies]);
+
+  const treasuresSince2023 = useMemo(() => {
+    return movies.filter((movie) => movie.yearWatched >= 2023).length;
   }, [movies]);
 
   const calculateAverage = (ratings: MovieRecord['ratings']) => {
@@ -68,10 +91,15 @@ export default function HistoryPage() {
     <>
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8 flex items-center justify-between gap-4">
-          <h2 className="text-3xl font-serif text-white flex items-center gap-3">
-            <Award className="text-[var(--color-gold-500)]" size={28} />
-            Films Watched
-          </h2>
+          <div>
+            <h2 className="text-3xl font-serif text-white flex items-center gap-3">
+              <Award className="text-[var(--color-gold-500)]" size={28} />
+              Films Watched
+            </h2>
+            <p className="mt-2 text-sm sm:text-base text-[var(--color-silver-400)]">
+              Charting our course through film history: {treasuresSince2023} treasures unearthed since 2023.
+            </p>
+          </div>
 
           {currentUser && (
             <button
@@ -85,7 +113,7 @@ export default function HistoryPage() {
         </div>
 
         <MovieList
-          movies={sortedMovies}
+          sections={movieSections}
           isLoggedIn={!!currentUser}
           onEdit={openEditForm}
           onDelete={handleDeleteMovie}

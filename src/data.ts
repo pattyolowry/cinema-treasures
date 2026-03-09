@@ -107,5 +107,131 @@ export const DUMMY_MOVIES: MovieRecord[] = [
       Ian: null
     },
     averageRating: 9.4
+  },
+  {
+    id: '6',
+    clubNumber: 6,
+    title: 'The Holdovers',
+    yearReleased: 2023,
+    yearWatched: 2025,
+    originCountry: 'USA',
+    streamingPlatform: 'Peacock',
+    runTime: '2h 13m',
+    mpaaRating: 'R',
+    posterUrl: 'https://image.tmdb.org/t/p/w500/3gfeJfMNa2Q9Pz7sA9p0A6FQ5mK.jpg',
+    ratings: {
+      Ren: 8.5,
+      Patio: 8.5,
+      Greg: 8,
+      Max: 8.5,
+      Quinn: 9,
+      Ian: 8.5
+    },
+    averageRating: 8.5
+  },
+  {
+    id: '7',
+    clubNumber: 7,
+    title: 'Past Lives',
+    yearReleased: 2023,
+    yearWatched: 2025,
+    originCountry: 'USA',
+    streamingPlatform: 'Paramount+',
+    runTime: '1h 46m',
+    mpaaRating: 'PG-13',
+    posterUrl: 'https://image.tmdb.org/t/p/w500/7iK9L2NmA4KjW8vD2xQkUeM4x3P.jpg',
+    ratings: {
+      Ren: 9,
+      Patio: 9,
+      Greg: 9,
+      Max: 8.5,
+      Quinn: 9.5,
+      Ian: 9
+    },
+    averageRating: 9
+  },
+  {
+    id: '8',
+    clubNumber: 8,
+    title: 'Anatomy of a Fall',
+    yearReleased: 2023,
+    yearWatched: 2025,
+    originCountry: 'France',
+    streamingPlatform: 'Hulu',
+    runTime: '2h 31m',
+    mpaaRating: 'R',
+    posterUrl: 'https://image.tmdb.org/t/p/w500/kQs6keheMwCxJxrzV83VUwFtHkB.jpg',
+    ratings: {
+      Ren: 8.5,
+      Patio: 8,
+      Greg: 9,
+      Max: 8.5,
+      Quinn: 8.5,
+      Ian: 8.5
+    },
+    averageRating: 8.5
+  },
+  {
+    id: '9',
+    clubNumber: 9,
+    title: 'Dune: Part Two',
+    yearReleased: 2024,
+    yearWatched: 2026,
+    originCountry: 'USA',
+    streamingPlatform: 'Max',
+    runTime: '2h 46m',
+    mpaaRating: 'PG-13',
+    posterUrl: 'https://image.tmdb.org/t/p/w500/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg',
+    ratings: {
+      Ren: 9,
+      Patio: 9,
+      Greg: 9,
+      Max: 9,
+      Quinn: 9,
+      Ian: 9
+    },
+    averageRating: 9
+  },
+  {
+    id: '10',
+    clubNumber: 10,
+    title: 'The Zone of Interest',
+    yearReleased: 2023,
+    yearWatched: 2026,
+    originCountry: 'United Kingdom',
+    streamingPlatform: 'Max',
+    runTime: '1h 45m',
+    mpaaRating: 'PG-13',
+    posterUrl: 'https://image.tmdb.org/t/p/w500/hUu9zyZmDd8VZegKi1iK1Vk0RYS.jpg',
+    ratings: {
+      Ren: 8,
+      Patio: 8,
+      Greg: 8,
+      Max: 8.5,
+      Quinn: 7.5,
+      Ian: 8
+    },
+    averageRating: 8
+  },
+  {
+    id: '11',
+    clubNumber: 11,
+    title: 'Poor Things',
+    yearReleased: 2023,
+    yearWatched: 2026,
+    originCountry: 'Ireland',
+    streamingPlatform: 'Hulu',
+    runTime: '2h 21m',
+    mpaaRating: 'R',
+    posterUrl: 'https://image.tmdb.org/t/p/w500/kCGlIMHnOm8JPXq3rXM6c5wMxcT.jpg',
+    ratings: {
+      Ren: 8.5,
+      Patio: 8.5,
+      Greg: 8.5,
+      Max: 9,
+      Quinn: 8,
+      Ian: 8.5
+    },
+    averageRating: 8.5
   }
 ];
