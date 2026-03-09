@@ -18,7 +18,7 @@ export default function LandingPage() {
         <div className="relative z-10 px-6 py-20 sm:px-10 sm:py-24 lg:px-14 lg:py-28">
           <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/60 px-4 py-1.5 text-xs tracking-widest uppercase text-[var(--color-silver-400)]">
             <Film size={14} className="text-[var(--color-gold-400)]" />
-            Cinema Treasures
+            A Film Club
           </div>
 
           <h1 className="mt-6 max-w-3xl font-serif text-5xl leading-tight text-white sm:text-6xl">
