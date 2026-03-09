@@ -1,4 +1,4 @@
-import { Calendar, Edit2, Globe, MonitorPlay, Star, X } from 'lucide-react';
+import { Calendar, Edit2, Globe, Star, X } from 'lucide-react';
 import { TROVE_MEMBERS } from '../data';
 import type { TroveMovieRecord } from '../types';
 
@@ -41,10 +41,6 @@ export function TroveMovieDetail({ movie, isLoggedIn, onClose, onEdit }: TroveMo
                   <div className="flex items-center gap-1.5">
                     <Globe size={14} className="text-[var(--color-gold-500)]" />
                     <span>{movie.originCountry}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <MonitorPlay size={14} className="text-[var(--color-gold-500)]" />
-                    <span>{movie.streamingPlatform}</span>
                   </div>
                 </div>
               </div>

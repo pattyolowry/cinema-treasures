@@ -15,7 +15,6 @@ export function TroveMovieForm({ movie, onSave, onClose }: TroveMovieFormProps) 
     title: movie?.title || '',
     yearReleased: movie?.yearReleased || new Date().getFullYear(),
     originCountry: movie?.originCountry || '',
-    streamingPlatform: movie?.streamingPlatform || '',
     runTime: movie?.runTime || '',
     mpaaRating: movie?.mpaaRating || '',
     posterUrl: movie?.posterUrl || '',
@@ -95,18 +94,6 @@ export function TroveMovieForm({ movie, onSave, onClose }: TroveMovieFormProps) 
                   type="text"
                   name="originCountry"
                   value={formData.originCountry}
-                  onChange={handleChange}
-                  className="w-full bg-[var(--color-cinema-black)] border border-[var(--color-cinema-gray)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-gold-500)] focus:ring-1 focus:ring-[var(--color-gold-500)] transition-all"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-xs font-semibold text-[var(--color-silver-400)] uppercase tracking-wider">Streaming Platform</label>
-                <input
-                  required
-                  type="text"
-                  name="streamingPlatform"
-                  value={formData.streamingPlatform}
                   onChange={handleChange}
                   className="w-full bg-[var(--color-cinema-black)] border border-[var(--color-cinema-gray)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-gold-500)] focus:ring-1 focus:ring-[var(--color-gold-500)] transition-all"
                 />

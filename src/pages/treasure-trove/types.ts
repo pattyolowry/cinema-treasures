@@ -5,7 +5,6 @@ export interface TroveMovieRecord {
   title: string;
   yearReleased: number;
   originCountry: string;
-  streamingPlatform: string;
   runTime?: string;
   mpaaRating?: string;
   posterUrl?: string;
