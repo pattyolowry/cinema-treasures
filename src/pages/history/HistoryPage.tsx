@@ -70,7 +70,7 @@ export default function HistoryPage() {
         <div className="mb-8 flex items-center justify-between gap-4">
           <h2 className="text-3xl font-serif text-white flex items-center gap-3">
             <Award className="text-[var(--color-gold-500)]" size={28} />
-            History
+            Films Watched
           </h2>
 
           {currentUser && (

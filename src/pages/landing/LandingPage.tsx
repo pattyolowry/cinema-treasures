@@ -34,7 +34,7 @@ export default function LandingPage() {
               to="/history"
               className="inline-flex items-center gap-2 rounded-full bg-[var(--color-gold-500)] px-6 py-3 font-semibold text-black transition-colors hover:bg-[var(--color-gold-400)]"
             >
-              Explore History
+              Film Log
               <ArrowRight size={18} />
             </Link>
           </div>
