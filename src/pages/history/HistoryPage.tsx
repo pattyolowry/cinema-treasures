@@ -5,7 +5,7 @@ import { DUMMY_MOVIES } from '../../data';
 import { useAppSession } from '../../context/AppSessionContext';
 import { MovieDetail } from './components/MovieDetail';
 import { MovieForm } from './components/MovieForm';
-import { MovieList } from './components/MovieList';
+import { MovieList, type MovieYearSection } from './components/MovieList';
 
 export default function HistoryPage() {
   const { currentUser } = useAppSession();
@@ -17,6 +17,25 @@ export default function HistoryPage() {
   const sortedMovies = useMemo(() => {
     return [...movies].sort((a, b) => b.clubNumber - a.clubNumber);
   }, [movies]);
+
+  const movieSections = useMemo<MovieYearSection[]>(() => {
+    const startYear = 2023;
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: currentYear - startYear + 1 }, (_, i) => currentYear - i);
+
+    const moviesByYear = sortedMovies.reduce<Record<number, MovieRecord[]>>((acc, movie) => {
+      if (!acc[movie.yearWatched]) {
+        acc[movie.yearWatched] = [];
+      }
+      acc[movie.yearWatched].push(movie);
+      return acc;
+    }, {});
+
+    return years.map((year) => ({
+      year,
+      movies: moviesByYear[year] ?? [],
+    }));
+  }, [sortedMovies]);
 
   const nextClubNumber = useMemo(() => {
     if (movies.length === 0) return 1;
@@ -85,7 +104,7 @@ export default function HistoryPage() {
         </div>
 
         <MovieList
-          movies={sortedMovies}
+          sections={movieSections}
           isLoggedIn={!!currentUser}
           onEdit={openEditForm}
           onDelete={handleDeleteMovie}
