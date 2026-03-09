@@ -42,6 +42,10 @@ export default function HistoryPage() {
     return Math.max(...movies.map((m) => m.clubNumber)) + 1;
   }, [movies]);
 
+  const treasuresSince2023 = useMemo(() => {
+    return movies.filter((movie) => movie.yearWatched >= 2023).length;
+  }, [movies]);
+
   const calculateAverage = (ratings: MovieRecord['ratings']) => {
     const validRatings = Object.values(ratings).filter((r): r is number => r !== null);
     if (validRatings.length === 0) return null;
@@ -87,10 +91,15 @@ export default function HistoryPage() {
     <>
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8 flex items-center justify-between gap-4">
-          <h2 className="text-3xl font-serif text-white flex items-center gap-3">
-            <Award className="text-[var(--color-gold-500)]" size={28} />
-            Films Watched
-          </h2>
+          <div>
+            <h2 className="text-3xl font-serif text-white flex items-center gap-3">
+              <Award className="text-[var(--color-gold-500)]" size={28} />
+              Films Watched
+            </h2>
+            <p className="mt-2 text-sm sm:text-base text-[var(--color-silver-400)]">
+              Charting our course through film history: {treasuresSince2023} treasures unearthed since 2023.
+            </p>
+          </div>
 
           {currentUser && (
             <button
