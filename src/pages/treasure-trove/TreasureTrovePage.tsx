@@ -6,7 +6,7 @@ import { DUMMY_TREASURE_TROVE_MOVIES, TROVE_MEMBERS } from './data';
 import type { TroveMember, TroveMovieRecord } from './types';
 import { TroveMovieDetail } from './components/TroveMovieDetail';
 import { TroveMovieForm } from './components/TroveMovieForm';
-import { TroveMovieList } from './components/TroveMovieList';
+import { TroveMovieList, type RankedTroveMovie } from './components/TroveMovieList';
 
 export default function TreasureTrovePage() {
   const { currentUser } = useAppSession();
@@ -23,18 +23,8 @@ export default function TreasureTrovePage() {
   const notReviewedByRef = useRef<HTMLDivElement | null>(null);
   const location = useLocation();
 
-  const sortedMovies = useMemo(() => {
-    const normalizedTitleQuery = titleQuery.trim().toLowerCase();
-
-    const filteredMovies = movies.filter((movie) => {
-      const titleMatches = normalizedTitleQuery === '' || movie.title.toLowerCase().includes(normalizedTitleQuery);
-      const reviewedByMatches = reviewedBy.every((member) => movie.ratings[member] !== null);
-      const notReviewedByMatches = notReviewedBy.every((member) => movie.ratings[member] === null);
-
-      return titleMatches && reviewedByMatches && notReviewedByMatches;
-    });
-
-    return filteredMovies.sort((a, b) => {
+  const rankedAllMovies = useMemo<RankedTroveMovie[]>(() => {
+    const sortedMovies = [...movies].sort((a, b) => {
       const aRating = a.averageRating ?? -1;
       const bRating = b.averageRating ?? -1;
       if (bRating !== aRating) {
@@ -42,7 +32,34 @@ export default function TreasureTrovePage() {
       }
       return a.title.localeCompare(b.title);
     });
-  }, [movies, titleQuery, reviewedBy, notReviewedBy]);
+
+    let previousAverageRating: number | null | undefined = undefined;
+    let previousRank = 0;
+
+    return sortedMovies.map((movie, index) => {
+      const rank =
+        index === 0 || movie.averageRating !== previousAverageRating
+          ? index + 1
+          : previousRank;
+
+      previousAverageRating = movie.averageRating;
+      previousRank = rank;
+
+      return { movie, rank };
+    });
+  }, [movies]);
+
+  const visibleMovies = useMemo(() => {
+    const normalizedTitleQuery = titleQuery.trim().toLowerCase();
+
+    return rankedAllMovies.filter(({ movie }) => {
+      const titleMatches = normalizedTitleQuery === '' || movie.title.toLowerCase().includes(normalizedTitleQuery);
+      const reviewedByMatches = reviewedBy.every((member) => movie.ratings[member] !== null);
+      const notReviewedByMatches = notReviewedBy.every((member) => movie.ratings[member] === null);
+
+      return titleMatches && reviewedByMatches && notReviewedByMatches;
+    });
+  }, [rankedAllMovies, titleQuery, reviewedBy, notReviewedBy]);
 
   const toggleMember = (members: TroveMember[], member: TroveMember, setter: (members: TroveMember[]) => void) => {
     if (members.includes(member)) {
@@ -273,7 +290,7 @@ export default function TreasureTrovePage() {
         </div>
 
         <TroveMovieList
-          movies={sortedMovies}
+          movies={visibleMovies}
           isLoggedIn={!!currentUser}
           onEdit={openEditForm}
           onDelete={handleDeleteMovie}
