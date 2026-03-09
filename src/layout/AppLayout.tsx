@@ -1,27 +1,39 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, Outlet } from 'react-router-dom';
-import { Film, LogIn, LogOut, User } from 'lucide-react';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Film, LogIn, LogOut, Menu, User, X } from 'lucide-react';
 import { MEMBERS } from '../data';
 import type { Member } from '../types';
 import logo from '../assets/tmdb-logo.svg';
 import { AppSessionContext } from '../context/AppSessionContext';
 
 export function AppLayout() {
+  const location = useLocation();
   const [currentUser, setCurrentUser] = useState<Member | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDesktopMenuOpen, setIsDesktopMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  const desktopMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
         setIsProfileMenuOpen(false);
       }
+      if (desktopMenuRef.current && !desktopMenuRef.current.contains(event.target as Node)) {
+        setIsDesktopMenuOpen(false);
+      }
     }
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+    setIsDesktopMenuOpen(false);
+  }, [location.pathname]);
 
   const contextValue = useMemo(
     () => ({
@@ -48,7 +60,75 @@ export function AppLayout() {
               </div>
             </Link>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-6">
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen((open) => !open)}
+                className="sm:hidden inline-flex items-center justify-center w-10 h-10 rounded-full border border-[var(--color-cinema-gray)] text-[var(--color-silver-300)] hover:text-[var(--color-gold-400)] hover:border-[var(--color-gold-600)] transition-colors"
+                aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="mobile-nav-menu"
+              >
+                {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+              </button>
+              <div className="relative hidden sm:block" ref={desktopMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsDesktopMenuOpen((open) => !open)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--color-cinema-gray)] text-sm font-medium text-[var(--color-silver-300)] hover:text-[var(--color-gold-400)] hover:border-[var(--color-gold-600)] transition-colors"
+                  aria-label={isDesktopMenuOpen ? 'Close desktop navigation menu' : 'Open desktop navigation menu'}
+                  aria-expanded={isDesktopMenuOpen}
+                  aria-controls="desktop-nav-menu"
+                >
+                  Menu
+                  {isDesktopMenuOpen ? <X size={14} /> : <Menu size={14} />}
+                </button>
+                {isDesktopMenuOpen && (
+                  <div
+                    id="desktop-nav-menu"
+                    className="absolute right-0 mt-2 w-52 bg-[var(--color-cinema-dark)] border border-[var(--color-cinema-gray)] rounded-xl shadow-2xl p-2 z-50"
+                  >
+                    <nav className="flex flex-col gap-1">
+                      <NavLink
+                        to="/"
+                        className={({ isActive }) =>
+                          `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            isActive
+                              ? 'text-[var(--color-gold-400)] bg-[var(--color-cinema-gray)]'
+                              : 'text-[var(--color-silver-300)] hover:text-[var(--color-gold-400)] hover:bg-[var(--color-cinema-gray)]/70'
+                          }`
+                        }
+                      >
+                        Home
+                      </NavLink>
+                      <NavLink
+                        to="/history"
+                        className={({ isActive }) =>
+                          `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            isActive
+                              ? 'text-[var(--color-gold-400)] bg-[var(--color-cinema-gray)]'
+                              : 'text-[var(--color-silver-300)] hover:text-[var(--color-gold-400)] hover:bg-[var(--color-cinema-gray)]/70'
+                          }`
+                        }
+                      >
+                        Film Log
+                      </NavLink>
+                      <NavLink
+                        to="/ctcstm-scale"
+                        className={({ isActive }) =>
+                          `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            isActive
+                              ? 'text-[var(--color-gold-400)] bg-[var(--color-cinema-gray)]'
+                              : 'text-[var(--color-silver-300)] hover:text-[var(--color-gold-400)] hover:bg-[var(--color-cinema-gray)]/70'
+                          }`
+                        }
+                      >
+                        CTCSTM Scale
+                      </NavLink>
+                    </nav>
+                  </div>
+                )}
+              </div>
               {currentUser ? (
                 <div className="relative" ref={profileMenuRef}>
                   <button
@@ -89,6 +169,51 @@ export function AppLayout() {
               )}
             </div>
           </div>
+          {isMobileMenuOpen && (
+            <div
+              id="mobile-nav-menu"
+              className="sm:hidden border-t border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/95 px-4 py-3"
+            >
+              <nav className="flex flex-col gap-2">
+                <NavLink
+                  to="/"
+                  className={({ isActive }) =>
+                    `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'text-[var(--color-gold-400)] bg-[var(--color-cinema-gray)]'
+                        : 'text-[var(--color-silver-300)] hover:text-[var(--color-gold-400)] hover:bg-[var(--color-cinema-gray)]/70'
+                    }`
+                  }
+                >
+                  Home
+                </NavLink>
+                <NavLink
+                  to="/history"
+                  className={({ isActive }) =>
+                    `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'text-[var(--color-gold-400)] bg-[var(--color-cinema-gray)]'
+                        : 'text-[var(--color-silver-300)] hover:text-[var(--color-gold-400)] hover:bg-[var(--color-cinema-gray)]/70'
+                    }`
+                  }
+                >
+                  Film Log
+                </NavLink>
+                <NavLink
+                  to="/ctcstm-scale"
+                  className={({ isActive }) =>
+                    `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'text-[var(--color-gold-400)] bg-[var(--color-cinema-gray)]'
+                        : 'text-[var(--color-silver-300)] hover:text-[var(--color-gold-400)] hover:bg-[var(--color-cinema-gray)]/70'
+                    }`
+                  }
+                >
+                  CTCSTM Scale
+                </NavLink>
+              </nav>
+            </div>
+          )}
         </header>
 
         <main className="flex-1">
