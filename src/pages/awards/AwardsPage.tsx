@@ -118,7 +118,7 @@ export default function AwardsPage() {
         <img
           src="/awards-banner.png"
           alt="Golden Treasures yearly winners banner"
-          className="w-full h-40 sm:h-56 lg:h-72 object-cover object-center"
+          className="w-full h-40 sm:h-56 lg:h-auto object-cover lg:object-contain object-center"
         />
       </div>
 
