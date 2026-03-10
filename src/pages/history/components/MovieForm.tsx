@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { MovieRecord, Member } from '../../../types';
 import { MEMBERS } from '../../../data';
 import { X } from 'lucide-react';
@@ -21,6 +21,7 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber }: MovieFormP
     runTime: movie?.runTime || '',
     mpaaRating: movie?.mpaaRating || '',
     posterUrl: movie?.posterUrl || '',
+    backdropUrl: movie?.backdropUrl || '',
     ratings: movie?.ratings || MEMBERS.reduce((acc, member) => ({ ...acc, [member]: null }), {} as Record<Member, number | null>)
   });
 
@@ -177,6 +178,18 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber }: MovieFormP
               onChange={handleChange}
               className="w-full bg-[var(--color-cinema-black)] border border-[var(--color-cinema-gray)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-gold-500)] focus:ring-1 focus:ring-[var(--color-gold-500)] transition-all"
               placeholder="https://example.com/poster.jpg"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-xs font-semibold text-[var(--color-silver-400)] uppercase tracking-wider">Backdrop Image URL</label>
+            <input
+              type="url"
+              name="backdropUrl"
+              value={formData.backdropUrl}
+              onChange={handleChange}
+              className="w-full bg-[var(--color-cinema-black)] border border-[var(--color-cinema-gray)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-gold-500)] focus:ring-1 focus:ring-[var(--color-gold-500)] transition-all"
+              placeholder="https://example.com/backdrop.jpg"
             />
           </div>
 
