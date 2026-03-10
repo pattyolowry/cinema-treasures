@@ -114,6 +114,14 @@ export default function AwardsPage() {
         </div>
       </div>
 
+      <div className="mb-8 rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/80 shadow-[0_8px_24px_rgba(0,0,0,0.35)] overflow-hidden">
+        <img
+          src="/awards-banner.png"
+          alt="Golden Treasures yearly winners banner"
+          className="w-full h-40 sm:h-56 lg:h-72 object-cover object-center"
+        />
+      </div>
+
       {selectedYearData && visibleCategories.length > 0 && (
         <div className="grid grid-cols-1 gap-5">
           {visibleCategories.map((category) => (
