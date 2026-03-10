@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Award } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Award, ChevronDown } from 'lucide-react';
 import { useAppSession } from '../../context/AppSessionContext';
 import { DUMMY_AWARDS } from './data';
 
@@ -14,6 +14,8 @@ export default function AwardsPage() {
 
   const mostRecentYear = sortedYears[0]?.year ?? new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState<number>(mostRecentYear);
+  const [isYearMenuOpen, setIsYearMenuOpen] = useState(false);
+  const yearMenuRef = useRef<HTMLDivElement | null>(null);
 
   const selectedYearData = useMemo(
     () => sortedYears.find((entry) => entry.year === selectedYear) ?? sortedYears[0] ?? null,
@@ -25,6 +27,28 @@ export default function AwardsPage() {
     if (isLoggedIn) return selectedYearData.categories;
     return selectedYearData.categories.filter((category) => category.isVisible);
   }, [isLoggedIn, selectedYearData]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (yearMenuRef.current && !yearMenuRef.current.contains(event.target as Node)) {
+        setIsYearMenuOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsYearMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -39,21 +63,55 @@ export default function AwardsPage() {
           </p>
         </div>
 
-        <label className="flex items-center gap-3 text-sm text-[var(--color-silver-300)]">
-          <span className="font-semibold uppercase tracking-wider text-[var(--color-silver-500)]">Year</span>
-          <select
-            value={selectedYear}
-            onChange={(event) => setSelectedYear(Number(event.target.value))}
-            className="bg-[var(--color-cinema-black)] border border-[var(--color-cinema-gray)] rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[var(--color-gold-500)] focus:ring-1 focus:ring-[var(--color-gold-500)] transition-all"
-            aria-label="Select awards year"
-          >
-            {sortedYears.map((entry) => (
-              <option key={entry.year} value={entry.year}>
-                {entry.year}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="w-full sm:w-auto rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/85 shadow-[0_8px_24px_rgba(0,0,0,0.35)] px-4 py-3">
+          <div className="flex flex-row flex-wrap items-center gap-3 text-sm text-[var(--color-silver-300)]" ref={yearMenuRef}>
+            <span className="font-semibold uppercase tracking-wider text-[var(--color-silver-500)]">Year</span>
+            <div className="relative flex-1 min-w-[8.5rem] sm:flex-none sm:w-auto">
+              <button
+                type="button"
+                onClick={() => setIsYearMenuOpen((open) => !open)}
+                aria-label="Toggle awards year menu"
+                aria-expanded={isYearMenuOpen}
+                aria-controls="awards-year-menu"
+                className="w-full sm:w-auto min-w-0 sm:min-w-[9rem] flex items-center justify-between gap-3 bg-[var(--color-cinema-black)] border border-[var(--color-cinema-gray)] rounded-lg pl-4 pr-3 py-2.5 text-left text-white hover:border-[var(--color-gold-600)] focus:outline-none focus:border-[var(--color-gold-500)] focus:ring-1 focus:ring-[var(--color-gold-500)] transition-all"
+              >
+                <span className="text-base">{selectedYear}</span>
+                <ChevronDown
+                  size={16}
+                  className={`text-[var(--color-silver-400)] transition-transform ${isYearMenuOpen ? 'rotate-180' : ''}`}
+                  aria-hidden="true"
+                />
+              </button>
+
+              {isYearMenuOpen && (
+                <div
+                  id="awards-year-menu"
+                  className="absolute z-20 mt-2 w-full sm:min-w-[9rem] sm:w-auto rounded-lg border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-black)] shadow-[0_8px_24px_rgba(0,0,0,0.4)] p-2"
+                >
+                  <div className="flex flex-col gap-1">
+                    {sortedYears.map((entry) => (
+                      <button
+                        key={entry.year}
+                        type="button"
+                        onClick={() => {
+                          setSelectedYear(entry.year);
+                          setIsYearMenuOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                          entry.year === selectedYear
+                            ? 'text-[var(--color-gold-400)] bg-[var(--color-cinema-gray)]'
+                            : 'text-[var(--color-silver-300)] hover:text-[var(--color-gold-400)] hover:bg-[var(--color-cinema-gray)]/70'
+                        }`}
+                      >
+                        {entry.year}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {selectedYearData && visibleCategories.length > 0 && (
