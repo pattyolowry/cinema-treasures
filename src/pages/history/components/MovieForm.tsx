@@ -52,7 +52,7 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber }: MovieFormP
   const [formData, setFormData] = useState({
     clubNumber: movie?.clubNumber || nextClubNumber,
     title: movie?.title || '',
-    yearReleased: movie?.yearReleased || new Date().getFullYear(),
+    yearReleased: movie?.yearReleased || null,
     yearWatched: movie?.yearWatched || new Date().getFullYear(),
     originCountry: movie?.originCountry || '',
     streamingPlatform: movie?.streamingPlatform || '',
@@ -313,6 +313,7 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber }: MovieFormP
                 value={formData.yearReleased}
                 onChange={handleChange}
                 className="w-full bg-[var(--color-cinema-black)] border border-[var(--color-cinema-gray)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-gold-500)] focus:ring-1 focus:ring-[var(--color-gold-500)] transition-all font-mono"
+                placeholder="e.g. 2000"
               />
             </div>
 

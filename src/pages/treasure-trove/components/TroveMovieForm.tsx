@@ -52,7 +52,7 @@ export function TroveMovieForm({ movie, onSave, onClose }: TroveMovieFormProps) 
   const isAddMode = !movie;
   const [formData, setFormData] = useState({
     title: movie?.title || '',
-    yearReleased: movie?.yearReleased || new Date().getFullYear(),
+    yearReleased: movie?.yearReleased || null,
     originCountry: movie?.originCountry || '',
     runTime: movie?.runTime || '',
     mpaaRating: movie?.mpaaRating || '',
