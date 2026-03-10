@@ -15,3 +15,17 @@ export interface MovieRecord {
   ratings: Record<Member, number | null>;
   averageRating: number | null;
 }
+
+export interface TmdbMovie {
+  id: number
+  title: string,
+  poster_path: string,
+  backdrop_path: string,
+  release_date: string,
+  origin_country: string[],
+  runtime: number
+}
+
+export interface TmdbSearchResults {
+  results: TmdbMovie[];
+}
