@@ -14,9 +14,22 @@ export default function HistoryPage() {
   const [editingMovie, setEditingMovie] = useState<MovieRecord | null>(null);
   const [selectedMovie, setSelectedMovie] = useState<MovieRecord | null>(null);
 
-  const sortedMovies = useMemo(() => {
-    return [...movies].sort((a, b) => b.clubNumber - a.clubNumber);
+  const compareByCurrentWatchPriority = (a: MovieRecord, b: MovieRecord) => {
+    if (b.clubNumber !== a.clubNumber) return b.clubNumber - a.clubNumber;
+    if (b.yearWatched !== a.yearWatched) return b.yearWatched - a.yearWatched;
+    return a.id.localeCompare(b.id);
+  };
+
+  const currentWatchMovie = useMemo(() => {
+    if (movies.length === 0) return null;
+    return [...movies].sort(compareByCurrentWatchPriority)[0];
   }, [movies]);
+
+  const sortedMovies = useMemo(() => {
+    return movies
+      .filter((movie) => movie.id !== currentWatchMovie?.id)
+      .sort(compareByCurrentWatchPriority);
+  }, [movies, currentWatchMovie]);
 
   const movieSections = useMemo<MovieYearSection[]>(() => {
     const startYear = 2023;
@@ -111,6 +124,35 @@ export default function HistoryPage() {
             </button>
           )}
         </div>
+
+        {currentWatchMovie && (
+          <div
+            className={`mb-8 relative overflow-hidden rounded-2xl border border-[var(--color-cinema-gray)] ${
+              currentWatchMovie.backdropUrl ? 'min-h-[220px] sm:min-h-[260px]' : ''
+            }`}
+          >
+            {currentWatchMovie.backdropUrl ? (
+              <>
+                <img
+                  src={currentWatchMovie.backdropUrl}
+                  alt={`${currentWatchMovie.title} backdrop`}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40" />
+                <div className="relative z-10 p-6 sm:p-8 md:p-10">
+                  <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-gold-400)]">Now Screening</p>
+                  <h3 className="mt-3 text-2xl sm:text-3xl md:text-4xl font-serif text-white">{currentWatchMovie.title} ({currentWatchMovie.yearReleased})</h3>
+                </div>
+              </>
+            ) : (
+              <div className="bg-gradient-to-r from-[var(--color-cinema-dark)] via-[var(--color-cinema-black)] to-[var(--color-cinema-dark)] p-6 sm:p-8">
+                <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-gold-400)]">Now Screening</p>
+                <h3 className="mt-3 text-2xl sm:text-3xl md:text-4xl font-serif text-white">{currentWatchMovie.title} ({currentWatchMovie.yearReleased})</h3>
+              </div>
+            )}
+          </div>
+        )}
 
         <MovieList
           sections={movieSections}

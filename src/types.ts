@@ -11,6 +11,7 @@ export interface MovieRecord {
   runTime?: string;
   mpaaRating?: string;
   posterUrl?: string;
+  backdropUrl?: string;
   ratings: Record<Member, number | null>;
   averageRating: number | null;
 }
