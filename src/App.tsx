@@ -5,12 +5,14 @@ import { LandingPage } from './pages/landing';
 import { HistoryPage } from './pages/history';
 import { TreasureTrovePage } from './pages/treasure-trove';
 import { AwardsPage } from './pages/awards';
+import { AboutPage } from './pages/about';
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<AppLayout />}>
         <Route index element={<LandingPage />} />
+        <Route path="about" element={<AboutPage />} />
         <Route path="history" element={<HistoryPage />} />
         <Route path="treasure-trove" element={<TreasureTrovePage />} />
         <Route path="ctcstm-scale" element={<CTCSTMScalePage />} />
