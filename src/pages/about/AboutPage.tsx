@@ -10,7 +10,7 @@ export default function AboutPage() {
           About The Club
         </h2>
         <p className="mt-2 text-sm sm:text-base text-[var(--color-silver-400)]">
-          Meet the six members behind Cinema Treasures and a quick look at each member&apos;s four favorite films.
+          Meet the six members behind Cinema Treasures.
         </p>
       </header>
 
