@@ -63,7 +63,9 @@ export default function AwardsPage() {
               key={category.name}
               className="rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/80 p-5"
             >
-              <h3 className="text-xl font-serif text-white mb-4">{category.name}</h3>
+              <h3 className="text-xl font-serif uppercase tracking-wide text-[var(--color-gold-400)] [text-shadow:0_1px_6px_rgba(255,255,255,0.55)] mb-4">
+                {category.name}
+              </h3>
               <ul className="space-y-2">
                 {category.nominees.map((nominee) => (
                   <li
