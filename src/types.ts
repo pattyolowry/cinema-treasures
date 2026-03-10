@@ -16,16 +16,30 @@ export interface MovieRecord {
   averageRating: number | null;
 }
 
-export interface TmdbMovie {
-  id: number
-  title: string,
-  poster_path: string,
-  backdrop_path: string,
-  release_date: string,
-  origin_country: string[],
-  runtime: number
+export interface TmdbSearchMovie {
+  id: number;
+  title: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  release_date: string;
 }
 
 export interface TmdbSearchResults {
-  results: TmdbMovie[];
+  results: TmdbSearchMovie[];
+}
+
+export interface TmdbProductionCountry {
+  iso_3166_1: string;
+  name: string;
+}
+
+export interface TmdbMovieDetails {
+  id: number;
+  title: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  release_date: string;
+  runtime: number | null;
+  origin_country?: string[];
+  production_countries?: TmdbProductionCountry[];
 }
