@@ -52,7 +52,7 @@ export default function AwardsPage() {
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="mb-6">
         <div>
           <h2 className="text-3xl font-serif text-white flex items-center gap-3">
             <Award className="text-[var(--color-gold-500)]" size={28} />
@@ -62,64 +62,64 @@ export default function AwardsPage() {
             Annual club awards honoring the standout films and performances of each year.
           </p>
         </div>
-
-        <div className="w-full sm:w-auto rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/85 shadow-[0_8px_24px_rgba(0,0,0,0.35)] px-4 py-3">
-          <div className="flex flex-row flex-wrap items-center gap-3 text-sm text-[var(--color-silver-300)]" ref={yearMenuRef}>
-            <span className="font-semibold uppercase tracking-wider text-[var(--color-silver-500)]">Year</span>
-            <div className="relative flex-1 min-w-[8.5rem] sm:flex-none sm:w-auto">
-              <button
-                type="button"
-                onClick={() => setIsYearMenuOpen((open) => !open)}
-                aria-label="Toggle awards year menu"
-                aria-expanded={isYearMenuOpen}
-                aria-controls="awards-year-menu"
-                className="w-full sm:w-auto min-w-0 sm:min-w-[9rem] flex items-center justify-between gap-3 bg-[var(--color-cinema-black)] border border-[var(--color-cinema-gray)] rounded-lg pl-4 pr-3 py-2.5 text-left text-white hover:border-[var(--color-gold-600)] focus:outline-none focus:border-[var(--color-gold-500)] focus:ring-1 focus:ring-[var(--color-gold-500)] transition-all"
-              >
-                <span className="text-base">{selectedYear}</span>
-                <ChevronDown
-                  size={16}
-                  className={`text-[var(--color-silver-400)] transition-transform ${isYearMenuOpen ? 'rotate-180' : ''}`}
-                  aria-hidden="true"
-                />
-              </button>
-
-              {isYearMenuOpen && (
-                <div
-                  id="awards-year-menu"
-                  className="absolute z-20 mt-2 w-full sm:min-w-[9rem] sm:w-auto rounded-lg border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-black)] shadow-[0_8px_24px_rgba(0,0,0,0.4)] p-2"
-                >
-                  <div className="flex flex-col gap-1">
-                    {sortedYears.map((entry) => (
-                      <button
-                        key={entry.year}
-                        type="button"
-                        onClick={() => {
-                          setSelectedYear(entry.year);
-                          setIsYearMenuOpen(false);
-                        }}
-                        className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                          entry.year === selectedYear
-                            ? 'text-[var(--color-gold-400)] bg-[var(--color-cinema-gray)]'
-                            : 'text-[var(--color-silver-300)] hover:text-[var(--color-gold-400)] hover:bg-[var(--color-cinema-gray)]/70'
-                        }`}
-                      >
-                        {entry.year}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
       </div>
 
-      <div className="mb-8 rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/80 shadow-[0_8px_24px_rgba(0,0,0,0.35)] overflow-hidden">
+      <div className="mb-6 rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/80 shadow-[0_8px_24px_rgba(0,0,0,0.35)] overflow-hidden">
         <img
           src="/awards-banner.png"
           alt="Golden Treasures yearly winners banner"
           className="w-full h-40 sm:h-56 lg:h-auto object-cover lg:object-contain object-center"
         />
+      </div>
+
+      <div className="mb-8 w-full sm:w-auto rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/85 shadow-[0_8px_24px_rgba(0,0,0,0.35)] px-4 py-3">
+        <div className="flex flex-row flex-wrap items-center gap-3 text-sm text-[var(--color-silver-300)]" ref={yearMenuRef}>
+          <span className="font-semibold uppercase tracking-wider text-[var(--color-silver-500)]">Year</span>
+          <div className="relative flex-1 min-w-[8.5rem] sm:flex-none sm:w-auto">
+            <button
+              type="button"
+              onClick={() => setIsYearMenuOpen((open) => !open)}
+              aria-label="Toggle awards year menu"
+              aria-expanded={isYearMenuOpen}
+              aria-controls="awards-year-menu"
+              className="w-full sm:w-auto min-w-0 sm:min-w-[9rem] flex items-center justify-between gap-3 bg-[var(--color-cinema-black)] border border-[var(--color-cinema-gray)] rounded-lg pl-4 pr-3 py-2.5 text-left text-white hover:border-[var(--color-gold-600)] focus:outline-none focus:border-[var(--color-gold-500)] focus:ring-1 focus:ring-[var(--color-gold-500)] transition-all"
+            >
+              <span className="text-base">{selectedYear}</span>
+              <ChevronDown
+                size={16}
+                className={`text-[var(--color-silver-400)] transition-transform ${isYearMenuOpen ? 'rotate-180' : ''}`}
+                aria-hidden="true"
+              />
+            </button>
+
+            {isYearMenuOpen && (
+              <div
+                id="awards-year-menu"
+                className="absolute z-20 mt-2 w-full sm:min-w-[9rem] sm:w-auto rounded-lg border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-black)] shadow-[0_8px_24px_rgba(0,0,0,0.4)] p-2"
+              >
+                <div className="flex flex-col gap-1">
+                  {sortedYears.map((entry) => (
+                    <button
+                      key={entry.year}
+                      type="button"
+                      onClick={() => {
+                        setSelectedYear(entry.year);
+                        setIsYearMenuOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        entry.year === selectedYear
+                          ? 'text-[var(--color-gold-400)] bg-[var(--color-cinema-gray)]'
+                          : 'text-[var(--color-silver-300)] hover:text-[var(--color-gold-400)] hover:bg-[var(--color-cinema-gray)]/70'
+                      }`}
+                    >
+                      {entry.year}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {selectedYearData && visibleCategories.length > 0 && (
