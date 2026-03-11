@@ -1,0 +1,16 @@
+{
+  "name": "cinema-treasures",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "frontend": "npm run dev -w frontend",
+    "backend": "npm run dev -w backend",
+    "dev": "concurrently \"npm run frontend\" \"npm run backend\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
