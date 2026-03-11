@@ -52,7 +52,7 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber }: MovieFormP
   const [formData, setFormData] = useState({
     clubNumber: movie?.clubNumber || nextClubNumber,
     title: movie?.title || '',
-    yearReleased: movie?.yearReleased || null,
+    yearReleased: movie?.yearReleased || '',
     yearWatched: movie?.yearWatched || new Date().getFullYear(),
     originCountry: movie?.originCountry || '',
     streamingPlatform: movie?.streamingPlatform || '',
