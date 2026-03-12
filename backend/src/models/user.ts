@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
-    name: String,
-    username: String,
-    passwordHash: String
+    name: {type: String, required: true},
+    username: {type: String, required: true},
+    passwordHash: {type: String, required: true}
 })
 
 userSchema.set("toJSON", {
