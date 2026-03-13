@@ -3,6 +3,7 @@ import historyService from '../services/historyService'
 import { z } from "zod";
 import { Response, Request, NextFunction } from 'express';
 import { newLogEntrySchema } from '../utils/schemas'
+import middleware from '../utils/middleware'
 
 const router = express.Router();
 
@@ -28,7 +29,7 @@ const errorMiddleware = (error: unknown, _req: Request, res: Response, next: Nex
   }
 };
 
-router.post('/', newLogEntryParser, async (req, res) => {
+router.post('/', newLogEntryParser, middleware.userExtractor, async (req, res) => {
     const addedEntry = await historyService.addEntry(req.body)
     res.json(addedEntry)
 })
