@@ -1,9 +1,9 @@
 import express from 'express';
 import treasureService from '../services/treasureService'
-// import { z } from "zod";
-// import { Response, Request, NextFunction } from 'express';
-// import { newLogEntrySchema } from '../utils/schemas'
-// import middleware from '../utils/middleware'
+import { z } from "zod";
+import { Response, Request, NextFunction } from 'express';
+import { newTreasureSchema } from '../utils/schemas'
+import middleware from '../utils/middleware'
 
 const router = express.Router();
 
@@ -12,35 +12,35 @@ router.get('/', async (_req, res) => {
   res.send(allTreasures);
 });
 
-// const newLogEntryParser = (req: Request, _res: Response, next: NextFunction) => {
-//   try {
-//     newLogEntrySchema.parse(req.body);
-//     next();
-//   } catch (error: unknown) {
-//     next(error);
-//   }
-// };
+const newTreasureParser = (req: Request, _res: Response, next: NextFunction) => {
+  try {
+    newTreasureSchema.parse(req.body);
+    next();
+  } catch (error: unknown) {
+    next(error);
+  }
+};
 
-// const errorMiddleware = (error: unknown, _req: Request, res: Response, next: NextFunction) => { 
-//   if (error instanceof z.ZodError) {
-//     res.status(400).send({ error: error.issues });
-//   } else {
-//     next(error);
-//   }
-// };
+const errorMiddleware = (error: unknown, _req: Request, res: Response, next: NextFunction) => { 
+  if (error instanceof z.ZodError) {
+    res.status(400).send({ error: error.issues });
+  } else {
+    next(error);
+  }
+};
 
-// router.post('/', newLogEntryParser, middleware.userExtractor, async (req, res) => {
-//   try {
-//     const addedEntry = await historyService.addEntry(req.body)
-//     res.json(addedEntry)
-//   } catch (error: unknown) {
-//     let errorMessage = 'Something went wrong.';
-//     if (error instanceof Error) {
-//       errorMessage += ' Error: ' + error.message;
-//     }
-//     res.status(400).send({ "error": errorMessage});
-//   }
-// })
+router.post('/', newTreasureParser, middleware.userExtractor, async (req, res) => {
+  try {
+    const addedTreasure = await treasureService.addTreasure(req.body)
+    res.json(addedTreasure)
+  } catch (error: unknown) {
+    let errorMessage = 'Something went wrong.';
+    if (error instanceof Error) {
+      errorMessage += ' Error: ' + error.message;
+    }
+    res.status(400).send({ "error": errorMessage});
+  }
+})
 
 // router.put('/:id', newLogEntryParser, middleware.userExtractor, async (req, res) => {
 //   try {
@@ -72,6 +72,6 @@ router.get('/', async (_req, res) => {
 //   }
 // })
 
-// router.use(errorMiddleware);
+router.use(errorMiddleware);
 
 export default router;

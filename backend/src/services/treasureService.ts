@@ -1,36 +1,40 @@
 import Treasure from '../models/treasure'
-// import Movie from '../models/movie'
-// import { NewLogEntry } from '../types'
+import Movie from '../models/movie'
+import { NewTreasure } from '../types'
 
 const getAll = async () => {
     const allTreasures = await Treasure.find({}).populate("movie")
     return allTreasures
 }
 
-// const findAndUpdateLinkedMovie = async (entry: NewLogEntry) => {
-//     let movie = await Movie.findOne({title: entry.movie.title})
-//     if (movie) {
-//         movie.set(entry.movie)
-//     } else {
-//         movie = new Movie({
-//             ...entry.movie
-//         })
-//     }
+const findAndUpdateLinkedMovie = async (entry: NewTreasure) => {
+    let movie = await Movie.findOne({title: entry.movie.title})
+    if (movie) {
+        movie.yearReleased = entry.movie.yearReleased
+        movie.originCountry = entry.movie.originCountry
+        movie.runTime = entry.movie.runTime
+        movie.mpaaRating = entry.movie.mpaaRating
+        movie.posterUrl = entry.movie.posterUrl
+    } else {
+        movie = new Movie({
+            ...entry.movie
+        })
+    }
 
-//     return await movie.save();
-// }
+    return await movie.save();
+}
 
-// const addEntry = async (entry: NewLogEntry) => {
-//     const movie = await findAndUpdateLinkedMovie(entry)
+const addTreasure = async (treasure: NewTreasure) => {
+    const movie = await findAndUpdateLinkedMovie(treasure)
 
-//     const newLogEntry = new LogEntry({
-//         ...entry,
-//         movie: movie._id
-//     })
+    const newTreasure = new Treasure({
+        ...treasure,
+        movie: movie._id
+    })
 
-//     const addedEntry = await newLogEntry.save();
-//     return await addedEntry.populate("movie")
-// }
+    const addedTreasure = await newTreasure.save();
+    return await addedTreasure.populate("movie")
+}
 
 // const updateEntry = async (id: string, entry: NewLogEntry) => {
 //     const logEntry = await LogEntry.findById(id)
@@ -54,5 +58,6 @@ const getAll = async () => {
 // }
 
 export default {
-  getAll
+  getAll,
+  addTreasure
 };
