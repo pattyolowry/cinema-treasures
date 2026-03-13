@@ -1,108 +1,170 @@
-import { useMemo, useState, type KeyboardEvent } from 'react';
-import { Award, Plus } from 'lucide-react';
-import type { MovieRecord } from '../../types';
-import { DUMMY_MOVIES } from '../../data';
+import { useCallback, useEffect, useMemo, useState, type KeyboardEvent } from 'react';
+import { AlertCircle, Award, Plus } from 'lucide-react';
+import type { LogEntry, NewLogEntry } from '../../types';
 import { useAppSession } from '../../context/AppSessionContext';
+import historyService from '../../services/history';
 import { MovieDetail } from './components/MovieDetail';
 import { MovieForm } from './components/MovieForm';
 import { MovieList, type MovieYearSection } from './components/MovieList';
 
+const HISTORY_ERROR_MESSAGE = 'Unable to load film history right now. Please try again.';
+const HISTORY_SAVE_ERROR_MESSAGE = 'Unable to save this record. Please try again.';
+const HISTORY_DELETE_ERROR_MESSAGE = 'Unable to delete this record. Please try again.';
+
+function getRequestErrorMessage(error: unknown, fallback: string): string {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const response = (error as { response?: { data?: { error?: unknown } } }).response;
+    if (typeof response?.data?.error === 'string') {
+      return response.data.error;
+    }
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return fallback;
+}
+
 export default function HistoryPage() {
   const { currentUser } = useAppSession();
-  const [movies, setMovies] = useState<MovieRecord[]>(DUMMY_MOVIES);
+  const [entries, setEntries] = useState<LogEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingMovie, setEditingMovie] = useState<MovieRecord | null>(null);
-  const [selectedMovie, setSelectedMovie] = useState<MovieRecord | null>(null);
+  const [editingEntry, setEditingEntry] = useState<LogEntry | null>(null);
+  const [selectedEntry, setSelectedEntry] = useState<LogEntry | null>(null);
 
-  const compareByCurrentWatchPriority = (a: MovieRecord, b: MovieRecord) => {
+  const loadEntries = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const historyEntries = await historyService.getAllEntries();
+      setEntries(historyEntries);
+    } catch (error: unknown) {
+      setErrorMessage(getRequestErrorMessage(error, HISTORY_ERROR_MESSAGE));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadEntries();
+  }, [loadEntries]);
+
+  const compareByCurrentWatchPriority = (a: LogEntry, b: LogEntry) => {
     if (b.clubNumber !== a.clubNumber) return b.clubNumber - a.clubNumber;
-    if (b.yearWatched !== a.yearWatched) return b.yearWatched - a.yearWatched;
+    if ((b.yearWatched ?? 0) !== (a.yearWatched ?? 0)) return (b.yearWatched ?? 0) - (a.yearWatched ?? 0);
     return a.id.localeCompare(b.id);
   };
 
-  const currentWatchMovie = useMemo(() => {
-    if (movies.length === 0) return null;
-    return [...movies].sort(compareByCurrentWatchPriority)[0];
-  }, [movies]);
+  const currentWatchEntry = useMemo(() => {
+    if (entries.length === 0) return null;
+    return [...entries].sort(compareByCurrentWatchPriority)[0];
+  }, [entries]);
 
-  const sortedMovies = useMemo(() => {
-    return movies
-      .filter((movie) => movie.id !== currentWatchMovie?.id)
+  const sortedEntries = useMemo(() => {
+    return entries
+      .filter((entry) => entry.id !== currentWatchEntry?.id)
       .sort(compareByCurrentWatchPriority);
-  }, [movies, currentWatchMovie]);
+  }, [entries, currentWatchEntry]);
 
   const movieSections = useMemo<MovieYearSection[]>(() => {
     const startYear = 2023;
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: currentYear - startYear + 1 }, (_, i) => currentYear - i);
 
-    const moviesByYear = sortedMovies.reduce<Record<number, MovieRecord[]>>((acc, movie) => {
-      if (!acc[movie.yearWatched]) {
-        acc[movie.yearWatched] = [];
+    const entriesByYear = sortedEntries.reduce<Record<number, LogEntry[]>>((acc, entry) => {
+      const yearWatched = entry.yearWatched;
+      if (!yearWatched) {
+        return acc;
       }
-      acc[movie.yearWatched].push(movie);
+
+      if (!acc[yearWatched]) {
+        acc[yearWatched] = [];
+      }
+
+      acc[yearWatched].push(entry);
       return acc;
     }, {});
 
     return years.map((year) => ({
       year,
-      movies: moviesByYear[year] ?? [],
+      entries: entriesByYear[year] ?? [],
     }));
-  }, [sortedMovies]);
+  }, [sortedEntries]);
 
   const nextClubNumber = useMemo(() => {
-    if (movies.length === 0) return 1;
-    return Math.max(...movies.map((m) => m.clubNumber)) + 1;
-  }, [movies]);
+    if (entries.length === 0) return 1;
+    return Math.max(...entries.map((entry) => entry.clubNumber)) + 1;
+  }, [entries]);
 
   const treasuresSince2023 = useMemo(() => {
-    return movies.filter((movie) => movie.yearWatched >= 2023).length;
-  }, [movies]);
+    return entries.filter((entry) => (entry.yearWatched ?? 0) >= 2023).length;
+  }, [entries]);
 
-  const calculateAverage = (ratings: MovieRecord['ratings']) => {
-    const validRatings = Object.values(ratings).filter((r): r is number => r !== null);
-    if (validRatings.length === 0) return null;
-    const sum = validRatings.reduce((a, b) => a + b, 0);
-    return sum / validRatings.length;
-  };
+  const handleSaveMovie = async (entryData: NewLogEntry) => {
+    setIsSaving(true);
+    setErrorMessage(null);
 
-  const handleSaveMovie = (movieData: Omit<MovieRecord, 'id' | 'averageRating'>) => {
-    const averageRating = calculateAverage(movieData.ratings);
+    try {
+      if (editingEntry) {
+        const updatedEntry = await historyService.updateEntry(editingEntry.id, entryData);
+        setEntries((currentEntries) =>
+          currentEntries.map((entry) => (entry.id === editingEntry.id ? updatedEntry : entry)),
+        );
+      } else {
+        const newEntry = await historyService.addEntry(entryData);
+        setEntries((currentEntries) => [...currentEntries, newEntry]);
+      }
 
-    if (editingMovie) {
-      setMovies(movies.map((m) => (m.id === editingMovie.id ? { ...movieData, id: m.id, averageRating } : m)));
-    } else {
-      const newMovie: MovieRecord = {
-        ...movieData,
-        id: Math.random().toString(36).substr(2, 9),
-        averageRating,
-      };
-      setMovies([...movies, newMovie]);
-    }
-    setIsFormOpen(false);
-    setEditingMovie(null);
-  };
-
-  const handleDeleteMovie = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this record?')) {
-      setMovies(movies.filter((m) => m.id !== id));
+      setIsFormOpen(false);
+      setEditingEntry(null);
+    } catch (error: unknown) {
+      setErrorMessage(getRequestErrorMessage(error, HISTORY_SAVE_ERROR_MESSAGE));
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const openEditForm = (movie: MovieRecord) => {
-    setEditingMovie(movie);
+  const handleDeleteMovie = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this record?')) {
+      return;
+    }
+
+    setErrorMessage(null);
+
+    try {
+      await historyService.deleteEntry(id);
+      setEntries((currentEntries) => currentEntries.filter((entry) => entry.id !== id));
+      if (selectedEntry?.id === id) {
+        setSelectedEntry(null);
+      }
+      if (editingEntry?.id === id) {
+        setEditingEntry(null);
+        setIsFormOpen(false);
+      }
+    } catch (error: unknown) {
+      setErrorMessage(getRequestErrorMessage(error, HISTORY_DELETE_ERROR_MESSAGE));
+    }
+  };
+
+  const openEditForm = (entry: LogEntry) => {
+    setEditingEntry(entry);
     setIsFormOpen(true);
-    setSelectedMovie(null);
+    setSelectedEntry(null);
   };
 
   const openAddForm = () => {
-    setEditingMovie(null);
+    setEditingEntry(null);
     setIsFormOpen(true);
   };
 
   const handleCurrentMovieEdit = () => {
-    if (!currentUser || !currentWatchMovie) return;
-    openEditForm(currentWatchMovie);
+    if (!currentUser || !currentWatchEntry) return;
+    openEditForm(currentWatchEntry);
   };
 
   const handleCurrentMovieKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -137,71 +199,100 @@ export default function HistoryPage() {
           )}
         </div>
 
-        {currentWatchMovie && (
-          <div
-            className={`group mb-8 relative overflow-hidden rounded-2xl border border-[var(--color-cinema-gray)] ${
-              currentWatchMovie.backdropUrl ? 'min-h-[220px] sm:min-h-[260px]' : ''
-            } ${
-              currentUser
-                ? 'cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-gold-500)]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-cinema-black)]'
-                : ''
-            }`}
-            onClick={currentUser ? handleCurrentMovieEdit : undefined}
-            onKeyDown={currentUser ? handleCurrentMovieKeyDown : undefined}
-            role={currentUser ? 'button' : undefined}
-            tabIndex={currentUser ? 0 : undefined}
-          >
-            {currentWatchMovie.backdropUrl ? (
-              <>
-                <img
-                  src={currentWatchMovie.backdropUrl}
-                  alt={`${currentWatchMovie.title} backdrop`}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                />
-                <div
-                  className={`absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40 transition-colors ${
-                    currentUser ? 'group-hover:from-black/75 group-hover:via-black/55 group-hover:to-black/30' : ''
-                  }`}
-                />
-                <div className="relative z-10 p-6 sm:p-8 md:p-10">
-                  <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-gold-400)]">Now Screening</p>
-                  <h3 className="mt-3 text-2xl sm:text-3xl md:text-4xl font-serif text-white">{currentWatchMovie.title} ({currentWatchMovie.yearReleased})</h3>
-                </div>
-              </>
-            ) : (
-              <div className="bg-gradient-to-r from-[var(--color-cinema-dark)] via-[var(--color-cinema-black)] to-[var(--color-cinema-dark)] p-6 sm:p-8">
-                <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-gold-400)]">Now Screening</p>
-                <h3 className="mt-3 text-2xl sm:text-3xl md:text-4xl font-serif text-white">{currentWatchMovie.title} ({currentWatchMovie.yearReleased})</h3>
-              </div>
-            )}
+        {errorMessage && (
+          <div className="mb-6 rounded-xl border border-red-500/50 bg-red-900/30 px-4 py-3 text-sm text-red-100 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <AlertCircle size={16} />
+              <span>{errorMessage}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => void loadEntries()}
+              className="shrink-0 rounded-full border border-red-200/40 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-red-100 hover:bg-red-200/10"
+            >
+              Retry
+            </button>
           </div>
         )}
 
-        <MovieList
-          sections={movieSections}
-          isLoggedIn={!!currentUser}
-          onEdit={openEditForm}
-          onDelete={handleDeleteMovie}
-          onViewDetail={setSelectedMovie}
-        />
+        {isLoading && entries.length === 0 ? (
+          <div className="rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)] p-12 text-center text-[var(--color-silver-400)]">
+            Loading film history...
+          </div>
+        ) : (
+          <>
+            {currentWatchEntry && (
+              <div
+                className={`group mb-8 relative overflow-hidden rounded-2xl border border-[var(--color-cinema-gray)] ${
+                  currentWatchEntry.movie.backdropUrl ? 'min-h-[220px] sm:min-h-[260px]' : ''
+                } ${
+                  currentUser
+                    ? 'cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-gold-500)]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-cinema-black)]'
+                    : ''
+                }`}
+                onClick={currentUser ? handleCurrentMovieEdit : undefined}
+                onKeyDown={currentUser ? handleCurrentMovieKeyDown : undefined}
+                role={currentUser ? 'button' : undefined}
+                tabIndex={currentUser ? 0 : undefined}
+              >
+                {currentWatchEntry.movie.backdropUrl ? (
+                  <>
+                    <img
+                      src={currentWatchEntry.movie.backdropUrl}
+                      alt={`${currentWatchEntry.movie.title} backdrop`}
+                      className="absolute inset-0 w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div
+                      className={`absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40 transition-colors ${
+                        currentUser ? 'group-hover:from-black/75 group-hover:via-black/55 group-hover:to-black/30' : ''
+                      }`}
+                    />
+                    <div className="relative z-10 p-6 sm:p-8 md:p-10">
+                      <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-gold-400)]">Now Screening</p>
+                      <h3 className="mt-3 text-2xl sm:text-3xl md:text-4xl font-serif text-white">
+                        {currentWatchEntry.movie.title} {currentWatchEntry.movie.yearReleased ? `(${currentWatchEntry.movie.yearReleased})` : ''}
+                      </h3>
+                    </div>
+                  </>
+                ) : (
+                  <div className="bg-gradient-to-r from-[var(--color-cinema-dark)] via-[var(--color-cinema-black)] to-[var(--color-cinema-dark)] p-6 sm:p-8">
+                    <p className="text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-gold-400)]">Now Screening</p>
+                    <h3 className="mt-3 text-2xl sm:text-3xl md:text-4xl font-serif text-white">
+                      {currentWatchEntry.movie.title} {currentWatchEntry.movie.yearReleased ? `(${currentWatchEntry.movie.yearReleased})` : ''}
+                    </h3>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <MovieList
+              sections={movieSections}
+              isLoggedIn={!!currentUser}
+              onEdit={openEditForm}
+              onDelete={(id) => void handleDeleteMovie(id)}
+              onViewDetail={setSelectedEntry}
+            />
+          </>
+        )}
       </section>
 
-      {selectedMovie && (
+      {selectedEntry && (
         <MovieDetail
-          movie={selectedMovie}
+          movie={selectedEntry}
           isLoggedIn={!!currentUser}
-          onClose={() => setSelectedMovie(null)}
+          onClose={() => setSelectedEntry(null)}
           onEdit={openEditForm}
         />
       )}
 
       {isFormOpen && (
         <MovieForm
-          movie={editingMovie}
-          onSave={handleSaveMovie}
+          movie={editingEntry}
+          onSave={(entryData) => void handleSaveMovie(entryData)}
           onClose={() => setIsFormOpen(false)}
           nextClubNumber={nextClubNumber}
+          isSubmitting={isSaving}
         />
       )}
     </>

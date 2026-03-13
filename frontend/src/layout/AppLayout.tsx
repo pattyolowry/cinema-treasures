@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Film, LogIn, LogOut, Menu, User, X } from 'lucide-react';
 import loginService from '../services/login';
+import serviceUtils from '../services/utils';
 import type { LoggedUser } from '../types';
 import logo from '../assets/tmdb-logo.svg';
 import { AppSessionContext } from '../context/AppSessionContext';
@@ -74,14 +75,21 @@ export function AppLayout() {
     try {
       const parsedUser: unknown = JSON.parse(storedUser);
       if (isLoggedUser(parsedUser)) {
+        serviceUtils.setToken(parsedUser.token);
         setCurrentUser(parsedUser);
       } else {
+        serviceUtils.setToken(null);
         window.localStorage.removeItem(LOGGED_USER_STORAGE_KEY);
       }
     } catch {
+      serviceUtils.setToken(null);
       window.localStorage.removeItem(LOGGED_USER_STORAGE_KEY);
     }
   }, []);
+
+  useEffect(() => {
+    serviceUtils.setToken(currentUser?.token ?? null);
+  }, [currentUser]);
 
   const closeLoginModal = () => {
     setIsLoginModalOpen(false);
@@ -91,6 +99,7 @@ export function AppLayout() {
 
   const handleSignOut = () => {
     setCurrentUser(null);
+    serviceUtils.setToken(null);
     setIsProfileMenuOpen(false);
     window.localStorage.removeItem(LOGGED_USER_STORAGE_KEY);
   };
@@ -106,6 +115,7 @@ export function AppLayout() {
         username: username.trim(),
         password,
       });
+      serviceUtils.setToken(loggedUser.token);
       setCurrentUser(loggedUser);
       window.localStorage.setItem(LOGGED_USER_STORAGE_KEY, JSON.stringify(loggedUser));
       setUsername('');

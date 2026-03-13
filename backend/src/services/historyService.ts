@@ -3,7 +3,7 @@ import Movie from '../models/movie'
 import { NewLogEntry } from '../types'
 
 const getHistory = async () => {
-    const fullHistory = await LogEntry.find({})
+    const fullHistory = await LogEntry.find({}).populate("movie")
     return fullHistory
 }
 

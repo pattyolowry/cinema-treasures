@@ -1,12 +1,16 @@
-let authConfig = null;
+import type { AxiosRequestConfig } from 'axios';
 
-const setToken = (newToken: string) => {
-  authConfig = {
-    headers: { Authorization: `Bearer ${newToken}` },
-  }
+let authConfig: AxiosRequestConfig | undefined;
+
+const setToken = (newToken: string | null) => {
+  authConfig = newToken
+    ? {
+        headers: { Authorization: `Bearer ${newToken}` },
+      }
+    : undefined;
 };
 
 export default {
-    authConfig,
-    setToken
-}
+  setToken,
+  getAuthConfig: () => authConfig,
+};
