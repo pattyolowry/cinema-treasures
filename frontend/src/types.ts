@@ -71,7 +71,7 @@ export interface Rating {
   rating: number
 }
 
-export interface NewLogEntry {
+export interface LogEntry {
     id: string
     clubNumber: number,
     movie: MovieInfo,
@@ -80,3 +80,5 @@ export interface NewLogEntry {
     ratings?: Rating[],
     averageRating?:  number
 }
+
+export type NewLogEntry = Omit<LogEntry, 'id'>;
