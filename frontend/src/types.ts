@@ -54,3 +54,29 @@ export interface LoggedUser {
   username: string,
   token: string
 }
+
+export interface MovieInfo {
+  title: string,
+  yearReleased?: number,
+  originCountry?: string,
+  runTime?: number,
+  mpaaRating?: string,
+  tmdbId?: number,
+  posterUrl?: string,
+  backdropUrl?: string
+}
+
+export interface Rating {
+  user: Member,
+  rating: number
+}
+
+export interface NewLogEntry {
+    id: string
+    clubNumber: number,
+    movie: MovieInfo,
+    yearWatched?: number,
+    streamingPlatform?: string,
+    ratings?: Rating[],
+    averageRating?:  number
+}
