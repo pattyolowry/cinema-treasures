@@ -43,3 +43,14 @@ export interface TmdbMovieDetails {
   origin_country?: string[];
   production_countries?: TmdbProductionCountry[];
 }
+
+export interface UserCredentials {
+  username: string;
+  password: string;
+}
+
+export interface LoggedUser {
+  name: string,
+  username: string,
+  token: string
+}
