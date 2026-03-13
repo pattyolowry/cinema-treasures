@@ -41,6 +41,11 @@ export interface NewLogEntry {
     averageRating?:  number
 }
 
+export interface NewTreasure {
+  movie: MovieInfo,
+  ratings?: Rating[],
+  ctcstm?:  number
+}
 
 
 declare global {
