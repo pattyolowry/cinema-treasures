@@ -12,6 +12,7 @@ const getAllEntries = async () => {
 const addEntry = async (entry: NewLogEntry) => {
     const { data } = await axios.post<LogEntry>(
         baseUrl,
+        entry,
         utils.authConfig
     )
 
@@ -21,6 +22,7 @@ const addEntry = async (entry: NewLogEntry) => {
 const updateEntry = async (id: string, entry: NewLogEntry) => {
     const { data } = await axios.put<LogEntry>(
         `${baseUrl}/${id}`,
+        entry,
         utils.authConfig
     )
 
