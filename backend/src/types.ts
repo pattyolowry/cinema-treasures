@@ -37,8 +37,8 @@ export interface NewLogEntry {
     movie: MovieInfo,
     yearWatched?: number,
     streamingPlatform?: string,
-    ratings: Rating[],
-    averageRating:  number
+    ratings?: Rating[],
+    averageRating?:  number
 }
 
 
