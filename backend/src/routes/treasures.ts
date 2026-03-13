@@ -59,18 +59,18 @@ router.put('/:id', newTreasureParser, middleware.userExtractor, async (req, res)
   }
 })
 
-// router.delete('/:id', middleware.userExtractor, async (req, res) => {
-//   try {
-//     await historyService.deleteEntry(req.params.id as string)
-//     res.status(204).end()
-//   } catch (error: unknown) {
-//     let errorMessage = 'Something went wrong.';
-//     if (error instanceof Error) {
-//       errorMessage += ' Error: ' + error.message;
-//     }
-//     res.status(400).send({ "error": errorMessage});
-//   }
-// })
+router.delete('/:id', middleware.userExtractor, async (req, res) => {
+  try {
+    await treasureService.deleteTreasure(req.params.id as string)
+    res.status(204).end()
+  } catch (error: unknown) {
+    let errorMessage = 'Something went wrong.';
+    if (error instanceof Error) {
+      errorMessage += ' Error: ' + error.message;
+    }
+    res.status(400).send({ "error": errorMessage});
+  }
+})
 
 router.use(errorMiddleware);
 

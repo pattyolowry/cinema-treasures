@@ -53,12 +53,13 @@ const updateTreasure = async (id: string, treasure: NewTreasure) => {
     }
 }
 
-// const deleteEntry = async (id: string) => {
-//     return await LogEntry.findByIdAndDelete(id)
-// }
+const deleteTreasure = async (id: string) => {
+    return await Treasure.findByIdAndDelete(id)
+}
 
 export default {
   getAll,
   addTreasure,
-  updateTreasure
+  updateTreasure,
+  deleteTreasure
 };
