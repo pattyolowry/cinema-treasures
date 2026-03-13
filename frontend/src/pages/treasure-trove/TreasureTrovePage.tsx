@@ -1,16 +1,104 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, Gem, Plus } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AlertCircle, ChevronDown, Gem, Plus } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useAppSession } from '../../context/AppSessionContext';
-import { DUMMY_TREASURE_TROVE_MOVIES, TROVE_MEMBERS } from './data';
+import treasureService from '../../services/treasures';
+import type { NewTreasure, Rating, Treasure } from '../../types';
+import { TROVE_MEMBERS } from './data';
 import type { TroveMember, TroveMovieRecord } from './types';
 import { TroveMovieDetail } from './components/TroveMovieDetail';
 import { TroveMovieForm } from './components/TroveMovieForm';
 import { TroveMovieList, type RankedTroveMovie } from './components/TroveMovieList';
 
+const TREASURE_ERROR_MESSAGE = 'Unable to load treasure trove right now. Please try again.';
+const TREASURE_SAVE_ERROR_MESSAGE = 'Unable to save this treasure entry. Please try again.';
+const TREASURE_DELETE_ERROR_MESSAGE = 'Unable to delete this treasure entry. Please try again.';
+
+const createDefaultRatings = (): Record<TroveMember, number | null> =>
+  TROVE_MEMBERS.reduce(
+    (acc, member) => ({ ...acc, [member]: null }),
+    {} as Record<TroveMember, number | null>,
+  );
+
+const calculateAverage = (ratings: Record<TroveMember, number | null>) => {
+  const validRatings = Object.values(ratings).filter((rating): rating is number => rating !== null);
+  if (validRatings.length === 0) return null;
+  const total = validRatings.reduce((sum, rating) => sum + rating, 0);
+  return total / validRatings.length;
+};
+
+const ratingsArrayToRecord = (ratings: Rating[] | undefined) => {
+  const ratingsRecord = createDefaultRatings();
+  if (!ratings) return ratingsRecord;
+
+  for (const rating of ratings) {
+    if (TROVE_MEMBERS.includes(rating.user as TroveMember)) {
+      ratingsRecord[rating.user as TroveMember] = rating.rating;
+    }
+  }
+
+  return ratingsRecord;
+};
+
+const treasureToMovieRecord = (treasure: Treasure): TroveMovieRecord => {
+  const ratings = ratingsArrayToRecord(treasure.ratings);
+  return {
+    id: treasure.id,
+    title: treasure.movie.title,
+    yearReleased: treasure.movie.yearReleased ?? 0,
+    originCountry: treasure.movie.originCountry ?? '',
+    runTime: treasure.movie.runTime ?? null,
+    mpaaRating: treasure.movie.mpaaRating ?? '',
+    posterUrl: treasure.movie.posterUrl ?? '',
+    ratings,
+    averageRating: treasure.ctcstm ?? calculateAverage(ratings),
+  };
+};
+
+const movieRecordToTreasurePayload = (
+  movieRecord: Omit<TroveMovieRecord, 'id' | 'averageRating'>,
+): NewTreasure => {
+  const ratings = TROVE_MEMBERS.flatMap((member) => {
+    const rating = movieRecord.ratings[member];
+    return rating === null ? [] : [{ user: member, rating }];
+  });
+  const ctcstm = calculateAverage(movieRecord.ratings) ?? undefined;
+
+  return {
+    movie: {
+      title: movieRecord.title.trim(),
+      yearReleased: movieRecord.yearReleased,
+      originCountry: movieRecord.originCountry.trim() || undefined,
+      runTime: movieRecord.runTime ?? undefined,
+      mpaaRating: movieRecord.mpaaRating?.trim() || undefined,
+      posterUrl: movieRecord.posterUrl?.trim() || undefined,
+    },
+    ratings: ratings.length > 0 ? ratings : undefined,
+    ctcstm,
+  };
+};
+
+function getRequestErrorMessage(error: unknown, fallback: string): string {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const response = (error as { response?: { data?: { error?: unknown } } }).response;
+    if (typeof response?.data?.error === 'string') {
+      return response.data.error;
+    }
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return fallback;
+}
+
 export default function TreasureTrovePage() {
   const { currentUser } = useAppSession();
-  const [movies, setMovies] = useState<TroveMovieRecord[]>(DUMMY_TREASURE_TROVE_MOVIES);
+  const [movies, setMovies] = useState<TroveMovieRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingMovie, setEditingMovie] = useState<TroveMovieRecord | null>(null);
   const [selectedMovie, setSelectedMovie] = useState<TroveMovieRecord | null>(null);
@@ -22,6 +110,24 @@ export default function TreasureTrovePage() {
   const reviewedByRef = useRef<HTMLDivElement | null>(null);
   const notReviewedByRef = useRef<HTMLDivElement | null>(null);
   const location = useLocation();
+
+  const loadTreasures = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const treasures = await treasureService.getAll();
+      setMovies(treasures.map(treasureToMovieRecord));
+    } catch (error: unknown) {
+      setErrorMessage(getRequestErrorMessage(error, TREASURE_ERROR_MESSAGE));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadTreasures();
+  }, [loadTreasures]);
 
   const rankedAllMovies = useMemo<RankedTroveMovie[]>(() => {
     const sortedMovies = [...movies].sort((a, b) => {
@@ -69,34 +175,55 @@ export default function TreasureTrovePage() {
     setter([...members, member]);
   };
 
-  const calculateAverage = (ratings: TroveMovieRecord['ratings']) => {
-    const validRatings = Object.values(ratings).filter((r): r is number => r !== null);
-    if (validRatings.length === 0) return null;
-    const sum = validRatings.reduce((acc, rating) => acc + rating, 0);
-    return sum / validRatings.length;
+  const handleSaveMovie = async (movieData: Omit<TroveMovieRecord, 'id' | 'averageRating'>) => {
+    setIsSaving(true);
+    setErrorMessage(null);
+
+    try {
+      const payload = movieRecordToTreasurePayload(movieData);
+
+      if (editingMovie) {
+        const updatedTreasure = await treasureService.updateTreasure(editingMovie.id, payload);
+        const updatedMovie = treasureToMovieRecord(updatedTreasure);
+        setMovies((currentMovies) =>
+          currentMovies.map((movie) => (movie.id === editingMovie.id ? updatedMovie : movie)),
+        );
+        if (selectedMovie?.id === editingMovie.id) {
+          setSelectedMovie(updatedMovie);
+        }
+      } else {
+        const createdTreasure = await treasureService.addTreasure(payload);
+        setMovies((currentMovies) => [...currentMovies, treasureToMovieRecord(createdTreasure)]);
+      }
+
+      setIsFormOpen(false);
+      setEditingMovie(null);
+    } catch (error: unknown) {
+      setErrorMessage(getRequestErrorMessage(error, TREASURE_SAVE_ERROR_MESSAGE));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleSaveMovie = (movieData: Omit<TroveMovieRecord, 'id' | 'averageRating'>) => {
-    const averageRating = calculateAverage(movieData.ratings);
-
-    if (editingMovie) {
-      setMovies(movies.map((m) => (m.id === editingMovie.id ? { ...movieData, id: m.id, averageRating } : m)));
-    } else {
-      const newMovie: TroveMovieRecord = {
-        ...movieData,
-        id: Math.random().toString(36).substr(2, 9),
-        averageRating,
-      };
-      setMovies([...movies, newMovie]);
+  const handleDeleteMovie = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this treasure entry?')) {
+      return;
     }
 
-    setIsFormOpen(false);
-    setEditingMovie(null);
-  };
+    setErrorMessage(null);
 
-  const handleDeleteMovie = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this treasure entry?')) {
-      setMovies(movies.filter((m) => m.id !== id));
+    try {
+      await treasureService.deleteTreasure(id);
+      setMovies((currentMovies) => currentMovies.filter((movie) => movie.id !== id));
+      if (selectedMovie?.id === id) {
+        setSelectedMovie(null);
+      }
+      if (editingMovie?.id === id) {
+        setEditingMovie(null);
+        setIsFormOpen(false);
+      }
+    } catch (error: unknown) {
+      setErrorMessage(getRequestErrorMessage(error, TREASURE_DELETE_ERROR_MESSAGE));
     }
   };
 
@@ -134,6 +261,22 @@ export default function TreasureTrovePage() {
   return (
     <>
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {errorMessage && (
+          <div className="mb-6 rounded-xl border border-red-500/50 bg-red-900/30 px-4 py-3 text-sm text-red-100 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <AlertCircle size={16} />
+              <span>{errorMessage}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => void loadTreasures()}
+              className="shrink-0 rounded-full border border-red-200/40 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-red-100 hover:bg-red-200/10"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
         <div className="mb-8 relative rounded-2xl border border-[var(--color-cinema-gray)]">
           <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none" aria-hidden="true">
             <div
@@ -301,13 +444,19 @@ export default function TreasureTrovePage() {
           </div>
         </div>
 
-        <TroveMovieList
-          movies={visibleMovies}
-          isLoggedIn={!!currentUser}
-          onEdit={openEditForm}
-          onDelete={handleDeleteMovie}
-          onViewDetail={setSelectedMovie}
-        />
+        {isLoading && movies.length === 0 ? (
+          <div className="rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)] p-12 text-center text-[var(--color-silver-400)]">
+            Loading treasure trove...
+          </div>
+        ) : (
+          <TroveMovieList
+            movies={visibleMovies}
+            isLoggedIn={!!currentUser}
+            onEdit={openEditForm}
+            onDelete={(id) => void handleDeleteMovie(id)}
+            onViewDetail={setSelectedMovie}
+          />
+        )}
       </section>
 
       {selectedMovie && (
@@ -322,8 +471,9 @@ export default function TreasureTrovePage() {
       {isFormOpen && (
         <TroveMovieForm
           movie={editingMovie}
-          onSave={handleSaveMovie}
+          onSave={(movieData) => void handleSaveMovie(movieData)}
           onClose={() => setIsFormOpen(false)}
+          isSubmitting={isSaving}
         />
       )}
     </>

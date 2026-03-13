@@ -10,6 +10,7 @@ interface TroveMovieFormProps {
   movie?: TroveMovieRecord | null;
   onSave: (movie: Omit<TroveMovieRecord, 'id' | 'averageRating'>) => void;
   onClose: () => void;
+  isSubmitting?: boolean;
 }
 
 const TMDB_POSTER_BASE_URL = 'https://image.tmdb.org/t/p/';
@@ -28,16 +29,6 @@ function parseReleaseYear(releaseDate: string | undefined): number | null {
   return Number.isFinite(year) ? year : null;
 }
 
-function formatRuntime(minutes: number | null): string {
-  if (!minutes || minutes <= 0) return '';
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-
-  if (hours === 0) return `${remainingMinutes}m`;
-  if (remainingMinutes === 0) return `${hours}h`;
-  return `${hours}h ${remainingMinutes}m`;
-}
-
 function getOriginCountry(details: TmdbMovieDetails): string {
   const countryName = details.production_countries?.find((country) => country.name?.trim())?.name?.trim();
   if (countryName) return countryName;
@@ -48,13 +39,13 @@ function getOriginCountry(details: TmdbMovieDetails): string {
   return details.origin_country?.find((countryCode) => countryCode.trim())?.trim() ?? '';
 }
 
-export function TroveMovieForm({ movie, onSave, onClose }: TroveMovieFormProps) {
+export function TroveMovieForm({ movie, onSave, onClose, isSubmitting = false }: TroveMovieFormProps) {
   const isAddMode = !movie;
   const [formData, setFormData] = useState({
     title: movie?.title || '',
     yearReleased: movie?.yearReleased || '',
     originCountry: movie?.originCountry || '',
-    runTime: movie?.runTime || '',
+    runTime: movie?.runTime ?? '',
     mpaaRating: movie?.mpaaRating || '',
     posterUrl: movie?.posterUrl || '',
     ratings: movie?.ratings || TROVE_MEMBERS.reduce((acc, member) => ({ ...acc, [member]: null }), {} as Record<TroveMember, number | null>),
@@ -111,13 +102,12 @@ export function TroveMovieForm({ movie, onSave, onClose }: TroveMovieFormProps) 
 
       const detailsReleaseYear = parseReleaseYear(details.release_date);
       const originCountry = getOriginCountry(details);
-      const runTime = formatRuntime(details.runtime);
 
       setFormData((prev) => ({
         ...prev,
         yearReleased: detailsReleaseYear ?? prev.yearReleased,
         originCountry: originCountry || prev.originCountry,
-        runTime: runTime || prev.runTime,
+        runTime: details.runtime ?? prev.runTime,
         posterUrl: toTmdbImageUrl(details.poster_path, 'w500') || prev.posterUrl,
       }));
     } catch {
@@ -309,9 +299,10 @@ export function TroveMovieForm({ movie, onSave, onClose }: TroveMovieFormProps) 
               </div>
 
               <div className="space-y-2">
-                <label className="block text-xs font-semibold text-[var(--color-silver-400)] uppercase tracking-wider">Run Time</label>
+                <label className="block text-xs font-semibold text-[var(--color-silver-400)] uppercase tracking-wider">Run Time (minutes)</label>
                 <input
-                  type="text"
+                  type="number"
+                  min="1"
                   name="runTime"
                   value={formData.runTime}
                   onChange={handleChange}
@@ -373,9 +364,10 @@ export function TroveMovieForm({ movie, onSave, onClose }: TroveMovieFormProps) 
               </button>
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="px-6 py-2 rounded-full bg-[var(--color-gold-500)] text-black hover:bg-[var(--color-gold-400)] transition-colors font-semibold shadow-[0_0_15px_rgba(212,175,55,0.3)] hover:shadow-[0_0_20px_rgba(212,175,55,0.5)]"
               >
-                Save Entry
+                {isSubmitting ? 'Saving...' : 'Save Entry'}
               </button>
             </div>
           </form>

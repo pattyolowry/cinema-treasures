@@ -1,6 +1,16 @@
 import { Edit2, Film, Trash2 } from 'lucide-react';
 import type { TroveMovieRecord } from '../types';
 
+function formatRunTime(minutes: number | null | undefined): string | null {
+  if (!minutes || minutes <= 0) return null;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (hours === 0) return `${remainingMinutes}m`;
+  if (remainingMinutes === 0) return `${hours}h`;
+  return `${hours}h ${remainingMinutes}m`;
+}
+
 export interface RankedTroveMovie {
   movie: TroveMovieRecord;
   rank: number;
@@ -18,6 +28,7 @@ export function TroveMovieList({ movies, isLoggedIn, onEdit, onDelete, onViewDet
   return (
     <div className="w-full flex flex-col gap-4">
       {movies.map(({ movie, rank }) => {
+        const formattedRunTime = formatRunTime(movie.runTime);
         return (
           <div
             key={movie.id}
@@ -41,7 +52,7 @@ export function TroveMovieList({ movies, isLoggedIn, onEdit, onDelete, onViewDet
               <h3 className="text-lg sm:text-2xl font-bold text-white leading-tight mb-1 truncate">{movie.title}</h3>
               <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm sm:text-lg text-[var(--color-silver-400)] font-medium">
                 <span>{movie.yearReleased}</span>
-                {movie.runTime && <span>{movie.runTime}</span>}
+                {formattedRunTime && <span>{formattedRunTime}</span>}
                 {movie.mpaaRating && <span>{movie.mpaaRating}</span>}
               </div>
             </div>

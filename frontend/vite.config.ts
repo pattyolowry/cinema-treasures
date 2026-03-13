@@ -22,6 +22,7 @@ export default defineConfig(({mode}) => {
       proxy: {
         '/api/users': 'http://localhost:3003',
         '/api/history': 'http://localhost:3003',
+        '/api/treasures': 'http://localhost:3003',
       },
     },
   };
