@@ -43,3 +43,42 @@ export interface TmdbMovieDetails {
   origin_country?: string[];
   production_countries?: TmdbProductionCountry[];
 }
+
+export interface UserCredentials {
+  username: string;
+  password: string;
+}
+
+export interface LoggedUser {
+  name: string,
+  username: string,
+  token: string
+}
+
+export interface MovieInfo {
+  title: string,
+  yearReleased?: number,
+  originCountry?: string,
+  runTime?: number,
+  mpaaRating?: string,
+  tmdbId?: number,
+  posterUrl?: string,
+  backdropUrl?: string
+}
+
+export interface Rating {
+  user: Member,
+  rating: number
+}
+
+export interface LogEntry {
+    id: string
+    clubNumber: number,
+    movie: MovieInfo,
+    yearWatched?: number,
+    streamingPlatform?: string,
+    ratings?: Rating[],
+    averageRating?:  number
+}
+
+export type NewLogEntry = Omit<LogEntry, 'id'>;
