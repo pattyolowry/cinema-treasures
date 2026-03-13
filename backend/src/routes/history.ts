@@ -30,8 +30,33 @@ const errorMiddleware = (error: unknown, _req: Request, res: Response, next: Nex
 };
 
 router.post('/', newLogEntryParser, middleware.userExtractor, async (req, res) => {
+  try {
     const addedEntry = await historyService.addEntry(req.body)
     res.json(addedEntry)
+  } catch (error: unknown) {
+    let errorMessage = 'Something went wrong.';
+    if (error instanceof Error) {
+      errorMessage += ' Error: ' + error.message;
+    }
+    res.status(400).send({ "error": errorMessage});
+  }
+})
+
+router.put('/:id', newLogEntryParser, middleware.userExtractor, async (req, res) => {
+  try {
+      const entry = await historyService.updateEntry(req.params.id as string, req.body);
+      res.json(entry)
+  } catch (error: unknown) {
+      let errorMessage = 'Something went wrong.';
+      if (error instanceof Error) {
+        if (error.message === "Not found") {
+          res.status(404).end()
+        } else {
+          errorMessage += ' Error: ' + error.message;
+        }
+      }
+      res.status(400).send({ "error": errorMessage});
+  }
 })
 
 router.use(errorMiddleware);

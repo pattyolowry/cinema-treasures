@@ -20,7 +20,8 @@ const logEntrySchema = new mongoose.Schema({
             },
             rating: Number
         }
-    ]
+    ],
+    averageRating: Number
 })
 
 logEntrySchema.set("toJSON", {
