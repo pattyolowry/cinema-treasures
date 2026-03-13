@@ -1,9 +1,9 @@
 import { createContext, useContext } from 'react';
-import type { Member } from '../types';
+import type { LoggedUser } from '../types';
 
 export interface AppSessionContextValue {
-  currentUser: Member | null;
-  setCurrentUser: (member: Member | null) => void;
+  currentUser: LoggedUser | null;
+  setCurrentUser: (member: LoggedUser | null) => void;
   openLogin: () => void;
 }
 

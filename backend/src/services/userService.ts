@@ -15,8 +15,8 @@ const createUser = async ( userInfo: UserInfo ) => {
     const passwordHash = await bcrypt.hash(password, saltRounds)
 
     const newUser = new User({
-        username,
         name,
+        username,
         passwordHash,
     })
 

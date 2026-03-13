@@ -1,9 +1,9 @@
 import axios from 'axios';
 const baseUrl = '/users/login'
-import { UserCredentials } from '../types'
+import type { LoggedUser, UserCredentials } from '../types'
 
 const login = async (credentials: UserCredentials) => {
-  const response = await axios.post(baseUrl, credentials);
+  const response = await axios.post<LoggedUser>(baseUrl, credentials);
   return response.data;
 };
 
