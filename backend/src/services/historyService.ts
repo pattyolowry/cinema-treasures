@@ -49,8 +49,13 @@ const updateEntry = async (id: string, entry: NewLogEntry) => {
     }
 }
 
+const deleteEntry = async (id: string) => {
+    return await LogEntry.findByIdAndDelete(id)
+}
+
 export default {
   getHistory,
   addEntry,
-  updateEntry
+  updateEntry,
+  deleteEntry
 };
