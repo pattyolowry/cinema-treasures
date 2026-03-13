@@ -36,22 +36,22 @@ const addTreasure = async (treasure: NewTreasure) => {
     return await addedTreasure.populate("movie")
 }
 
-// const updateEntry = async (id: string, entry: NewLogEntry) => {
-//     const logEntry = await LogEntry.findById(id)
-//     if (!logEntry) {
-//         throw Error("Not found")
-//     } else {
-//         const movie = await findAndUpdateLinkedMovie(entry)
+const updateTreasure = async (id: string, treasure: NewTreasure) => {
+    const treasureToUpdate = await Treasure.findById(id)
+    if (!treasureToUpdate) {
+        throw Error("Not found")
+    } else {
+        const movie = await findAndUpdateLinkedMovie(treasure)
 
-//         logEntry.set({
-//             ...entry,
-//             movie: movie._id
-//         })
+        treasureToUpdate.set({
+            ...treasure,
+            movie: movie._id
+        })
 
-//         const updatedEntry = await logEntry.save()
-//         return await updatedEntry.populate("movie")
-//     }
-// }
+        const updatedTreasure = await treasureToUpdate.save()
+        return await updatedTreasure.populate("movie")
+    }
+}
 
 // const deleteEntry = async (id: string) => {
 //     return await LogEntry.findByIdAndDelete(id)
@@ -59,5 +59,6 @@ const addTreasure = async (treasure: NewTreasure) => {
 
 export default {
   getAll,
-  addTreasure
+  addTreasure,
+  updateTreasure
 };
