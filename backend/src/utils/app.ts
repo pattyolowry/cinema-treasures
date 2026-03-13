@@ -2,6 +2,7 @@ import express from 'express';
 import middleware from '../utils/middleware'
 import historyRouter from '../routes/history';
 import userRouter from '../routes/users';
+import treasureRouter from '../routes/treasures';
 import connectToDatabase from '../utils/db';
 import config from '../utils/config'
 
@@ -20,6 +21,7 @@ app.get('/api/ping', (_req, res) => {
 
 app.use('/api/history', historyRouter);
 app.use('/api/users', userRouter);
+app.use('/api/treasures', treasureRouter);
 
 app.use(middleware.unknownEndpoint)
 app.use(middleware.errorHandler)
