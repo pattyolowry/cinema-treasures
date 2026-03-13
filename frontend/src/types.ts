@@ -82,3 +82,12 @@ export interface LogEntry {
 }
 
 export type NewLogEntry = Omit<LogEntry, 'id'>;
+
+export interface Treasure {
+  id: string,
+  movie: MovieInfo,
+  ratings?: Rating[],
+  ctcstm?:  number
+}
+
+export type NewTreasure = Omit<Treasure, 'id'>;
