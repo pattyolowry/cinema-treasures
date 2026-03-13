@@ -8,4 +8,9 @@ router.get('/', async (_req, res) => {
   res.send(fullHistory);
 });
 
+router.post('/', async (req, res) => {
+    const addedEntry = await historyService.addEntry(req.body)
+    res.json(addedEntry)
+})
+
 export default router;

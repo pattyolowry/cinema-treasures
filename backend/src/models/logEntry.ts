@@ -12,8 +12,11 @@ const logEntrySchema = new mongoose.Schema({
     ratings: [
         {
             user: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "User",
+                type: String,
+                enum: {
+                    values: ["Ren", "Greg", "Max", "Quinn", "Patio", "Ian"],
+                    message: '{VALUE} is not a valid user'
+                }
             },
             rating: Number
         }
