@@ -1,32 +1,74 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Award, ChevronDown } from 'lucide-react';
-import { useAppSession } from '../../context/AppSessionContext';
-import { DUMMY_AWARDS } from './data';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AlertCircle, Award, ChevronDown } from 'lucide-react';
+import awardsService from '../../services/awards';
+import type { AwardYear } from '../../types';
+
+const AWARDS_ERROR_MESSAGE = 'Unable to load awards right now. Please try again.';
+
+function getRequestErrorMessage(error: unknown, fallback: string): string {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const response = (error as { response?: { data?: { error?: unknown } } }).response;
+    if (typeof response?.data?.error === 'string') {
+      return response.data.error;
+    }
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return fallback;
+}
 
 export default function AwardsPage() {
-  const { currentUser } = useAppSession();
-  const isLoggedIn = currentUser !== null;
-
-  const sortedYears = useMemo(
-    () => [...DUMMY_AWARDS].sort((a, b) => b.year - a.year),
-    [],
-  );
-
-  const mostRecentYear = sortedYears[0]?.year ?? new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState<number>(mostRecentYear);
+  const [awards, setAwards] = useState<AwardYear[]>([]);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isYearMenuOpen, setIsYearMenuOpen] = useState(false);
   const yearMenuRef = useRef<HTMLDivElement | null>(null);
+
+  const sortedYears = useMemo(() => [...awards].sort((a, b) => b.year - a.year), [awards]);
+
+  const loadAwards = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const fetchedAwards = await awardsService.getAll();
+      setAwards(fetchedAwards);
+    } catch (error: unknown) {
+      setErrorMessage(getRequestErrorMessage(error, AWARDS_ERROR_MESSAGE));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadAwards();
+  }, [loadAwards]);
+
+  useEffect(() => {
+    const mostRecentYear = sortedYears[0]?.year ?? null;
+    if (mostRecentYear === null) {
+      setSelectedYear(null);
+      return;
+    }
+
+    setSelectedYear((current) => {
+      if (current === null) {
+        return mostRecentYear;
+      }
+
+      const yearStillExists = sortedYears.some((entry) => entry.year === current);
+      return yearStillExists ? current : mostRecentYear;
+    });
+  }, [sortedYears]);
 
   const selectedYearData = useMemo(
     () => sortedYears.find((entry) => entry.year === selectedYear) ?? sortedYears[0] ?? null,
     [selectedYear, sortedYears],
   );
-
-  const visibleCategories = useMemo(() => {
-    if (!selectedYearData) return [];
-    if (isLoggedIn) return selectedYearData.categories;
-    return selectedYearData.categories.filter((category) => category.isVisible);
-  }, [isLoggedIn, selectedYearData]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -72,6 +114,28 @@ export default function AwardsPage() {
         />
       </div>
 
+      {errorMessage && (
+        <div className="mb-6 rounded-xl border border-red-500/50 bg-red-900/30 px-4 py-3 text-sm text-red-100 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <AlertCircle size={16} />
+            <span>{errorMessage}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => void loadAwards()}
+            className="shrink-0 rounded-full border border-red-200/40 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-red-100 hover:bg-red-200/10"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {isLoading && awards.length === 0 ? (
+        <div className="rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/80 p-8 text-center text-[var(--color-silver-500)]">
+          Loading awards...
+        </div>
+      ) : (
+        <>
       <div className="mb-8 w-full sm:w-auto rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/85 shadow-[0_8px_24px_rgba(0,0,0,0.35)] px-4 py-3">
         <div className="flex flex-row flex-wrap items-center gap-3 text-sm text-[var(--color-silver-300)]" ref={yearMenuRef}>
           <span className="font-semibold uppercase tracking-wider text-[var(--color-silver-500)]">Year</span>
@@ -84,7 +148,7 @@ export default function AwardsPage() {
               aria-controls="awards-year-menu"
               className="w-full sm:w-auto min-w-0 sm:min-w-[9rem] flex items-center justify-between gap-3 bg-[var(--color-cinema-black)] border border-[var(--color-cinema-gray)] rounded-lg pl-4 pr-3 py-2.5 text-left text-white hover:border-[var(--color-gold-600)] focus:outline-none focus:border-[var(--color-gold-500)] focus:ring-1 focus:ring-[var(--color-gold-500)] transition-all"
             >
-              <span className="text-base">{selectedYear}</span>
+              <span className="text-base">{selectedYear ?? 'Select year'}</span>
               <ChevronDown
                 size={16}
                 className={`text-[var(--color-silver-400)] transition-transform ${isYearMenuOpen ? 'rotate-180' : ''}`}
@@ -122,9 +186,9 @@ export default function AwardsPage() {
         </div>
       </div>
 
-      {selectedYearData && visibleCategories.length > 0 && (
+      {selectedYearData && selectedYearData.categories.length > 0 && (
         <div className="grid grid-cols-1 gap-5">
-          {visibleCategories.map((category) => (
+          {selectedYearData.categories.map((category) => (
             <article
               key={category.name}
               className="rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/80 p-5"
@@ -171,10 +235,12 @@ export default function AwardsPage() {
         </div>
       )}
 
-      {selectedYearData && visibleCategories.length === 0 && (
+      {selectedYearData && selectedYearData.categories.length === 0 && (
         <div className="rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/80 p-8 text-center text-[var(--color-silver-500)]">
           No award categories are visible for this year.
         </div>
+      )}
+        </>
       )}
     </section>
   );
