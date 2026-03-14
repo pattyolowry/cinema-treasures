@@ -1,16 +1,13 @@
-import type { AxiosRequestConfig } from 'axios';
-
-let authConfig: AxiosRequestConfig | undefined;
-
-const setToken = (newToken: string | null) => {
-  authConfig = newToken
+const getAuthConfig = () => {
+  const user = window.localStorage.getItem('loggedCinemaTreasuresUser')
+  const parsedUser = JSON.parse(user)
+  return parsedUser
     ? {
-        headers: { Authorization: `Bearer ${newToken}` },
+        headers: { Authorization: `Bearer ${parsedUser.token}` },
       }
     : undefined;
 };
 
 export default {
-  setToken,
-  getAuthConfig: () => authConfig,
+  getAuthConfig
 };

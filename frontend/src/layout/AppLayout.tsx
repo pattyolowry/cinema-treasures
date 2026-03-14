@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Film, LogIn, LogOut, Menu, User, X } from 'lucide-react';
 import loginService from '../services/login';
@@ -34,6 +35,7 @@ const getLoginErrorMessage = (error: unknown) => {
 };
 
 export function AppLayout() {
+  const queryClient = useQueryClient();
   const location = useLocation();
   const [currentUser, setCurrentUser] = useState<LoggedUser | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -75,21 +77,14 @@ export function AppLayout() {
     try {
       const parsedUser: unknown = JSON.parse(storedUser);
       if (isLoggedUser(parsedUser)) {
-        serviceUtils.setToken(parsedUser.token);
         setCurrentUser(parsedUser);
       } else {
-        serviceUtils.setToken(null);
         window.localStorage.removeItem(LOGGED_USER_STORAGE_KEY);
       }
     } catch {
-      serviceUtils.setToken(null);
       window.localStorage.removeItem(LOGGED_USER_STORAGE_KEY);
     }
   }, []);
-
-  useEffect(() => {
-    serviceUtils.setToken(currentUser?.token ?? null);
-  }, [currentUser]);
 
   const closeLoginModal = () => {
     setIsLoginModalOpen(false);
@@ -99,9 +94,9 @@ export function AppLayout() {
 
   const handleSignOut = () => {
     setCurrentUser(null);
-    serviceUtils.setToken(null);
     setIsProfileMenuOpen(false);
     window.localStorage.removeItem(LOGGED_USER_STORAGE_KEY);
+    queryClient.clear();
   };
 
   const handleLoginSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -115,9 +110,9 @@ export function AppLayout() {
         username: username.trim(),
         password,
       });
-      serviceUtils.setToken(loggedUser.token);
       setCurrentUser(loggedUser);
       window.localStorage.setItem(LOGGED_USER_STORAGE_KEY, JSON.stringify(loggedUser));
+      queryClient.clear();
       setUsername('');
       setPassword('');
       setErrorMessage(null);

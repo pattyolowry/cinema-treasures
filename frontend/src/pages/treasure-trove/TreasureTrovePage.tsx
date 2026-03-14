@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AlertCircle, ChevronDown, Gem, Plus } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useAppSession } from '../../context/AppSessionContext';
@@ -10,6 +11,7 @@ import { TroveMovieDetail } from './components/TroveMovieDetail';
 import { TroveMovieForm } from './components/TroveMovieForm';
 import { TroveMovieList, type RankedTroveMovie } from './components/TroveMovieList';
 
+const TREASURE_ENTRIES_QUERY_KEY = ['treasureEntries'] as const;
 const TREASURE_ERROR_MESSAGE = 'Unable to load treasure trove right now. Please try again.';
 const TREASURE_SAVE_ERROR_MESSAGE = 'Unable to save this treasure entry. Please try again.';
 const TREASURE_DELETE_ERROR_MESSAGE = 'Unable to delete this treasure entry. Please try again.';
@@ -96,10 +98,8 @@ function getRequestErrorMessage(error: unknown, fallback: string): string {
 
 export default function TreasureTrovePage() {
   const { currentUser } = useAppSession();
-  const [movies, setMovies] = useState<TroveMovieRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const [actionErrorMessage, setActionErrorMessage] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingMovie, setEditingMovie] = useState<TroveMovieRecord | null>(null);
   const [selectedMovie, setSelectedMovie] = useState<TroveMovieRecord | null>(null);
@@ -112,23 +112,113 @@ export default function TreasureTrovePage() {
   const notReviewedByRef = useRef<HTMLDivElement | null>(null);
   const location = useLocation();
 
-  const loadTreasures = useCallback(async () => {
-    setIsLoading(true);
-    setErrorMessage(null);
-
-    try {
+  const treasureQuery = useQuery({
+    queryKey: TREASURE_ENTRIES_QUERY_KEY,
+    queryFn: async () => {
       const treasures = await treasureService.getAll();
-      setMovies(treasures.map(treasureToMovieRecord));
-    } catch (error: unknown) {
-      setErrorMessage(getRequestErrorMessage(error, TREASURE_ERROR_MESSAGE));
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+      return treasures.map(treasureToMovieRecord);
+    },
+  });
+  const movies = treasureQuery.data ?? [];
 
-  useEffect(() => {
-    void loadTreasures();
-  }, [loadTreasures]);
+  const addTreasureMutation = useMutation({
+    mutationFn: (movieData: Omit<TroveMovieRecord, 'id' | 'averageRating'>) =>
+      treasureService.addTreasure(movieRecordToTreasurePayload(movieData)),
+    onMutate: async (movieData) => {
+      setActionErrorMessage(null);
+      await queryClient.cancelQueries({ queryKey: TREASURE_ENTRIES_QUERY_KEY });
+      const previousMovies = queryClient.getQueryData<TroveMovieRecord[]>(TREASURE_ENTRIES_QUERY_KEY) ?? [];
+      const optimisticId = `optimistic-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      const optimisticMovie: TroveMovieRecord = {
+        id: optimisticId,
+        ...movieData,
+        averageRating: calculateCTCSTM(movieData.ratings),
+      };
+      queryClient.setQueryData<TroveMovieRecord[]>(TREASURE_ENTRIES_QUERY_KEY, [...previousMovies, optimisticMovie]);
+      return { previousMovies, optimisticId };
+    },
+    onError: (error: unknown, _movieData, context) => {
+      if (context) {
+        queryClient.setQueryData(TREASURE_ENTRIES_QUERY_KEY, context.previousMovies);
+      }
+      setActionErrorMessage(getRequestErrorMessage(error, TREASURE_SAVE_ERROR_MESSAGE));
+    },
+    onSuccess: (savedTreasure, _movieData, context) => {
+      const savedMovie = treasureToMovieRecord(savedTreasure);
+      queryClient.setQueryData<TroveMovieRecord[]>(TREASURE_ENTRIES_QUERY_KEY, (currentMovies = []) =>
+        currentMovies.map((movie) => (movie.id === context?.optimisticId ? savedMovie : movie)),
+      );
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: TREASURE_ENTRIES_QUERY_KEY });
+    },
+  });
+
+  const updateTreasureMutation = useMutation({
+    mutationFn: ({ id, movieData }: { id: string; movieData: Omit<TroveMovieRecord, 'id' | 'averageRating'> }) =>
+      treasureService.updateTreasure(id, movieRecordToTreasurePayload(movieData)),
+    onMutate: async ({ id, movieData }) => {
+      setActionErrorMessage(null);
+      await queryClient.cancelQueries({ queryKey: TREASURE_ENTRIES_QUERY_KEY });
+      const previousMovies = queryClient.getQueryData<TroveMovieRecord[]>(TREASURE_ENTRIES_QUERY_KEY) ?? [];
+      const optimisticMovie: TroveMovieRecord = {
+        id,
+        ...movieData,
+        averageRating: calculateCTCSTM(movieData.ratings),
+      };
+      queryClient.setQueryData<TroveMovieRecord[]>(TREASURE_ENTRIES_QUERY_KEY, (currentMovies = []) =>
+        currentMovies.map((movie) => (movie.id === id ? optimisticMovie : movie)),
+      );
+      return { previousMovies };
+    },
+    onError: (error: unknown, _variables, context) => {
+      if (context) {
+        queryClient.setQueryData(TREASURE_ENTRIES_QUERY_KEY, context.previousMovies);
+      }
+      setActionErrorMessage(getRequestErrorMessage(error, TREASURE_SAVE_ERROR_MESSAGE));
+    },
+    onSuccess: (updatedTreasure) => {
+      const updatedMovie = treasureToMovieRecord(updatedTreasure);
+      queryClient.setQueryData<TroveMovieRecord[]>(TREASURE_ENTRIES_QUERY_KEY, (currentMovies = []) =>
+        currentMovies.map((movie) => (movie.id === updatedMovie.id ? updatedMovie : movie)),
+      );
+      if (selectedMovie?.id === updatedMovie.id) {
+        setSelectedMovie(updatedMovie);
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: TREASURE_ENTRIES_QUERY_KEY });
+    },
+  });
+
+  const deleteTreasureMutation = useMutation({
+    mutationFn: treasureService.deleteTreasure,
+    onMutate: async (id: string) => {
+      setActionErrorMessage(null);
+      await queryClient.cancelQueries({ queryKey: TREASURE_ENTRIES_QUERY_KEY });
+      const previousMovies = queryClient.getQueryData<TroveMovieRecord[]>(TREASURE_ENTRIES_QUERY_KEY) ?? [];
+      queryClient.setQueryData<TroveMovieRecord[]>(TREASURE_ENTRIES_QUERY_KEY, (currentMovies = []) =>
+        currentMovies.filter((movie) => movie.id !== id),
+      );
+      return { previousMovies };
+    },
+    onError: (error: unknown, _id, context) => {
+      if (context) {
+        queryClient.setQueryData(TREASURE_ENTRIES_QUERY_KEY, context.previousMovies);
+      }
+      setActionErrorMessage(getRequestErrorMessage(error, TREASURE_DELETE_ERROR_MESSAGE));
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: TREASURE_ENTRIES_QUERY_KEY });
+    },
+  });
+
+  const isSaving = addTreasureMutation.isPending || updateTreasureMutation.isPending;
+  const errorMessage =
+    actionErrorMessage ??
+    (treasureQuery.error ? getRequestErrorMessage(treasureQuery.error, TREASURE_ERROR_MESSAGE) : null);
+  const isInitialLoading = treasureQuery.isPending && !treasureQuery.data;
+  const isRefreshing = treasureQuery.isFetching && !!treasureQuery.data;
 
   const rankedAllMovies = useMemo<RankedTroveMovie[]>(() => {
     const sortedMovies = [...movies].sort((a, b) => {
@@ -177,32 +267,17 @@ export default function TreasureTrovePage() {
   };
 
   const handleSaveMovie = async (movieData: Omit<TroveMovieRecord, 'id' | 'averageRating'>) => {
-    setIsSaving(true);
-    setErrorMessage(null);
-
     try {
-      const payload = movieRecordToTreasurePayload(movieData);
-
       if (editingMovie) {
-        const updatedTreasure = await treasureService.updateTreasure(editingMovie.id, payload);
-        const updatedMovie = treasureToMovieRecord(updatedTreasure);
-        setMovies((currentMovies) =>
-          currentMovies.map((movie) => (movie.id === editingMovie.id ? updatedMovie : movie)),
-        );
-        if (selectedMovie?.id === editingMovie.id) {
-          setSelectedMovie(updatedMovie);
-        }
+        await updateTreasureMutation.mutateAsync({ id: editingMovie.id, movieData });
       } else {
-        const createdTreasure = await treasureService.addTreasure(payload);
-        setMovies((currentMovies) => [...currentMovies, treasureToMovieRecord(createdTreasure)]);
+        await addTreasureMutation.mutateAsync(movieData);
       }
 
       setIsFormOpen(false);
       setEditingMovie(null);
-    } catch (error: unknown) {
-      setErrorMessage(getRequestErrorMessage(error, TREASURE_SAVE_ERROR_MESSAGE));
-    } finally {
-      setIsSaving(false);
+    } catch {
+      // Mutation errors are surfaced via onError to keep messages consistent.
     }
   };
 
@@ -210,12 +285,8 @@ export default function TreasureTrovePage() {
     if (!window.confirm('Are you sure you want to delete this treasure entry?')) {
       return;
     }
-
-    setErrorMessage(null);
-
     try {
-      await treasureService.deleteTreasure(id);
-      setMovies((currentMovies) => currentMovies.filter((movie) => movie.id !== id));
+      await deleteTreasureMutation.mutateAsync(id);
       if (selectedMovie?.id === id) {
         setSelectedMovie(null);
       }
@@ -223,8 +294,8 @@ export default function TreasureTrovePage() {
         setEditingMovie(null);
         setIsFormOpen(false);
       }
-    } catch (error: unknown) {
-      setErrorMessage(getRequestErrorMessage(error, TREASURE_DELETE_ERROR_MESSAGE));
+    } catch {
+      // Mutation errors are surfaced via onError to keep messages consistent.
     }
   };
 
@@ -270,7 +341,10 @@ export default function TreasureTrovePage() {
             </div>
             <button
               type="button"
-              onClick={() => void loadTreasures()}
+              onClick={() => {
+                setActionErrorMessage(null);
+                void treasureQuery.refetch();
+              }}
               className="shrink-0 rounded-full border border-red-200/40 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-red-100 hover:bg-red-200/10"
             >
               Retry
@@ -445,7 +519,11 @@ export default function TreasureTrovePage() {
           </div>
         </div>
 
-        {isLoading && movies.length === 0 ? (
+        {isRefreshing && (
+          <p className="mb-4 text-xs uppercase tracking-wider text-[var(--color-silver-500)]">Refreshing treasure trove...</p>
+        )}
+
+        {isInitialLoading ? (
           <div className="rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)] p-12 text-center text-[var(--color-silver-400)]">
             Loading treasure trove...
           </div>

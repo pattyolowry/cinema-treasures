@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { AlertCircle, Award, ChevronDown } from 'lucide-react';
 import awardsService from '../../services/awards';
 import type { AwardYear } from '../../types';
 
+const AWARDS_ENTRIES_QUERY_KEY = ['awardsEntries'] as const;
 const AWARDS_ERROR_MESSAGE = 'Unable to load awards right now. Please try again.';
 
 function getRequestErrorMessage(error: unknown, fallback: string): string {
@@ -21,32 +23,22 @@ function getRequestErrorMessage(error: unknown, fallback: string): string {
 }
 
 export default function AwardsPage() {
-  const [awards, setAwards] = useState<AwardYear[]>([]);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isYearMenuOpen, setIsYearMenuOpen] = useState(false);
   const yearMenuRef = useRef<HTMLDivElement | null>(null);
 
+  const awardsQuery = useQuery({
+    queryKey: AWARDS_ENTRIES_QUERY_KEY,
+    queryFn: awardsService.getAll,
+  });
+  const awards = awardsQuery.data ?? [];
+
   const sortedYears = useMemo(() => [...awards].sort((a, b) => b.year - a.year), [awards]);
-
-  const loadAwards = useCallback(async () => {
-    setIsLoading(true);
-    setErrorMessage(null);
-
-    try {
-      const fetchedAwards = await awardsService.getAll();
-      setAwards(fetchedAwards);
-    } catch (error: unknown) {
-      setErrorMessage(getRequestErrorMessage(error, AWARDS_ERROR_MESSAGE));
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadAwards();
-  }, [loadAwards]);
+  const errorMessage = awardsQuery.error
+    ? getRequestErrorMessage(awardsQuery.error, AWARDS_ERROR_MESSAGE)
+    : null;
+  const isInitialLoading = awardsQuery.isPending && !awardsQuery.data;
+  const isRefreshing = awardsQuery.isFetching && !!awardsQuery.data;
 
   useEffect(() => {
     const mostRecentYear = sortedYears[0]?.year ?? null;
@@ -122,7 +114,7 @@ export default function AwardsPage() {
           </div>
           <button
             type="button"
-            onClick={() => void loadAwards()}
+            onClick={() => void awardsQuery.refetch()}
             className="shrink-0 rounded-full border border-red-200/40 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-red-100 hover:bg-red-200/10"
           >
             Retry
@@ -130,7 +122,11 @@ export default function AwardsPage() {
         </div>
       )}
 
-      {isLoading && awards.length === 0 ? (
+      {isRefreshing && (
+        <p className="mb-4 text-xs uppercase tracking-wider text-[var(--color-silver-500)]">Refreshing awards...</p>
+      )}
+
+      {isInitialLoading ? (
         <div className="rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/80 p-8 text-center text-[var(--color-silver-500)]">
           Loading awards...
         </div>
