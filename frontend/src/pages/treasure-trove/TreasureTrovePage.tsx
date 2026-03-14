@@ -20,11 +20,12 @@ const createDefaultRatings = (): Record<TroveMember, number | null> =>
     {} as Record<TroveMember, number | null>,
   );
 
-const calculateAverage = (ratings: Record<TroveMember, number | null>) => {
-  const validRatings = Object.values(ratings).filter((rating): rating is number => rating !== null);
-  if (validRatings.length === 0) return null;
-  const total = validRatings.reduce((sum, rating) => sum + rating, 0);
-  return total / validRatings.length;
+const calculateCTCSTM = (ratings: Record<TroveMember, number | null>) => {
+  const total = TROVE_MEMBERS.reduce((sum, member) => {
+    const rating = ratings[member];
+    return sum + (rating ?? 7);
+  }, 0);
+  return total / TROVE_MEMBERS.length;
 };
 
 const ratingsArrayToRecord = (ratings: Rating[] | undefined) => {
@@ -51,7 +52,7 @@ const treasureToMovieRecord = (treasure: Treasure): TroveMovieRecord => {
     mpaaRating: treasure.movie.mpaaRating ?? '',
     posterUrl: treasure.movie.posterUrl ?? '',
     ratings,
-    averageRating: treasure.ctcstm ?? calculateAverage(ratings),
+    averageRating: calculateCTCSTM(ratings),
   };
 };
 
@@ -62,7 +63,7 @@ const movieRecordToTreasurePayload = (
     const rating = movieRecord.ratings[member];
     return rating === null ? [] : [{ user: member, rating }];
   });
-  const ctcstm = calculateAverage(movieRecord.ratings) ?? undefined;
+  const ctcstm = calculateCTCSTM(movieRecord.ratings);
 
   return {
     movie: {
