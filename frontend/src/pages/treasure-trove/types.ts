@@ -5,7 +5,7 @@ export interface TroveMovieRecord {
   title: string;
   yearReleased: number;
   originCountry: string;
-  runTime?: string;
+  runTime?: number | null;
   mpaaRating?: string;
   posterUrl?: string;
   ratings: Record<TroveMember, number | null>;

@@ -2,6 +2,16 @@ import { Calendar, Edit2, Globe, Star, X } from 'lucide-react';
 import { TROVE_MEMBERS } from '../data';
 import type { TroveMovieRecord } from '../types';
 
+function formatRunTime(minutes: number | null | undefined): string | null {
+  if (!minutes || minutes <= 0) return null;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (hours === 0) return `${remainingMinutes}m`;
+  if (remainingMinutes === 0) return `${hours}h`;
+  return `${hours}h ${remainingMinutes}m`;
+}
+
 interface TroveMovieDetailProps {
   movie: TroveMovieRecord;
   isLoggedIn: boolean;
@@ -10,6 +20,8 @@ interface TroveMovieDetailProps {
 }
 
 export function TroveMovieDetail({ movie, isLoggedIn, onClose, onEdit }: TroveMovieDetailProps) {
+  const formattedRunTime = formatRunTime(movie.runTime);
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm" onClick={onClose}>
       <div className="flex min-h-full items-center justify-center p-4">
@@ -38,6 +50,11 @@ export function TroveMovieDetail({ movie, isLoggedIn, onClose, onEdit }: TroveMo
                     <Calendar size={14} className="text-[var(--color-gold-500)]" />
                     <span>{movie.yearReleased}</span>
                   </div>
+                  {formattedRunTime && (
+                    <div className="flex items-center gap-1.5">
+                      <span>{formattedRunTime}</span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-1.5">
                     <Globe size={14} className="text-[var(--color-gold-500)]" />
                     <span>{movie.originCountry}</span>
