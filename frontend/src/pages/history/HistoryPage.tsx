@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState, type KeyboardEvent } from 'react';
+import { useMemo, useState, type KeyboardEvent } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AlertCircle, Award, Plus } from 'lucide-react';
 import type { LogEntry, NewLogEntry } from '../../types';
 import { useAppSession } from '../../context/AppSessionContext';
@@ -7,6 +8,7 @@ import { MovieDetail } from './components/MovieDetail';
 import { MovieForm } from './components/MovieForm';
 import { MovieList, type MovieYearSection } from './components/MovieList';
 
+const HISTORY_ENTRIES_QUERY_KEY = ['historyEntries'] as const;
 const HISTORY_ERROR_MESSAGE = 'Unable to load film history right now. Please try again.';
 const HISTORY_SAVE_ERROR_MESSAGE = 'Unable to save this record. Please try again.';
 const HISTORY_DELETE_ERROR_MESSAGE = 'Unable to delete this record. Please try again.';
@@ -28,31 +30,104 @@ function getRequestErrorMessage(error: unknown, fallback: string): string {
 
 export default function HistoryPage() {
   const { currentUser } = useAppSession();
-  const [entries, setEntries] = useState<LogEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const [actionErrorMessage, setActionErrorMessage] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<LogEntry | null>(null);
   const [selectedEntry, setSelectedEntry] = useState<LogEntry | null>(null);
 
-  const loadEntries = useCallback(async () => {
-    setIsLoading(true);
-    setErrorMessage(null);
+  const historyQuery = useQuery({
+    queryKey: HISTORY_ENTRIES_QUERY_KEY,
+    queryFn: historyService.getAllEntries,
+  });
+  const entries = historyQuery.data ?? [];
 
-    try {
-      const historyEntries = await historyService.getAllEntries();
-      setEntries(historyEntries);
-    } catch (error: unknown) {
-      setErrorMessage(getRequestErrorMessage(error, HISTORY_ERROR_MESSAGE));
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const addEntryMutation = useMutation({
+    mutationFn: historyService.addEntry,
+    onMutate: async (entryData: NewLogEntry) => {
+      setActionErrorMessage(null);
+      await queryClient.cancelQueries({ queryKey: HISTORY_ENTRIES_QUERY_KEY });
+      const previousEntries = queryClient.getQueryData<LogEntry[]>(HISTORY_ENTRIES_QUERY_KEY) ?? [];
+      const optimisticId = `optimistic-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      const optimisticEntry: LogEntry = {
+        id: optimisticId,
+        ...entryData,
+      };
+      queryClient.setQueryData<LogEntry[]>(HISTORY_ENTRIES_QUERY_KEY, [...previousEntries, optimisticEntry]);
+      return { previousEntries, optimisticId };
+    },
+    onError: (error: unknown, _entryData, context) => {
+      if (context) {
+        queryClient.setQueryData(HISTORY_ENTRIES_QUERY_KEY, context.previousEntries);
+      }
+      setActionErrorMessage(getRequestErrorMessage(error, HISTORY_SAVE_ERROR_MESSAGE));
+    },
+    onSuccess: (savedEntry, _entryData, context) => {
+      queryClient.setQueryData<LogEntry[]>(HISTORY_ENTRIES_QUERY_KEY, (currentEntries = []) =>
+        currentEntries.map((entry) => (entry.id === context?.optimisticId ? savedEntry : entry)),
+      );
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: HISTORY_ENTRIES_QUERY_KEY });
+    },
+  });
 
-  useEffect(() => {
-    void loadEntries();
-  }, [loadEntries]);
+  const updateEntryMutation = useMutation({
+    mutationFn: ({ id, entryData }: { id: string; entryData: NewLogEntry }) =>
+      historyService.updateEntry(id, entryData),
+    onMutate: async ({ id, entryData }) => {
+      setActionErrorMessage(null);
+      await queryClient.cancelQueries({ queryKey: HISTORY_ENTRIES_QUERY_KEY });
+      const previousEntries = queryClient.getQueryData<LogEntry[]>(HISTORY_ENTRIES_QUERY_KEY) ?? [];
+      queryClient.setQueryData<LogEntry[]>(HISTORY_ENTRIES_QUERY_KEY, (currentEntries = []) =>
+        currentEntries.map((entry) => (entry.id === id ? { ...entry, ...entryData, id } : entry)),
+      );
+      return { previousEntries };
+    },
+    onError: (error: unknown, _variables, context) => {
+      if (context) {
+        queryClient.setQueryData(HISTORY_ENTRIES_QUERY_KEY, context.previousEntries);
+      }
+      setActionErrorMessage(getRequestErrorMessage(error, HISTORY_SAVE_ERROR_MESSAGE));
+    },
+    onSuccess: (updatedEntry) => {
+      queryClient.setQueryData<LogEntry[]>(HISTORY_ENTRIES_QUERY_KEY, (currentEntries = []) =>
+        currentEntries.map((entry) => (entry.id === updatedEntry.id ? updatedEntry : entry)),
+      );
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: HISTORY_ENTRIES_QUERY_KEY });
+    },
+  });
+
+  const deleteEntryMutation = useMutation({
+    mutationFn: historyService.deleteEntry,
+    onMutate: async (id: string) => {
+      setActionErrorMessage(null);
+      await queryClient.cancelQueries({ queryKey: HISTORY_ENTRIES_QUERY_KEY });
+      const previousEntries = queryClient.getQueryData<LogEntry[]>(HISTORY_ENTRIES_QUERY_KEY) ?? [];
+      queryClient.setQueryData<LogEntry[]>(HISTORY_ENTRIES_QUERY_KEY, (currentEntries = []) =>
+        currentEntries.filter((entry) => entry.id !== id),
+      );
+      return { previousEntries };
+    },
+    onError: (error: unknown, _id, context) => {
+      if (context) {
+        queryClient.setQueryData(HISTORY_ENTRIES_QUERY_KEY, context.previousEntries);
+      }
+      setActionErrorMessage(getRequestErrorMessage(error, HISTORY_DELETE_ERROR_MESSAGE));
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: HISTORY_ENTRIES_QUERY_KEY });
+    },
+  });
+
+  const isSaving = addEntryMutation.isPending || updateEntryMutation.isPending;
+  const errorMessage =
+    actionErrorMessage ??
+    (historyQuery.error ? getRequestErrorMessage(historyQuery.error, HISTORY_ERROR_MESSAGE) : null);
+  const isInitialLoading = historyQuery.isPending && !historyQuery.data;
+  const isRefreshing = historyQuery.isFetching && !!historyQuery.data;
 
   const compareByCurrentWatchPriority = (a: LogEntry, b: LogEntry) => {
     if (b.clubNumber !== a.clubNumber) return b.clubNumber - a.clubNumber;
@@ -106,26 +181,17 @@ export default function HistoryPage() {
   }, [entries]);
 
   const handleSaveMovie = async (entryData: NewLogEntry) => {
-    setIsSaving(true);
-    setErrorMessage(null);
-
     try {
       if (editingEntry) {
-        const updatedEntry = await historyService.updateEntry(editingEntry.id, entryData);
-        setEntries((currentEntries) =>
-          currentEntries.map((entry) => (entry.id === editingEntry.id ? updatedEntry : entry)),
-        );
+        await updateEntryMutation.mutateAsync({ id: editingEntry.id, entryData });
       } else {
-        const newEntry = await historyService.addEntry(entryData);
-        setEntries((currentEntries) => [...currentEntries, newEntry]);
+        await addEntryMutation.mutateAsync(entryData);
       }
 
       setIsFormOpen(false);
       setEditingEntry(null);
-    } catch (error: unknown) {
-      setErrorMessage(getRequestErrorMessage(error, HISTORY_SAVE_ERROR_MESSAGE));
-    } finally {
-      setIsSaving(false);
+    } catch {
+      // Mutation errors are surfaced via onError to keep messages consistent.
     }
   };
 
@@ -134,11 +200,8 @@ export default function HistoryPage() {
       return;
     }
 
-    setErrorMessage(null);
-
     try {
-      await historyService.deleteEntry(id);
-      setEntries((currentEntries) => currentEntries.filter((entry) => entry.id !== id));
+      await deleteEntryMutation.mutateAsync(id);
       if (selectedEntry?.id === id) {
         setSelectedEntry(null);
       }
@@ -146,8 +209,8 @@ export default function HistoryPage() {
         setEditingEntry(null);
         setIsFormOpen(false);
       }
-    } catch (error: unknown) {
-      setErrorMessage(getRequestErrorMessage(error, HISTORY_DELETE_ERROR_MESSAGE));
+    } catch {
+      // Mutation errors are surfaced via onError to keep messages consistent.
     }
   };
 
@@ -207,7 +270,10 @@ export default function HistoryPage() {
             </div>
             <button
               type="button"
-              onClick={() => void loadEntries()}
+              onClick={() => {
+                setActionErrorMessage(null);
+                void historyQuery.refetch();
+              }}
               className="shrink-0 rounded-full border border-red-200/40 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-red-100 hover:bg-red-200/10"
             >
               Retry
@@ -215,7 +281,11 @@ export default function HistoryPage() {
           </div>
         )}
 
-        {isLoading && entries.length === 0 ? (
+        {isRefreshing && (
+          <p className="mb-4 text-xs uppercase tracking-wider text-[var(--color-silver-500)]">Refreshing history...</p>
+        )}
+
+        {isInitialLoading ? (
           <div className="rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)] p-12 text-center text-[var(--color-silver-400)]">
             Loading film history...
           </div>
