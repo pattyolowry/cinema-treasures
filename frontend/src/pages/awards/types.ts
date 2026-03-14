@@ -10,7 +10,7 @@ export interface AwardCategory {
   nominees: AwardNominee[];
 }
 
-export interface AwardYear {
+export interface AwardYearType {
   year: number;
   categories: AwardCategory[];
 }

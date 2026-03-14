@@ -13,7 +13,6 @@ router.get('/', async (req, res) => {
         if (decodedToken.id) {
             const user = await User.findById(decodedToken.id)
             if (user) {
-                console.log("User found, fetching all awards")
                 visibleOnly = false
             }
         }
