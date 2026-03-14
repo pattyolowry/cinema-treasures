@@ -1,20 +1,37 @@
 # Cinema Treasures
 
-Cinema Treasures is a React + TypeScript web app for a film club. It tracks watched films, club ratings, all-time favorites, and annual awards.
+Cinema Treasures is a full-stack film club app with a React + TypeScript frontend and an Express + MongoDB backend. It tracks watched films, club ratings, all-time favorites, and annual awards.
 
-## What The App Includes
+## App Routes
 
-### Routes
-
-- `/` Landing page for the club
-- `/history` Film Log with watched titles, ratings, and detail modal
-- `/treasure-trove` Ranked all-time entries with title/member filters
-- `/ctcstm-scale` CTCSTM rating legend (1 to 10)
+- `/` Landing page
+- `/about` About page for the club
+- `/history` Film log (view + authenticated add/edit/delete)
+- `/treasure-trove` Ranked all-time entries (view + authenticated add/edit/delete)
+- `/ctcstm-scale` CTCSTM rating legend (1-10)
 - `/awards` Yearly awards and nominees
 
-### Member Session
+## Architecture
 
-The "Member Login" flow is an in-app member selector (not external auth). Signing in unlocks add/edit/delete controls in the Film Log and Treasure Trove sections.
+- Monorepo with npm workspaces:
+  - `frontend`: React 19, Vite, TypeScript, React Router, React Query, Tailwind
+  - `backend`: Express, TypeScript, Mongoose, JWT auth, Zod validation
+- Root orchestration:
+  - `npm run dev` starts frontend and backend together
+  - `npm run frontend` starts frontend only
+  - `npm run backend` starts backend only
+- Frontend calls backend via these API paths:
+  - `/api/users/login`
+  - `/api/history`
+  - `/api/treasures`
+  - `/api/awards`
+
+## Data + Auth Behavior
+
+- `history` and `treasures` are persisted in MongoDB through the backend API.
+- `awards` are fetched from the backend
+- Read access is public for history, treasures, and awards.
+- Create/update/delete for history and treasures requires a valid bearer token.
 
 ## Run Locally
 
@@ -22,39 +39,51 @@ The "Member Login" flow is an in-app member selector (not external auth). Signin
 
 - Node.js
 - npm
+- A reachable MongoDB instance
 
-### Setup
+### Install
 
 ```bash
 npm install
 ```
 
-### Start Dev Server (port 3000)
+### Backend Environment Variables
+
+Create `backend/.env` with:
+
+```env
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+ADMIN_USER=optional_admin_username
+PORT=3003
+```
+
+### Start Development
 
 ```bash
 npm run dev
 ```
 
-### Build Production Bundle
+Default local behavior:
+
+- frontend: Vite on `http://localhost:3000`
+- backend: configured by `PORT` (recommended `3003` with current proxy)
+
+### Useful Commands
 
 ```bash
-npm run build
+# Frontend only
+npm run frontend
+
+# Backend only
+npm run backend
+
+# Frontend build
+npm run build -w frontend
+
+# Frontend preview
+npm run preview -w frontend
+
+# Frontend type check
+npm run lint -w frontend
 ```
-
-### Preview Production Build
-
-```bash
-npm run preview
-```
-
-### Type Check
-
-```bash
-npm run lint
-```
-
-## Data Behavior
-
-- Movie and awards data is currently seeded from local source files in `src/`.
-- Changes made through the UI are held in client-side React state.
-- There is no persistent backend storage wired for these edits yet, so data resets on page reload.
