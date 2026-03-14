@@ -1,6 +1,6 @@
-import type { AwardYear } from './types';
+import type { AwardYearType } from './types';
 
-export const DUMMY_AWARDS: AwardYear[] = [
+export const DUMMY_AWARDS: AwardYearType[] = [
   {
     year: 2025,
     categories: [
