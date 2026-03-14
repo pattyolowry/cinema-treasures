@@ -295,7 +295,7 @@ export default function TreasureTrovePage() {
                   Treasure Trove
                 </h2>
                 <p className="mt-2 text-sm sm:text-base text-[var(--color-silver-400)]">
-                  The highest-rated films of all time from club members, ranked by CTCSTM score.
+                  The films deemed National Treasures by at least one club member, ranked by CTCSTM score.
                 </p>
               </div>
 
