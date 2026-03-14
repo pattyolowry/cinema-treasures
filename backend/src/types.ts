@@ -49,7 +49,7 @@ export interface NewTreasure {
 
 export interface AwardNominee {
   name: string;
-  isWinner: boolean;
+  isWinner?: boolean;
   subText?: string;
 }
 
@@ -59,7 +59,7 @@ export interface AwardCategory {
   nominees: AwardNominee[];
 }
 
-export interface AwardYear {
+export interface AwardYearType {
   year: number;
   categories: AwardCategory[];
 }
