@@ -90,7 +90,7 @@ export function TroveMovieForm({ movie, onSave, onClose, isSubmitting = false }:
       ...prev,
       title: match.title || prev.title,
       yearReleased: searchReleaseYear ?? prev.yearReleased,
-      posterUrl: toTmdbImageUrl(match.poster_path, 'w500') || prev.posterUrl,
+      posterUrl: toTmdbImageUrl(match.poster_path, 'w154') || prev.posterUrl,
     }));
 
     const requestId = ++detailsRequestIdRef.current;
@@ -108,7 +108,7 @@ export function TroveMovieForm({ movie, onSave, onClose, isSubmitting = false }:
         yearReleased: detailsReleaseYear ?? prev.yearReleased,
         originCountry: originCountry || prev.originCountry,
         runTime: details.runtime ?? prev.runTime,
-        posterUrl: toTmdbImageUrl(details.poster_path, 'w500') || prev.posterUrl,
+        posterUrl: toTmdbImageUrl(details.poster_path, 'w154') || prev.posterUrl,
       }));
     } catch {
       // Keep already selected values if details lookup fails.

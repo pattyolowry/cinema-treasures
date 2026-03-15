@@ -159,7 +159,7 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
       ...prev,
       title: match.title || prev.title,
       yearReleased: searchReleaseYear ?? prev.yearReleased,
-      posterUrl: toTmdbImageUrl(match.poster_path, 'w500') || prev.posterUrl,
+      posterUrl: toTmdbImageUrl(match.poster_path, 'w154') || prev.posterUrl,
       backdropUrl: toTmdbImageUrl(match.backdrop_path, 'original') || prev.backdropUrl,
     }));
 
@@ -179,7 +179,7 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
         yearReleased: detailsReleaseYear ?? prev.yearReleased,
         originCountry: originCountry || prev.originCountry,
         runTime: runTime || prev.runTime,
-        posterUrl: toTmdbImageUrl(details.poster_path, 'w500') || prev.posterUrl,
+        posterUrl: toTmdbImageUrl(details.poster_path, 'w154') || prev.posterUrl,
         backdropUrl: toTmdbImageUrl(details.backdrop_path, 'original') || prev.backdropUrl,
       }));
     } catch {
