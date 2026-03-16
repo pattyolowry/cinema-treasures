@@ -7,6 +7,13 @@ const logEntrySchema = new mongoose.Schema({
         ref: "Movie",
         required: true
     },
+    pickedBy: {
+        type: String,
+        enum: {
+            values: ["Ren", "Greg", "Max", "Quinn", "Patio", "Ian"],
+            message: '{VALUE} is not a valid user'
+        }
+    },
     yearWatched: Number,
     streamingPlatform: String,
     ratings: [

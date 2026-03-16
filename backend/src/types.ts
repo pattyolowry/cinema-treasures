@@ -35,6 +35,7 @@ export interface Rating {
 export interface NewLogEntry {
     clubNumber: number,
     movie: MovieInfo,
+    pickedBy: Member,
     yearWatched?: number,
     streamingPlatform?: string,
     ratings?: Rating[],
