@@ -13,6 +13,7 @@ export const newLogEntrySchema = z.object({
     posterUrl: z.optional(z.string()),
     backdropUrl: z.optional(z.string())
   }),
+  pickedBy: z.enum(Member),
   yearWatched: z.optional(z.int()),
   streamingPlatform: z.optional(z.string()),
   ratings: z.optional(z.array(z.object({

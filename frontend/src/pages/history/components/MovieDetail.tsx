@@ -40,6 +40,12 @@ export function MovieDetail({ movie, isLoggedIn, onClose, onEdit }: MovieDetailP
               <div>
                 <h2 className="text-3xl font-serif text-white mb-2 leading-tight">{movie.movie.title}</h2>
                 <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--color-silver-400)]">
+                  {movie.pickedBy && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold text-[var(--color-gold-500)]">Picked By:</span>
+                      <span>{movie.pickedBy}</span>
+                    </div>
+                  )}
                   {movie.movie.yearReleased && (
                     <div className="flex items-center gap-1.5">
                       <Calendar size={14} className="text-[var(--color-gold-500)]" />

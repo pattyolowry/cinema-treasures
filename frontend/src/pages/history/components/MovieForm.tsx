@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Film, X } from 'lucide-react';
+import { ChevronDown, Film, X } from 'lucide-react';
 import { MEMBERS } from '../../../data';
 import type { LogEntry, Member, NewLogEntry, Rating, TmdbMovieDetails, TmdbSearchMovie } from '../../../types';
 import tmdb from '../../../services/tmdb';
@@ -106,9 +106,11 @@ function calculateAverage(ratingsMap: Record<Member, number | null>): number | u
 
 export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting = false }: MovieFormProps) {
   const isAddMode = !movie;
+  const PICKED_BY_OPTIONS: Member[] = ['Ren', 'Greg', 'Max', 'Quinn', 'Patio', 'Ian'];
   const [formData, setFormData] = useState({
     clubNumber: movie?.clubNumber ?? nextClubNumber,
     title: movie?.movie.title ?? '',
+    pickedBy: movie?.pickedBy ?? '',
     yearReleased: movie?.movie.yearReleased ?? '',
     yearWatched: movie?.yearWatched ?? new Date().getFullYear(),
     originCountry: movie?.movie.originCountry ?? '',
@@ -124,10 +126,17 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [isFetchingDetails, setIsFetchingDetails] = useState(false);
+  const [isPickedByMenuOpen, setIsPickedByMenuOpen] = useState(false);
+  const [pickedByError, setPickedByError] = useState<string | null>(null);
+  const [highlightedPickedByIndex, setHighlightedPickedByIndex] = useState(0);
   const titleContainerRef = useRef<HTMLDivElement | null>(null);
+  const pickedByContainerRef = useRef<HTMLDivElement | null>(null);
+  const pickedByButtonRef = useRef<HTMLButtonElement | null>(null);
+  const pickedByOptionRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const searchRequestIdRef = useRef(0);
   const detailsRequestIdRef = useRef(0);
   const skipSearchForTitleRef = useRef<string | null>(null);
+  const isPickedByPlaceholder = formData.pickedBy === '';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
@@ -135,6 +144,27 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
       ...prev,
       [name]: type === 'number' ? (value ? Number(value) : '') : value,
     }));
+  };
+
+  const movePickedByHighlight = (delta: number) => {
+    setHighlightedPickedByIndex((prev) => {
+      const next = prev + delta;
+      if (next < 0) return PICKED_BY_OPTIONS.length - 1;
+      if (next >= PICKED_BY_OPTIONS.length) return 0;
+      return next;
+    });
+  };
+
+  const openPickedByMenu = (initialIndex: number) => {
+    setIsPickedByMenuOpen(true);
+    setHighlightedPickedByIndex(initialIndex);
+  };
+
+  const selectPickedBy = (member: Member) => {
+    setFormData((prev) => ({ ...prev, pickedBy: member }));
+    setPickedByError(null);
+    setIsPickedByMenuOpen(false);
+    window.requestAnimationFrame(() => pickedByButtonRef.current?.focus());
   };
 
   const handleRatingChange = (member: Member, value: string) => {
@@ -240,11 +270,13 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
   }, [formData.title, isAddMode]);
 
   useEffect(() => {
-    if (!isAddMode) return;
-
     const handleClickOutside = (event: MouseEvent) => {
-      if (titleContainerRef.current && !titleContainerRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (isAddMode && titleContainerRef.current && !titleContainerRef.current.contains(target)) {
         setIsSuggestionsOpen(false);
+      }
+      if (pickedByContainerRef.current && !pickedByContainerRef.current.contains(target)) {
+        setIsPickedByMenuOpen(false);
       }
     };
 
@@ -252,8 +284,20 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isAddMode]);
 
+  useEffect(() => {
+    if (!isPickedByMenuOpen) return;
+    const option = pickedByOptionRefs.current[highlightedPickedByIndex];
+    option?.focus();
+  }, [highlightedPickedByIndex, isPickedByMenuOpen]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.pickedBy) {
+      setPickedByError('Please select who picked this movie.');
+      setIsPickedByMenuOpen(false);
+      return;
+    }
+    setPickedByError(null);
 
     const ratings = ratingsMapToArray(formData.ratings);
 
@@ -268,6 +312,7 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
         posterUrl: formData.posterUrl.trim() || undefined,
         backdropUrl: formData.backdropUrl.trim() || undefined,
       },
+      pickedBy: formData.pickedBy as Member,
       yearWatched: Number(formData.yearWatched),
       streamingPlatform: formData.streamingPlatform.trim() || undefined,
       ratings,
@@ -392,6 +437,117 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
                   className="w-full bg-[var(--color-cinema-black)] border border-[var(--color-cinema-gray)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-gold-500)] focus:ring-1 focus:ring-[var(--color-gold-500)] transition-all font-mono"
                   placeholder="e.g. 2000"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-[var(--color-silver-400)] uppercase tracking-wider">Picked By</label>
+                <div className="relative" ref={pickedByContainerRef}>
+                  <button
+                    ref={pickedByButtonRef}
+                    type="button"
+                    aria-haspopup="listbox"
+                    aria-controls="picked-by-listbox"
+                    aria-expanded={isPickedByMenuOpen}
+                    onClick={() => {
+                      if (isPickedByMenuOpen) {
+                        setIsPickedByMenuOpen(false);
+                        return;
+                      }
+                      const selectedIndex = PICKED_BY_OPTIONS.indexOf(formData.pickedBy as Member);
+                      openPickedByMenu(selectedIndex >= 0 ? selectedIndex : 0);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'ArrowDown') {
+                        event.preventDefault();
+                        const selectedIndex = PICKED_BY_OPTIONS.indexOf(formData.pickedBy as Member);
+                        openPickedByMenu(selectedIndex >= 0 ? selectedIndex : 0);
+                        return;
+                      }
+                      if (event.key === 'ArrowUp') {
+                        event.preventDefault();
+                        const selectedIndex = PICKED_BY_OPTIONS.indexOf(formData.pickedBy as Member);
+                        openPickedByMenu(selectedIndex >= 0 ? selectedIndex : PICKED_BY_OPTIONS.length - 1);
+                        return;
+                      }
+                      if (event.key === 'Escape') {
+                        setIsPickedByMenuOpen(false);
+                      }
+                    }}
+                    className={`w-full bg-[var(--color-cinema-black)] border rounded-lg pl-4 pr-10 py-3 md:py-2 min-h-11 text-left focus:outline-none focus:ring-1 transition-all text-sm md:text-base ${
+                      pickedByError
+                        ? 'border-red-400/80 focus:border-red-300 focus:ring-red-300/60'
+                        : 'border-[var(--color-cinema-gray)] focus:border-[var(--color-gold-500)] focus:ring-[var(--color-gold-500)]'
+                    } ${isPickedByPlaceholder ? 'text-[var(--color-silver-500)]' : 'text-white'}`}
+                  >
+                    {isPickedByPlaceholder ? 'Select member' : formData.pickedBy}
+                  </button>
+                  <ChevronDown
+                    size={16}
+                    className={`pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 transition-transform text-[var(--color-silver-400)] ${
+                      isPickedByMenuOpen ? 'rotate-180' : ''
+                    }`}
+                    aria-hidden="true"
+                  />
+                  {isPickedByMenuOpen && (
+                    <div
+                      id="picked-by-listbox"
+                      role="listbox"
+                      aria-label="Picked by"
+                      className="absolute left-0 right-0 mt-1 z-40 max-h-64 overflow-y-auto rounded-lg border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-black)] shadow-[0_12px_24px_rgba(0,0,0,0.45)]"
+                    >
+                      {PICKED_BY_OPTIONS.map((member, index) => {
+                        const isSelected = formData.pickedBy === member;
+                        return (
+                          <button
+                            key={member}
+                            ref={(element) => {
+                              pickedByOptionRefs.current[index] = element;
+                            }}
+                            type="button"
+                            role="option"
+                            aria-selected={isSelected}
+                            onClick={() => selectPickedBy(member)}
+                            onMouseEnter={() => setHighlightedPickedByIndex(index)}
+                            onKeyDown={(event) => {
+                              if (event.key === 'ArrowDown') {
+                                event.preventDefault();
+                                movePickedByHighlight(1);
+                                return;
+                              }
+                              if (event.key === 'ArrowUp') {
+                                event.preventDefault();
+                                movePickedByHighlight(-1);
+                                return;
+                              }
+                              if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                selectPickedBy(member);
+                                return;
+                              }
+                              if (event.key === 'Escape') {
+                                event.preventDefault();
+                                setIsPickedByMenuOpen(false);
+                                window.requestAnimationFrame(() => pickedByButtonRef.current?.focus());
+                                return;
+                              }
+                              if (event.key === 'Tab') {
+                                setIsPickedByMenuOpen(false);
+                              }
+                            }}
+                            className={`w-full text-left px-4 py-3 text-sm md:text-base transition-colors ${
+                              highlightedPickedByIndex === index
+                                ? 'bg-[var(--color-cinema-gray)] text-white'
+                                : 'text-[var(--color-silver-300)]'
+                            } ${isSelected ? 'font-semibold text-[var(--color-gold-400)]' : ''}`}
+                          >
+                            {member}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+                {pickedByError && <p className="text-xs text-red-300">{pickedByError}</p>}
               </div>
 
               <div className="space-y-2">
