@@ -126,6 +126,8 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [isFetchingDetails, setIsFetchingDetails] = useState(false);
+  const [selectedTmdbId, setSelectedTmdbId] = useState<number | null>(null);
+  const [selectedTmdbTitle, setSelectedTmdbTitle] = useState<string | null>(null);
   const [isPickedByMenuOpen, setIsPickedByMenuOpen] = useState(false);
   const [pickedByError, setPickedByError] = useState<string | null>(null);
   const [highlightedPickedByIndex, setHighlightedPickedByIndex] = useState(0);
@@ -140,6 +142,12 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
+
+    if (isAddMode && name === 'title' && selectedTmdbTitle && value.trim() !== selectedTmdbTitle) {
+      setSelectedTmdbId(null);
+      setSelectedTmdbTitle(null);
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'number' ? (value ? Number(value) : '') : value,
@@ -180,6 +188,8 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
   const handleSuggestionSelect = async (match: TmdbSearchMovie) => {
     const searchReleaseYear = parseReleaseYear(match.release_date);
     skipSearchForTitleRef.current = match.title.trim();
+    setSelectedTmdbId(match.id);
+    setSelectedTmdbTitle(match.title.trim());
 
     setIsSuggestionsOpen(false);
     setSuggestions([]);
@@ -309,6 +319,7 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
         originCountry: formData.originCountry.trim() || undefined,
         runTime: parseRuntimeToMinutes(formData.runTime),
         mpaaRating: formData.mpaaRating.trim() || undefined,
+        tmdbId: selectedTmdbId ?? undefined,
         posterUrl: formData.posterUrl.trim() || undefined,
         backdropUrl: formData.backdropUrl.trim() || undefined,
       },
