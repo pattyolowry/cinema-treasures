@@ -55,6 +55,8 @@ export function TroveMovieForm({ movie, onSave, onClose, isSubmitting = false }:
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [isFetchingDetails, setIsFetchingDetails] = useState(false);
+  const [selectedTmdbId, setSelectedTmdbId] = useState<number | null>(null);
+  const [selectedTmdbTitle, setSelectedTmdbTitle] = useState<string | null>(null);
   const titleContainerRef = useRef<HTMLDivElement | null>(null);
   const searchRequestIdRef = useRef(0);
   const detailsRequestIdRef = useRef(0);
@@ -62,6 +64,12 @@ export function TroveMovieForm({ movie, onSave, onClose, isSubmitting = false }:
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
+
+    if (isAddMode && name === 'title' && selectedTmdbTitle && value.trim() !== selectedTmdbTitle) {
+      setSelectedTmdbId(null);
+      setSelectedTmdbTitle(null);
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'number' ? (value ? Number(value) : '') : value,
@@ -81,6 +89,8 @@ export function TroveMovieForm({ movie, onSave, onClose, isSubmitting = false }:
   const handleSuggestionSelect = async (match: TmdbSearchMovie) => {
     const searchReleaseYear = parseReleaseYear(match.release_date);
     skipSearchForTitleRef.current = match.title.trim();
+    setSelectedTmdbId(match.id);
+    setSelectedTmdbTitle(match.title.trim());
 
     setIsSuggestionsOpen(false);
     setSuggestions([]);
@@ -182,7 +192,11 @@ export function TroveMovieForm({ movie, onSave, onClose, isSubmitting = false }:
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    onSave(formData as Omit<TroveMovieRecord, 'id' | 'averageRating'>);
+    const payload: Omit<TroveMovieRecord, 'id' | 'averageRating'> = {
+      ...formData,
+      tmdbId: selectedTmdbId ?? undefined,
+    };
+    onSave(payload);
   };
 
   return (
