@@ -10,7 +10,13 @@ const getHistory = async () => {
 const findAndUpdateLinkedMovie = async (entry: NewLogEntry) => {
     let movie = await Movie.findOne({title: entry.movie.title})
     if (movie) {
-        movie.set(entry.movie)
+        const tmdbId = movie.tmdbId
+            ? movie.tmdbId
+            : entry.movie.tmdbId
+        movie.set({
+            ...entry.movie,
+            tmdbId
+        })
     } else {
         movie = new Movie({
             ...entry.movie
