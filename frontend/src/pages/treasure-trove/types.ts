@@ -7,6 +7,7 @@ export interface TroveMovieRecord {
   originCountry: string;
   runTime?: number | null;
   mpaaRating?: string;
+  tmdbId?: number;
   posterUrl?: string;
   ratings: Record<TroveMember, number | null>;
   averageRating: number | null;
