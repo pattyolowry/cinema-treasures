@@ -5,7 +5,7 @@ import connectToDatabase from './utils/db';
 const start = async () => {
   try {
     await connectToDatabase(config.MONGODB_URI);
-    app.listen(config.PORT, () => {
+    app.listen(config.PORT as number, '0.0.0.0', () => {
       console.log(`Server running on port ${config.PORT}`);
     });
   } catch (err) {
