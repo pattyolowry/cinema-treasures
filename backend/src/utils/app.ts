@@ -6,23 +6,26 @@ import treasureRouter from '../routes/treasures';
 import awardRouter from '../routes/awards'
 import tmdbRouter from '../routes/tmdb'
 import healthRouter from '../routes/health'
-import connectToDatabase from '../utils/db';
-import config from '../utils/config'
+import helmet from 'helmet';
 
 const app = express();
 
-connectToDatabase(config.MONGODB_URI);
+app.set('trust proxy', 1);
 
+// Middleware
+app.use(helmet());
 app.use(express.json());
 app.use(middleware.requestLogger)
 app.use(middleware.tokenExtractor)
 
+// Routes
+app.use('/api/health', healthRouter);
+app.use('/api', middleware.apiLimiter)
 app.use('/api/history', historyRouter);
 app.use('/api/users', userRouter);
 app.use('/api/treasures', treasureRouter);
 app.use('/api/awards', awardRouter);
 app.use('/api/tmdb', tmdbRouter);
-app.use('/api/health', healthRouter);
 
 app.use(middleware.unknownEndpoint)
 app.use(middleware.errorHandler)
