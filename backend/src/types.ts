@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import 'express'
 
 export interface UserInfo {
     id: string,
@@ -93,12 +94,10 @@ export interface TmdbMovieDetails {
   production_countries?: TmdbProductionCountry[];
 }
 
-declare global {
-  namespace Express {
-    interface Request {
-      token?: string | null;
-      user?: mongoose.Model<UserInfo> | null;
-    }
+declare module 'express-serve-static-core' {
+  interface Request {
+    token?: string | null;
+    user?: mongoose.Model<UserInfo> | null;
   }
 }
 

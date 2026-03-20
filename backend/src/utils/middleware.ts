@@ -2,6 +2,9 @@ import jwt, { JwtPayload } from 'jsonwebtoken'
 import User from '../models/user'
 import config from '../utils/config'
 import { Response, Request, NextFunction } from 'express';
+import { rateLimit } from 'express-rate-limit';
+import { RequestHandler } from 'express';
+
 
 const requestLogger = (request: Request, _res: Response, next: NextFunction) => {
   console.log('Method:', request.method)
@@ -56,10 +59,25 @@ const errorHandler = (error: Error, _req: Request, response: Response, next: Nex
   return next(error)
 }
 
+const apiLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minutes
+  limit: 30,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  validate: { default: false },
+  keyGenerator: (req: any) => {
+      return `${req.ip}-${req.path}`;
+  },
+  message: {
+    error: "Too many requests. Please try again later.",
+  },
+}) as unknown as RequestHandler;
+
 export default {
   requestLogger,
   unknownEndpoint,
   errorHandler,
   tokenExtractor,
-  userExtractor
+  userExtractor,
+  apiLimiter
 }
