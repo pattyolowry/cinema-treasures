@@ -17,11 +17,6 @@ app.use(express.json());
 app.use(middleware.requestLogger)
 app.use(middleware.tokenExtractor)
 
-app.get('/api/ping', (_req, res) => {
-  console.log('someone pinged here');
-  res.send('pong');
-});
-
 app.use('/api/history', historyRouter);
 app.use('/api/users', userRouter);
 app.use('/api/treasures', treasureRouter);
