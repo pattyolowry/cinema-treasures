@@ -23,6 +23,7 @@ export default defineConfig(({mode}) => {
         '/api/users': 'http://localhost:3003',
         '/api/history': 'http://localhost:3003',
         '/api/treasures': 'http://localhost:3003',
+        '/api/tmdb': 'http://localhost:3003',
         '/api/awards': 'http://localhost:3003',
       },
     },
