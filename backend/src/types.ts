@@ -65,6 +65,34 @@ export interface AwardYearType {
   categories: AwardCategory[];
 }
 
+export interface TmdbSearchMovie {
+  id: number;
+  title: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  release_date: string;
+}
+
+export interface TmdbSearchResults {
+  results: TmdbSearchMovie[];
+}
+
+export interface TmdbProductionCountry {
+  iso_3166_1: string;
+  name: string;
+}
+
+export interface TmdbMovieDetails {
+  id: number;
+  title: string;
+  poster_path: string | null;
+  backdrop_path: string | null;
+  release_date: string;
+  runtime: number | null;
+  origin_country?: string[];
+  production_countries?: TmdbProductionCountry[];
+}
+
 declare global {
   namespace Express {
     interface Request {

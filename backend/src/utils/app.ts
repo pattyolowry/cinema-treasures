@@ -4,6 +4,7 @@ import historyRouter from '../routes/history';
 import userRouter from '../routes/users';
 import treasureRouter from '../routes/treasures';
 import awardRouter from '../routes/awards'
+import tmdbRouter from '../routes/tmdb'
 import healthRouter from '../routes/health'
 import connectToDatabase from '../utils/db';
 import config from '../utils/config'
@@ -25,6 +26,7 @@ app.use('/api/history', historyRouter);
 app.use('/api/users', userRouter);
 app.use('/api/treasures', treasureRouter);
 app.use('/api/awards', awardRouter);
+app.use('/api/tmdb', tmdbRouter);
 app.use('/api/health', healthRouter);
 
 app.use(middleware.unknownEndpoint)

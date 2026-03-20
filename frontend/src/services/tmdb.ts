@@ -1,17 +1,11 @@
 import axios from 'axios';
 import { TmdbMovieDetails, TmdbSearchResults } from '../types';
-const api_key = import.meta.env.VITE_TMDB_API_KEY;
 
-const baseUrl = 'https://api.themoviedb.org/3';
-
-const config = {
-  headers: { Authorization: `Bearer ${api_key}` },
-};
+const baseUrl = '/api/tmdb';
 
 const searchMovie = async (text: string) => {
   const { data } = await axios.get<TmdbSearchResults>(
-    `${baseUrl}/search/movie?query=${encodeURIComponent(text)}`,
-    config,
+    `${baseUrl}/search/movie?query=${encodeURIComponent(text)}`
   );
 
   return data;
@@ -19,8 +13,7 @@ const searchMovie = async (text: string) => {
 
 const getMovieDetails = async (id: number) => {
   const { data } = await axios.get<TmdbMovieDetails>(
-    `${baseUrl}/movie/${id}`,
-    config,
+    `${baseUrl}/movie/${id}`
   );
 
   return data;
