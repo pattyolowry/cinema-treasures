@@ -1,10 +1,10 @@
 import type { ClubMemberProfile } from './types';
-import renProfile from '/ren-profile.png'
-import gregProfile from '/greg-profile.png'
-import maxProfile from '/max-profile.png'
-import quinnProfile from '/quinn-profile.png'
-import patioProfile from '/patio-profile.png'
-import ianProfile from '/ian-profile.png'
+import renProfile from '/ren-profile.jpg'
+import gregProfile from '/greg-profile.jpg'
+import maxProfile from '/max-profile.jpg'
+import quinnProfile from '/quinn-profile.jpg'
+import patioProfile from '/patio-profile.jpg'
+import ianProfile from '/ian-profile.jpg'
 
 export const MEMBER_PROFILES: ClubMemberProfile[] = [
   {
