@@ -88,7 +88,7 @@ export function TroveMovieDetail({ movie, isLoggedIn, onClose, onEdit }: TroveMo
             </div>
 
             <div className="flex items-center justify-between pt-6 border-t border-[var(--color-cinema-gray)]">
-              <div className="text-sm text-[var(--color-silver-500)]">All-time club favorites archive</div>
+              <div className="text-sm text-[var(--color-silver-500)]">Treasure Trove</div>
               {isLoggedIn && (
                 <button
                   onClick={() => onEdit(movie)}
