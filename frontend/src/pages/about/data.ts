@@ -23,10 +23,10 @@ export const MEMBER_PROFILES: ClubMemberProfile[] = [
     title: 'Comptroller',
     photoUrl: gregProfile,
     favorites: [
-      { posterUrl: 'https://image.tmdb.org/t/p/w500/w3LxiVYdWWRvEVdn5RYq6jIqkb1.jpg', alt: 'Everything Everywhere All at Once poster' },
-      { posterUrl: 'https://image.tmdb.org/t/p/w500/fa0RDkAlCec0STeMNAhPaF89q6U.jpg', alt: 'There Will Be Blood poster' },
-      { posterUrl: 'https://image.tmdb.org/t/p/w500/39wmItIWsg5sZMyRUHLkWBcuVCM.jpg', alt: 'Spirited Away poster' },
-      { posterUrl: 'https://image.tmdb.org/t/p/w500/kQs6keheMwCxJxrzV83VUwFtHkB.jpg', alt: 'Anatomy of a Fall poster' },
+      { posterUrl: 'https://image.tmdb.org/t/p/w500/pEzNVQfdzYDzVK0XqxERIw2x2se.jpg', alt: 'Arrival poster' },
+      { posterUrl: 'https://image.tmdb.org/t/p/w500/4wBG5kbfagTQclETblPRRGihk0I.jpg', alt: 'Midnight in Paris poster' },
+      { posterUrl: 'https://image.tmdb.org/t/p/w500/eClg8QPg8mwB6INIC4pyR5pAbDr.jpg', alt: 'The Birds poster' },
+      { posterUrl: 'https://image.tmdb.org/t/p/w500/or1gBugydmjToAEq7OZY0owwFk.jpg', alt: 'Braveheart poster' },
     ],
   },
   {
@@ -34,10 +34,10 @@ export const MEMBER_PROFILES: ClubMemberProfile[] = [
     title: 'General Counsel',
     photoUrl: maxProfile,
     favorites: [
-      { posterUrl: 'https://image.tmdb.org/t/p/w500/oKyY4TFaLjQTgyX8oH1KuJnnxvB.jpg', alt: 'Mulholland Drive poster' },
-      { posterUrl: 'https://image.tmdb.org/t/p/w500/2LquswEwHysFzXzQkKqE2K0Kx5b.jpg', alt: 'Portrait of a Lady on Fire poster' },
-      { posterUrl: 'https://image.tmdb.org/t/p/w500/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg', alt: 'Dune: Part Two poster' },
-      { posterUrl: 'https://image.tmdb.org/t/p/w500/g2rxhG7Uq5D8QKzQ2AqGQh0f9fW.jpg', alt: 'Tokyo Story poster' },
+      { posterUrl: 'https://image.tmdb.org/t/p/w500/9mprbw31MGdd66LR0AQKoDMoFRv.jpg', alt: 'Big Lebowski poster' },
+      { posterUrl: 'https://image.tmdb.org/t/p/w500/fa0RDkAlCec0STeMNAhPaF89q6U.jpg', alt: 'There Will Be Blood poster' },
+      { posterUrl: 'https://image.tmdb.org/t/p/w500/rCzpDGLbOoPwLjy3OAm5NUPOTrC.jpg', alt: 'Return of the King poster' },
+      { posterUrl: 'https://image.tmdb.org/t/p/w500/bSqt9rhDZx1Q7UZ86dBPKdNomp2.jpg', alt: 'Its A Wonderful Life poster' },
     ],
   },
   {
@@ -45,10 +45,10 @@ export const MEMBER_PROFILES: ClubMemberProfile[] = [
     title: 'Medical Director',
     photoUrl: quinnProfile,
     favorites: [
-      { posterUrl: 'https://image.tmdb.org/t/p/w500/kCGlIMHnOm8JPXq3rXM6c5wMxcT.jpg', alt: 'Poor Things poster' },
-      { posterUrl: 'https://image.tmdb.org/t/p/w500/3gfeJfMNa2Q9Pz7sA9p0A6FQ5mK.jpg', alt: 'The Holdovers poster' },
-      { posterUrl: 'https://image.tmdb.org/t/p/w500/7iK9L2NmA4KjW8vD2xQkUeM4x3P.jpg', alt: 'Past Lives poster' },
-      { posterUrl: 'https://image.tmdb.org/t/p/w500/8k6W6U8n8iWJ3xV9hQv0PjW2VJX.jpg', alt: 'Yi Yi poster' },
+      { posterUrl: 'https://image.tmdb.org/t/p/w500/6oom5QYQ2yQTMJIbnvbkBL9cHo6.jpg', alt: 'Fellowship of the Ring poster' },
+      { posterUrl: 'https://image.tmdb.org/t/p/w500/aKCvdFFF5n80P2VdS7d8YBwbCjh.jpg', alt: 'Perks of Being a Wallflower poster' },
+      { posterUrl: 'https://image.tmdb.org/t/p/w500/4sW5XH9ZfYXpvFzev00S1IGAEbg.jpg', alt: 'Before Sunset poster' },
+      { posterUrl: 'https://image.tmdb.org/t/p/w500/7sfbEnaARXDDhKm0CZ7D7uc2sbo.jpg', alt: 'Inglourious Bastards poster' },
     ],
   },
   {

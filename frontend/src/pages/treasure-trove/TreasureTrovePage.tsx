@@ -358,7 +358,7 @@ export default function TreasureTrovePage() {
           <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none" aria-hidden="true">
             <div
               className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: "url('/trove-banner.png')" }}
+              style={{ backgroundImage: "url('/trove-banner.jpg')" }}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-black/85" />
           </div>
