@@ -8,6 +8,11 @@ const getAuthConfig = () => {
     : undefined;
 };
 
+const backendUrl = () => {
+  return import.meta.env.VITE_BACKEND_URL
+}
+
 export default {
-  getAuthConfig
+  getAuthConfig,
+  backendUrl
 };

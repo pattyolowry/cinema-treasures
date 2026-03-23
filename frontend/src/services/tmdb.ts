@@ -2,7 +2,7 @@ import axios from 'axios';
 import { TmdbMovieDetails, TmdbSearchResults } from '../types';
 import utils from './utils'
 
-const baseUrl = '/api/tmdb';
+const baseUrl = `${utils.backendUrl()}/tmdb`;
 
 const searchMovie = async (text: string) => {
   const { data } = await axios.get<TmdbSearchResults>(
