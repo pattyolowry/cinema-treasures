@@ -7,7 +7,7 @@ export default function LandingPage() {
       <div className="relative overflow-hidden rounded-2xl border border-[var(--color-cinema-gray)] min-h-[60vh] sm:min-h-[65vh]">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: "url('/landing-hero.png')" }}
+          style={{ backgroundImage: "url('/landing-hero.jpg')" }}
           aria-hidden="true"
         />
         <div

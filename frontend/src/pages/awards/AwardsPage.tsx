@@ -100,7 +100,7 @@ export default function AwardsPage() {
 
       <div className="mb-6 rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/80 shadow-[0_8px_24px_rgba(0,0,0,0.35)] overflow-hidden">
         <img
-          src="/awards-banner.png"
+          src="/awards-banner.jpg"
           alt="Golden Treasures yearly winners banner"
           className="w-full h-40 sm:h-56 lg:h-auto object-cover lg:object-contain object-center"
         />
