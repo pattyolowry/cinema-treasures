@@ -1,10 +1,16 @@
 import type { ClubMemberProfile } from './types';
+import renProfile from '/ren-profile.png'
+import gregProfile from '/greg-profile.png'
+import maxProfile from '/max-profile.png'
+import quinnProfile from '/quinn-profile.png'
+import patioProfile from '/patio-profile.png'
+import ianProfile from '/ian-profile.png'
 
-export const DUMMY_MEMBER_PROFILES: ClubMemberProfile[] = [
+export const MEMBER_PROFILES: ClubMemberProfile[] = [
   {
     name: 'Ren',
     title: 'President',
-    photoUrl: 'https://i.pravatar.cc/240?img=12',
+    photoUrl: renProfile,
     favorites: [
       { posterUrl: 'https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', alt: 'Parasite poster' },
       { posterUrl: 'https://image.tmdb.org/t/p/w500/8tZYtuWezp8JbcsvHYO0O46tFbo.jpg', alt: 'Mad Max: Fury Road poster' },
@@ -13,9 +19,9 @@ export const DUMMY_MEMBER_PROFILES: ClubMemberProfile[] = [
     ],
   },
   {
-    name: 'Patio',
-    title: 'Treasurer',
-    photoUrl: 'https://i.pravatar.cc/240?img=33',
+    name: 'Greg',
+    title: 'Comptroller',
+    photoUrl: gregProfile,
     favorites: [
       { posterUrl: 'https://image.tmdb.org/t/p/w500/w3LxiVYdWWRvEVdn5RYq6jIqkb1.jpg', alt: 'Everything Everywhere All at Once poster' },
       { posterUrl: 'https://image.tmdb.org/t/p/w500/fa0RDkAlCec0STeMNAhPaF89q6U.jpg', alt: 'There Will Be Blood poster' },
@@ -24,9 +30,9 @@ export const DUMMY_MEMBER_PROFILES: ClubMemberProfile[] = [
     ],
   },
   {
-    name: 'Greg',
-    title: 'Secretary',
-    photoUrl: 'https://i.pravatar.cc/240?img=56',
+    name: 'Max',
+    title: 'General Counsel',
+    photoUrl: maxProfile,
     favorites: [
       { posterUrl: 'https://image.tmdb.org/t/p/w500/oKyY4TFaLjQTgyX8oH1KuJnnxvB.jpg', alt: 'Mulholland Drive poster' },
       { posterUrl: 'https://image.tmdb.org/t/p/w500/2LquswEwHysFzXzQkKqE2K0Kx5b.jpg', alt: 'Portrait of a Lady on Fire poster' },
@@ -35,9 +41,9 @@ export const DUMMY_MEMBER_PROFILES: ClubMemberProfile[] = [
     ],
   },
   {
-    name: 'Max',
-    title: 'Archivist',
-    photoUrl: 'https://i.pravatar.cc/240?img=24',
+    name: 'Quinn',
+    title: 'Medical Director',
+    photoUrl: quinnProfile,
     favorites: [
       { posterUrl: 'https://image.tmdb.org/t/p/w500/kCGlIMHnOm8JPXq3rXM6c5wMxcT.jpg', alt: 'Poor Things poster' },
       { posterUrl: 'https://image.tmdb.org/t/p/w500/3gfeJfMNa2Q9Pz7sA9p0A6FQ5mK.jpg', alt: 'The Holdovers poster' },
@@ -46,20 +52,20 @@ export const DUMMY_MEMBER_PROFILES: ClubMemberProfile[] = [
     ],
   },
   {
-    name: 'Quinn',
-    title: 'Program Director',
-    photoUrl: 'https://i.pravatar.cc/240?img=47',
+    name: 'Patio',
+    title: 'Principal Data Analyst',
+    photoUrl: patioProfile,
     favorites: [
-      { posterUrl: 'https://image.tmdb.org/t/p/w500/hUu9zyZmDd8VZegKi1iK1Vk0RYS.jpg', alt: 'The Zone of Interest poster' },
-      { posterUrl: 'https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', alt: 'Parasite poster' },
-      { posterUrl: 'https://image.tmdb.org/t/p/w500/iYypPT4OqTDX4DClqOQPEFm6mU.jpg', alt: 'In the Mood for Love poster' },
-      { posterUrl: 'https://image.tmdb.org/t/p/w500/39wmItIWsg5sZMyRUHLkWBcuVCM.jpg', alt: 'Spirited Away poster' },
+      { posterUrl: 'https://image.tmdb.org/t/p/w500/7fn624j5lj3xTme2SgiLCeuedmO.jpg', alt: 'Whiplash poster' },
+      { posterUrl: 'https://image.tmdb.org/t/p/w500/aKCvdFFF5n80P2VdS7d8YBwbCjh.jpg', alt: 'Perks of Being a Wallflower poster' },
+      { posterUrl: 'https://image.tmdb.org/t/p/w500/4LdpBXiCyGKkR8FGHgjKlphrfUc.jpg', alt: 'Dumb and Dumber poster' },
+      { posterUrl: 'https://image.tmdb.org/t/p/w500/4sW5XH9ZfYXpvFzev00S1IGAEbg.jpg', alt: 'Before Sunset poster' },
     ],
   },
   {
     name: 'Ian',
-    title: 'Membership Chair',
-    photoUrl: 'https://i.pravatar.cc/240?img=15',
+    title: 'Best Boy',
+    photoUrl: ianProfile,
     favorites: [
       { posterUrl: 'https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg', alt: 'The Godfather poster' },
       { posterUrl: 'https://image.tmdb.org/t/p/w500/w3LxiVYdWWRvEVdn5RYq6jIqkb1.jpg', alt: 'Everything Everywhere All at Once poster' },

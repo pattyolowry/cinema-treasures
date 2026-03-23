@@ -1,5 +1,5 @@
 import { Info } from 'lucide-react';
-import { DUMMY_MEMBER_PROFILES } from './data';
+import { MEMBER_PROFILES } from './data';
 
 export default function AboutPage() {
   return (
@@ -10,12 +10,12 @@ export default function AboutPage() {
           About The Club
         </h2>
         <p className="mt-2 text-sm sm:text-base text-[var(--color-silver-400)]">
-          Meet the six members behind Cinema Treasures.
+          Six best friends with a shared love of cinema. Meet the members behind Cinema Treasures.
         </p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {DUMMY_MEMBER_PROFILES.map((member) => (
+        {MEMBER_PROFILES.map((member) => (
           <article
             key={member.name}
             className="rounded-2xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/85 shadow-[0_8px_24px_rgba(0,0,0,0.35)] overflow-hidden"
