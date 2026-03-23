@@ -200,7 +200,7 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
       title: match.title || prev.title,
       yearReleased: searchReleaseYear ?? prev.yearReleased,
       posterUrl: toTmdbImageUrl(match.poster_path, 'w154') || prev.posterUrl,
-      backdropUrl: toTmdbImageUrl(match.backdrop_path, 'original') || prev.backdropUrl,
+      backdropUrl: toTmdbImageUrl(match.backdrop_path, 'w1280') || prev.backdropUrl,
     }));
 
     const requestId = ++detailsRequestIdRef.current;
@@ -220,7 +220,7 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
         originCountry: originCountry || prev.originCountry,
         runTime: runTime || prev.runTime,
         posterUrl: toTmdbImageUrl(details.poster_path, 'w154') || prev.posterUrl,
-        backdropUrl: toTmdbImageUrl(details.backdrop_path, 'original') || prev.backdropUrl,
+        backdropUrl: toTmdbImageUrl(details.backdrop_path, 'w1280') || prev.backdropUrl,
       }));
     } catch {
       // Keep already selected values if details lookup fails.

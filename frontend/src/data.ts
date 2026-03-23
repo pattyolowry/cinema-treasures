@@ -224,7 +224,7 @@ export const DUMMY_MOVIES: MovieRecord[] = [
     runTime: '2h 21m',
     mpaaRating: 'R',
     posterUrl: 'https://image.tmdb.org/t/p/w500/kCGlIMHnOm8JPXq3rXM6c5wMxcT.jpg',
-    backdropUrl: 'https://image.tmdb.org/t/p/original/zh6IdheEYinU4TPtorWsjx6qPQE.jpg',
+    backdropUrl: 'https://image.tmdb.org/t/p/w1280/zh6IdheEYinU4TPtorWsjx6qPQE.jpg',
     ratings: {
       Ren: 8.5,
       Patio: 8.5,
