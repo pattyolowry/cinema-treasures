@@ -37,7 +37,7 @@ export function TroveMovieList({ movies, isLoggedIn, onEdit, onDelete, onViewDet
           >
             <div className="w-16 sm:w-24 shrink-0 bg-[var(--color-cinema-black)] relative border-r border-[var(--color-cinema-gray)]/50 group">
               {movie.posterUrl ? (
-                <img src={movie.posterUrl} alt={movie.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                <img src={movie.posterUrl} alt={movie.title} loading="lazy" decoding="async" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-[var(--color-silver-500)]">
                   <Film className="w-6 h-6 sm:w-8 sm:h-8" />
