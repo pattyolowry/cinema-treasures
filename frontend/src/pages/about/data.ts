@@ -12,10 +12,10 @@ export const MEMBER_PROFILES: ClubMemberProfile[] = [
     title: 'President',
     photoUrl: renProfile,
     favorites: [
-      { posterUrl: 'https://image.tmdb.org/t/p/w342/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg', alt: 'Parasite poster' },
-      { posterUrl: 'https://image.tmdb.org/t/p/w342/8tZYtuWezp8JbcsvHYO0O46tFbo.jpg', alt: 'Mad Max: Fury Road poster' },
-      { posterUrl: 'https://image.tmdb.org/t/p/w342/iYypPT4OqTDX4DClqOQPEFm6mU.jpg', alt: 'In the Mood for Love poster' },
-      { posterUrl: 'https://image.tmdb.org/t/p/w342/3bhkrj58Vtu7enYsRolD1fZdja1.jpg', alt: 'The Godfather poster' },
+      { posterUrl: 'https://image.tmdb.org/t/p/w342/uAR0AWqhQL1hQa69UDEbb2rE5Wx.jpg', alt: 'The Shining poster' },
+      { posterUrl: 'https://image.tmdb.org/t/p/w342/yPTntWP9Wvew8vHN0jB7Z1EvEUN.jpg', alt: 'Persona poster' },
+      { posterUrl: 'https://image.tmdb.org/t/p/w342/9LTQNCvoLsKXP0LtaKAaYVtRaQL.jpg', alt: 'Ferris Buellers Day Off poster' },
+      { posterUrl: 'https://image.tmdb.org/t/p/w342/jFTVD4XoWQTcg7wdyJKa8PEds5q.jpg', alt: 'Terminator 2 poster' },
     ],
   },
   {
