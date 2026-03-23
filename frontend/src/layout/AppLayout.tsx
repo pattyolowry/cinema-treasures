@@ -5,7 +5,7 @@ import { Film, LogIn, LogOut, Menu, User, X } from 'lucide-react';
 import loginService from '../services/login';
 import serviceUtils from '../services/utils';
 import type { LoggedUser } from '../types';
-import logo from '../assets/tmdb-logo.svg';
+import logo from '/tmdb-logo.svg';
 import { AppSessionContext } from '../context/AppSessionContext';
 
 const LOGGED_USER_STORAGE_KEY = 'loggedCinemaTreasuresUser';
