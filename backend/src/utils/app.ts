@@ -7,10 +7,27 @@ import awardRouter from '../routes/awards'
 import tmdbRouter from '../routes/tmdb'
 import healthRouter from '../routes/health'
 import helmet from 'helmet';
+import cors from 'cors'
 
 const app = express();
 
 app.set('trust proxy', 1);
+
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://www.cinematreasures.club',
+  'https://cinematreasures.club'
+]
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  }
+}))
 
 // Middleware
 app.use(helmet());
@@ -19,13 +36,13 @@ app.use(middleware.requestLogger)
 app.use(middleware.tokenExtractor)
 
 // Routes
-app.use('/api/health', healthRouter);
-app.use('/api', middleware.apiLimiter)
-app.use('/api/history', historyRouter);
-app.use('/api/users', userRouter);
-app.use('/api/treasures', treasureRouter);
-app.use('/api/awards', awardRouter);
-app.use('/api/tmdb', tmdbRouter);
+app.use('/health', healthRouter);
+app.use('/', middleware.apiLimiter)
+app.use('/history', historyRouter);
+app.use('/users', userRouter);
+app.use('/treasures', treasureRouter);
+app.use('/awards', awardRouter);
+app.use('/tmdb', tmdbRouter);
 
 app.use(middleware.unknownEndpoint)
 app.use(middleware.errorHandler)

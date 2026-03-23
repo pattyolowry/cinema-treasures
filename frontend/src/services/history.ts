@@ -1,7 +1,8 @@
 import axios from 'axios';
-const baseUrl = "/api/history";
 import utils from './utils'
 import { LogEntry, NewLogEntry } from '../types'
+
+const baseUrl = `${utils.backendUrl()}/history`;
 
 const getAllEntries = async () => {
   const { data } = await axios.get<LogEntry[]>(baseUrl)

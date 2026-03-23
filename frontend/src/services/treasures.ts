@@ -1,7 +1,8 @@
 import axios from 'axios';
-const baseUrl = "/api/treasures";
 import utils from './utils'
 import { Treasure, NewTreasure } from '../types'
+
+const baseUrl = `${utils.backendUrl()}/treasures`;
 
 const getAll = async () => {
   const { data } = await axios.get<Treasure[]>(baseUrl)

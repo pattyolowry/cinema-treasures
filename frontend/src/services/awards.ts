@@ -1,7 +1,8 @@
 import axios from 'axios';
-const baseUrl = "/api/awards";
 import utils from './utils'
 import { AwardYear } from '../types'
+
+const baseUrl = `${utils.backendUrl()}/awards`;
 
 const getAll = async () => {
   const { data } = await axios.get<AwardYear[]>(
