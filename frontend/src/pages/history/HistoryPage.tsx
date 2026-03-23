@@ -294,7 +294,7 @@ export default function HistoryPage() {
             {currentWatchEntry && (
               <div
                 className={`group mb-8 relative overflow-hidden rounded-2xl border border-[var(--color-cinema-gray)] ${
-                  currentWatchEntry.movie.backdropUrl ? 'min-h-[220px] sm:min-h-[260px]' : ''
+                  currentWatchEntry.movie.backdropUrl ? 'aspect-video' : ''
                 } ${
                   currentUser
                     ? 'cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-gold-500)]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-cinema-black)]'
