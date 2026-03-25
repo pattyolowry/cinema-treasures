@@ -15,6 +15,8 @@ const TREASURE_ENTRIES_QUERY_KEY = ['treasureEntries'] as const;
 const TREASURE_ERROR_MESSAGE = 'Unable to load treasure trove right now. Please try again.';
 const TREASURE_SAVE_ERROR_MESSAGE = 'Unable to save this treasure entry. Please try again.';
 const TREASURE_DELETE_ERROR_MESSAGE = 'Unable to delete this treasure entry. Please try again.';
+const TREASURE_DUPLICATE_ERROR_MESSAGE =
+  'This movie is already in the Treasure Trove (same title and year).';
 
 const createDefaultRatings = (): Record<TroveMember, number | null> =>
   TROVE_MEMBERS.reduce(
@@ -83,6 +85,8 @@ const movieRecordToTreasurePayload = (
   };
 };
 
+const normalizeTitle = (title: string) => title.trim().toLocaleLowerCase();
+
 function getRequestErrorMessage(error: unknown, fallback: string): string {
   if (typeof error === 'object' && error !== null && 'response' in error) {
     const response = (error as { response?: { data?: { error?: unknown } } }).response;
@@ -102,6 +106,7 @@ export default function TreasureTrovePage() {
   const { currentUser } = useAppSession();
   const queryClient = useQueryClient();
   const [actionErrorMessage, setActionErrorMessage] = useState<string | null>(null);
+  const [formErrorMessage, setFormErrorMessage] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingMovie, setEditingMovie] = useState<TroveMovieRecord | null>(null);
   const [selectedMovie, setSelectedMovie] = useState<TroveMovieRecord | null>(null);
@@ -269,15 +274,32 @@ export default function TreasureTrovePage() {
   };
 
   const handleSaveMovie = async (movieData: Omit<TroveMovieRecord, 'id' | 'averageRating'>) => {
+    if (!editingMovie) {
+      const normalizedNewTitle = normalizeTitle(movieData.title);
+      const hasDuplicate = movies.some(
+        (movie) =>
+          movie.yearReleased === movieData.yearReleased &&
+          normalizeTitle(movie.title) === normalizedNewTitle,
+      );
+
+      if (hasDuplicate) {
+        setFormErrorMessage(TREASURE_DUPLICATE_ERROR_MESSAGE);
+        return;
+      }
+    }
+
     try {
       if (editingMovie) {
         await updateTreasureMutation.mutateAsync({ id: editingMovie.id, movieData });
       } else {
+        setActionErrorMessage(null);
+        setFormErrorMessage(null);
         await addTreasureMutation.mutateAsync(movieData);
       }
 
       setIsFormOpen(false);
       setEditingMovie(null);
+      setFormErrorMessage(null);
     } catch {
       // Mutation errors are surfaced via onError to keep messages consistent.
     }
@@ -303,12 +325,14 @@ export default function TreasureTrovePage() {
 
   const openEditForm = (movie: TroveMovieRecord) => {
     setEditingMovie(movie);
+    setFormErrorMessage(null);
     setIsFormOpen(true);
     setSelectedMovie(null);
   };
 
   const openAddForm = () => {
     setEditingMovie(null);
+    setFormErrorMessage(null);
     setIsFormOpen(true);
   };
 
@@ -553,8 +577,13 @@ export default function TreasureTrovePage() {
         <TroveMovieForm
           movie={editingMovie}
           onSave={(movieData) => void handleSaveMovie(movieData)}
-          onClose={() => setIsFormOpen(false)}
+          onClose={() => {
+            setIsFormOpen(false);
+            setFormErrorMessage(null);
+          }}
           isSubmitting={isSaving}
+          formError={formErrorMessage}
+          onIdentityFieldChange={() => setFormErrorMessage(null)}
         />
       )}
     </>
