@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
-import { Film, X } from 'lucide-react';
+import { AlertCircle, Film, X } from 'lucide-react';
 import { TROVE_MEMBERS } from '../data';
 import type { TroveMember, TroveMovieRecord } from '../types';
 import type { TmdbMovieDetails, TmdbSearchMovie } from '../../../types';
@@ -11,6 +11,8 @@ interface TroveMovieFormProps {
   onSave: (movie: Omit<TroveMovieRecord, 'id' | 'averageRating'>) => void;
   onClose: () => void;
   isSubmitting?: boolean;
+  formError?: string | null;
+  onIdentityFieldChange?: () => void;
 }
 
 const TMDB_POSTER_BASE_URL = 'https://image.tmdb.org/t/p/';
@@ -39,7 +41,14 @@ function getOriginCountry(details: TmdbMovieDetails): string {
   return details.origin_country?.find((countryCode) => countryCode.trim())?.trim() ?? '';
 }
 
-export function TroveMovieForm({ movie, onSave, onClose, isSubmitting = false }: TroveMovieFormProps) {
+export function TroveMovieForm({
+  movie,
+  onSave,
+  onClose,
+  isSubmitting = false,
+  formError = null,
+  onIdentityFieldChange,
+}: TroveMovieFormProps) {
   const isAddMode = !movie;
   const [formData, setFormData] = useState({
     title: movie?.title || '',
@@ -68,6 +77,10 @@ export function TroveMovieForm({ movie, onSave, onClose, isSubmitting = false }:
     if (isAddMode && name === 'title' && selectedTmdbTitle && value.trim() !== selectedTmdbTitle) {
       setSelectedTmdbId(null);
       setSelectedTmdbTitle(null);
+    }
+
+    if (isAddMode && (name === 'title' || name === 'yearReleased')) {
+      onIdentityFieldChange?.();
     }
 
     setFormData((prev) => ({
@@ -217,6 +230,13 @@ export function TroveMovieForm({ movie, onSave, onClose, isSubmitting = false }:
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            {formError && (
+              <div className="rounded-xl border border-red-500/50 bg-red-900/30 px-4 py-3 text-sm text-red-100 flex items-start gap-2">
+                <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                <span>{formError}</span>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2 relative" ref={titleContainerRef}>
                 <label className="block text-xs font-semibold text-[var(--color-silver-400)] uppercase tracking-wider">Title</label>
