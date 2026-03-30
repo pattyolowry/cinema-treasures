@@ -194,14 +194,14 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
             onClick={() => setShowMemberRatings((current) => !current)}
             role="switch"
             aria-checked={showMemberRatings}
-            className={`relative h-6 w-11 rounded-full transition-colors ${
+            className={`inline-flex items-center h-6 w-11 p-0.5 rounded-full overflow-hidden transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-gold-500)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-cinema-dark)] ${
               showMemberRatings ? 'bg-[var(--color-gold-500)]' : 'bg-[var(--color-cinema-gray)]'
             }`}
             aria-label="Toggle member rating columns"
           >
             <span
-              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
-                showMemberRatings ? 'translate-x-5' : 'translate-x-0.5'
+              className={`block h-5 w-5 rounded-full bg-white transition-transform ${
+                showMemberRatings ? 'translate-x-5' : 'translate-x-0'
               }`}
             />
           </button>
