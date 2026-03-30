@@ -337,7 +337,7 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
                   className="inline-flex items-center gap-1 sm:gap-2 hover:text-[var(--color-gold-400)] transition-colors whitespace-nowrap"
                   onClick={() => onSortColumn('title')}
                 >
-                  Movie Title
+                  Movies ({sortedMovies.length})
                   {sortIcon('title')}
                 </button>
               </th>
