@@ -65,6 +65,17 @@ function memberRating(movie: TroveMovieRecord, member: TroveMember): number | nu
   return movie.ratings[member] ?? null;
 }
 
+function formatRunTime(minutes: number | null | undefined): string {
+  if (!minutes || minutes <= 0) return 'Runtime N/A';
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (hours === 0) return `${remainingMinutes}m`;
+  if (remainingMinutes === 0) return `${hours}h`;
+  return `${hours}h ${remainingMinutes}m`;
+}
+
 function compareValues(
   aValue: string | number | null,
   bValue: string | number | null,
@@ -335,7 +346,16 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
                     )}
                   </div>
                 </td>
-                <td className="px-3 py-2 text-sm sm:text-base text-white">{movie.title}</td>
+                <td className="px-3 py-2">
+                  <div className="min-w-0">
+                    <p className="text-base sm:text-lg font-semibold text-white tracking-wide leading-tight truncate [text-shadow:0_1px_6px_rgba(212,175,55,0.25)]">
+                      {movie.title}
+                    </p>
+                    <p className="mt-1 text-xs sm:text-sm text-[var(--color-silver-400)]">
+                      {movie.yearReleased} • {formatRunTime(movie.runTime)}
+                    </p>
+                  </div>
+                </td>
                 <td className="px-3 py-2 text-sm sm:text-base text-[var(--color-silver-300)] font-mono">
                   {movie.yearReleased}
                 </td>
