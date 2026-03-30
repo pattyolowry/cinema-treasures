@@ -4,10 +4,9 @@ import { TROVE_MEMBERS } from '../data';
 import type { TroveMember, TroveMovieRecord } from '../types';
 
 type SortDirection = 'asc' | 'desc';
-type SortableColumn = 'title' | 'yearReleased' | 'averageRating' | TroveMember;
+type SortableColumn = 'title' | 'averageRating' | TroveMember;
 
 interface NumericFilters {
-  yearReleased: string;
   averageRating: string;
   memberRatings: Record<TroveMember, string>;
 }
@@ -102,7 +101,6 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [titleFilter, setTitleFilter] = useState('');
   const [numericFilters, setNumericFilters] = useState<NumericFilters>({
-    yearReleased: '',
     averageRating: '',
     memberRatings: createDefaultMemberRatingFilters(),
   });
@@ -122,13 +120,9 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
     return movies.filter((movie) => {
       const titleMatches =
         normalizedTitleFilter === '' || movie.title.toLowerCase().includes(normalizedTitleFilter);
-      const yearMatches = matchesNumericFilter(
-        Number.isFinite(movie.yearReleased) ? movie.yearReleased : null,
-        numericFilters.yearReleased,
-      );
       const ctcstmMatches = matchesNumericFilter(movie.averageRating, numericFilters.averageRating);
 
-      if (!titleMatches || !yearMatches || !ctcstmMatches) {
+      if (!titleMatches || !ctcstmMatches) {
         return false;
       }
 
@@ -151,9 +145,6 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
           sortDirection,
         );
         if (titleComparison !== 0) return titleComparison;
-      } else if (sortColumn === 'yearReleased') {
-        const yearComparison = compareValues(a.yearReleased, b.yearReleased, sortDirection);
-        if (yearComparison !== 0) return yearComparison;
       } else if (sortColumn === 'averageRating') {
         const ratingComparison = compareValues(a.averageRating, b.averageRating, sortDirection);
         if (ratingComparison !== 0) return ratingComparison;
@@ -176,7 +167,7 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
       return;
     }
     setSortColumn(column);
-    setSortDirection(column === 'title' || column === 'yearReleased' ? 'asc' : 'desc');
+    setSortDirection(column === 'title' ? 'asc' : 'desc');
   };
 
   const sortIcon = (column: SortableColumn) => {
@@ -236,16 +227,6 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
                 <button
                   type="button"
                   className="inline-flex items-center gap-2 hover:text-[var(--color-gold-400)] transition-colors"
-                  onClick={() => onSortColumn('yearReleased')}
-                >
-                  Release Year
-                  {sortIcon('yearReleased')}
-                </button>
-              </th>
-              <th className="px-3 py-3">
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 hover:text-[var(--color-gold-400)] transition-colors"
                   onClick={() => onSortColumn('averageRating')}
                 >
                   CTCSTM
@@ -274,17 +255,6 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
                   value={titleFilter}
                   onChange={(event) => setTitleFilter(event.target.value)}
                   placeholder="Filter title..."
-                  className="w-full rounded-md border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)] px-2 py-1.5 text-sm text-white placeholder:text-[var(--color-silver-500)] focus:outline-none focus:border-[var(--color-gold-500)]"
-                />
-              </th>
-              <th className="px-3 py-2">
-                <input
-                  type="text"
-                  value={numericFilters.yearReleased}
-                  onChange={(event) =>
-                    setNumericFilters((prev) => ({ ...prev, yearReleased: event.target.value }))
-                  }
-                  placeholder="e.g. >=2000"
                   className="w-full rounded-md border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)] px-2 py-1.5 text-sm text-white placeholder:text-[var(--color-silver-500)] focus:outline-none focus:border-[var(--color-gold-500)]"
                 />
               </th>
@@ -355,9 +325,6 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
                       {movie.yearReleased} • {formatRunTime(movie.runTime)}
                     </p>
                   </div>
-                </td>
-                <td className="px-3 py-2 text-sm sm:text-base text-[var(--color-silver-300)] font-mono">
-                  {movie.yearReleased}
                 </td>
                 <td className="px-3 py-2 text-sm sm:text-base font-mono text-[var(--color-gold-400)]">
                   {movie.averageRating !== null ? movie.averageRating.toFixed(1) : '-'}
