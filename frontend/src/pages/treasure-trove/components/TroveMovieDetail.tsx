@@ -97,7 +97,7 @@ export function TroveMovieDetail({ movie, isLoggedIn, onClose, onEdit, onDelete 
                     className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-cinema-gray)] text-white hover:bg-[var(--color-gold-500)] hover:text-black transition-all font-medium text-sm"
                   >
                     <Edit2 size={16} />
-                    Edit Entry
+                    Edit
                   </button>
                   <button
                     onClick={() => onDelete(movie.id)}
