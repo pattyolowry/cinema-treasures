@@ -244,7 +244,7 @@ export default function HistoryPage() {
           <div>
             <h2 className="text-3xl font-serif text-white flex items-center gap-3">
               <Award className="text-[var(--color-gold-500)]" size={28} />
-              Films Watched
+              The Treasures
             </h2>
             <p className="mt-2 text-sm sm:text-base text-[var(--color-silver-400)]">
               Charting our course through film history: {treasuresSince2023} treasures unearthed since 2023.

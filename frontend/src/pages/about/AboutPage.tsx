@@ -10,8 +10,9 @@ export default function AboutPage() {
           About The Club
         </h2>
         <p className="mt-2 text-sm sm:text-base text-[var(--color-silver-400)]">
-          Six best friends with a shared love of cinema. Meet the members behind Cinema Treasures.
-        </p>
+          Six best friends with a shared love of cinema. Each week we take turns selecting a film that nobody in the club has previously seen, followed by an open discussion where each member provides their review of the film, as well as a rating on the official CTCSTM rating scale. Debates and discussion are strongly encouraged, but gentlemanliness is always of utmost importance.
+        </p><br></br>
+        <h2 className="text-3xl font-serif text-white flex items-center gap-3">Meet The Members</h2>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
