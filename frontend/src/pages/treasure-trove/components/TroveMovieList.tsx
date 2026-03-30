@@ -1,20 +1,44 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowDown, ArrowUp, Film } from 'lucide-react';
+import { ArrowDown, ArrowUp, Film, Filter } from 'lucide-react';
 import { TROVE_MEMBERS } from '../data';
 import type { TroveMember, TroveMovieRecord } from '../types';
 
 type SortDirection = 'asc' | 'desc';
 type SortableColumn = 'title' | 'averageRating' | TroveMember;
+type FilterMenuColumn = 'averageRating' | TroveMember;
 
-interface NumericFilters {
-  averageRating: string;
-  memberRatings: Record<TroveMember, string>;
+interface RatingRangeFilter {
+  min: number;
+  max: number;
 }
 
-const createDefaultMemberRatingFilters = (): Record<TroveMember, string> =>
+interface MemberRatingFilter extends RatingRangeFilter {
+  includeEmpty: boolean;
+}
+
+interface NumericFilters {
+  averageRating: RatingRangeFilter;
+  memberRatings: Record<TroveMember, MemberRatingFilter>;
+}
+
+const MIN_RATING = 1;
+const MAX_RATING = 10;
+const RATING_STEP = 0.5;
+
+const createDefaultRangeFilter = (): RatingRangeFilter => ({
+  min: MIN_RATING,
+  max: MAX_RATING,
+});
+
+const createDefaultMemberRatingFilter = (): MemberRatingFilter => ({
+  ...createDefaultRangeFilter(),
+  includeEmpty: true,
+});
+
+const createDefaultMemberRatingFilters = (): Record<TroveMember, MemberRatingFilter> =>
   TROVE_MEMBERS.reduce(
-    (acc, member) => ({ ...acc, [member]: '' }),
-    {} as Record<TroveMember, string>,
+    (acc, member) => ({ ...acc, [member]: createDefaultMemberRatingFilter() }),
+    {} as Record<TroveMember, MemberRatingFilter>,
   );
 
 interface TroveMovieListProps {
@@ -22,42 +46,37 @@ interface TroveMovieListProps {
   onViewDetail: (movie: TroveMovieRecord) => void;
 }
 
-function parseNumber(value: string): number | null {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
+function normalizeRange(min: number, max: number): RatingRangeFilter {
+  return {
+    min: Math.min(min, max),
+    max: Math.max(min, max),
+  };
 }
 
-function matchesNumericFilter(value: number | null, rawQuery: string): boolean {
-  const query = rawQuery.trim();
-  if (!query) return true;
-  if (value === null) return false;
-
-  const rangeMatch = query.match(/^(-?\d+(?:\.\d+)?)\s*-\s*(-?\d+(?:\.\d+)?)$/);
-  if (rangeMatch) {
-    const minValue = parseNumber(rangeMatch[1]);
-    const maxValue = parseNumber(rangeMatch[2]);
-    if (minValue === null || maxValue === null) return true;
-    const lowerBound = Math.min(minValue, maxValue);
-    const upperBound = Math.max(minValue, maxValue);
-    return value >= lowerBound && value <= upperBound;
+function matchesRangeFilter(
+  value: number | null,
+  filter: RatingRangeFilter,
+  includeEmpty: boolean = false,
+): boolean {
+  if (value === null) {
+    return includeEmpty;
   }
 
-  const comparatorMatch = query.match(/^(<=|>=|<|>|=)\s*(-?\d+(?:\.\d+)?)$/);
-  if (comparatorMatch) {
-    const operator = comparatorMatch[1];
-    const target = parseNumber(comparatorMatch[2]);
-    if (target === null) return true;
+  const normalized = normalizeRange(filter.min, filter.max);
+  return value >= normalized.min && value <= normalized.max;
+}
 
-    if (operator === '<') return value < target;
-    if (operator === '<=') return value <= target;
-    if (operator === '>') return value > target;
-    if (operator === '>=') return value >= target;
-    return value === target;
-  }
+function isRangeDefault(filter: RatingRangeFilter): boolean {
+  const normalized = normalizeRange(filter.min, filter.max);
+  return normalized.min === MIN_RATING && normalized.max === MAX_RATING;
+}
 
-  const exact = parseNumber(query);
-  if (exact === null) return true;
-  return value === exact;
+function isMemberFilterDefault(filter: MemberRatingFilter): boolean {
+  return isRangeDefault(filter) && filter.includeEmpty;
+}
+
+function formatRatingValue(value: number): string {
+  return value.toFixed(1);
 }
 
 function memberRating(movie: TroveMovieRecord, member: TroveMember): number | null {
@@ -100,8 +119,9 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
   const [sortColumn, setSortColumn] = useState<SortableColumn>('averageRating');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [titleFilter, setTitleFilter] = useState('');
+  const [openFilterMenu, setOpenFilterMenu] = useState<FilterMenuColumn | null>(null);
   const [numericFilters, setNumericFilters] = useState<NumericFilters>({
-    averageRating: '',
+    averageRating: createDefaultRangeFilter(),
     memberRatings: createDefaultMemberRatingFilters(),
   });
 
@@ -111,8 +131,34 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
         ...prev,
         memberRatings: createDefaultMemberRatingFilters(),
       }));
+
+      setOpenFilterMenu((current) => (current && TROVE_MEMBERS.includes(current as TroveMember) ? null : current));
     }
   }, [showMemberRatings]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest('[data-rating-filter-menu="true"]')) {
+        return;
+      }
+      setOpenFilterMenu(null);
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpenFilterMenu(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   const filteredMovies = useMemo(() => {
     const normalizedTitleFilter = titleFilter.trim().toLowerCase();
@@ -120,7 +166,7 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
     return movies.filter((movie) => {
       const titleMatches =
         normalizedTitleFilter === '' || movie.title.toLowerCase().includes(normalizedTitleFilter);
-      const ctcstmMatches = matchesNumericFilter(movie.averageRating, numericFilters.averageRating);
+      const ctcstmMatches = matchesRangeFilter(movie.averageRating, numericFilters.averageRating);
 
       if (!titleMatches || !ctcstmMatches) {
         return false;
@@ -130,9 +176,10 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
         return true;
       }
 
-      return TROVE_MEMBERS.every((member) =>
-        matchesNumericFilter(memberRating(movie, member), numericFilters.memberRatings[member]),
-      );
+      return TROVE_MEMBERS.every((member) => {
+        const memberFilter = numericFilters.memberRatings[member];
+        return matchesRangeFilter(memberRating(movie, member), memberFilter, memberFilter.includeEmpty);
+      });
     });
   }, [movies, numericFilters, showMemberRatings, titleFilter]);
 
@@ -185,7 +232,7 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/85 px-4 py-3">
         <p className="text-xs sm:text-sm text-[var(--color-silver-400)]">
-          Sort by clicking headers. Numeric filters support values like <code>8</code>, <code>8-9.5</code>, <code>&gt;=9</code>.
+          Sort by clicking headers. Use rating filter icons to select inclusive ranges from 1.0 to 10.0.
         </p>
         <label className="inline-flex items-center gap-3 text-sm text-[var(--color-silver-300)]">
           <span>Show member ratings</span>
@@ -208,7 +255,7 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
         </label>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/85">
+      <div className="overflow-x-auto overflow-y-visible rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/85">
         <table
           className={`w-full border-collapse ${
             showMemberRatings ? 'min-w-[900px] table-fixed lg:min-w-0 lg:table-fixed' : 'min-w-0 table-fixed'
@@ -262,35 +309,197 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
                   className="w-full rounded-md border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)] px-2 py-1.5 text-sm text-white placeholder:text-[var(--color-silver-500)] focus:outline-none focus:border-[var(--color-gold-500)]"
                 />
               </th>
-              <th className="px-2 sm:px-3 lg:px-3 py-2">
-                <input
-                  type="text"
-                  value={numericFilters.averageRating}
-                  onChange={(event) =>
-                    setNumericFilters((prev) => ({ ...prev, averageRating: event.target.value }))
-                  }
-                  placeholder="e.g. 8-10"
-                  className="w-full rounded-md border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)] px-2 py-1.5 text-sm text-white placeholder:text-[var(--color-silver-500)] focus:outline-none focus:border-[var(--color-gold-500)]"
-                />
+              <th className="px-2 sm:px-3 lg:px-3 py-2 relative">
+                <div className="relative flex justify-center" data-rating-filter-menu="true">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setOpenFilterMenu((current) => (current === 'averageRating' ? null : 'averageRating'))
+                    }
+                    className={`relative inline-flex h-8 w-8 items-center justify-center rounded-md border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-gold-500)] ${
+                      openFilterMenu === 'averageRating' || !isRangeDefault(numericFilters.averageRating)
+                        ? 'border-[var(--color-gold-500)] text-[var(--color-gold-400)] bg-[var(--color-cinema-gray)]/60'
+                        : 'border-[var(--color-cinema-gray)] text-[var(--color-silver-400)] hover:text-[var(--color-gold-400)] hover:border-[var(--color-gold-600)]'
+                    }`}
+                    aria-label="Filter CTCSTM ratings"
+                    aria-expanded={openFilterMenu === 'averageRating'}
+                  >
+                    <Filter size={15} />
+                    {!isRangeDefault(numericFilters.averageRating) && (
+                      <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[var(--color-gold-400)]" />
+                    )}
+                  </button>
+                  {openFilterMenu === 'averageRating' && (
+                    <div className="absolute right-0 top-full z-30 mt-2 w-64 rounded-lg border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)] p-3 text-left shadow-2xl">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-silver-400)]">
+                        CTCSTM Range
+                      </p>
+                      <div className="mt-3 space-y-3">
+                        <label className="block">
+                          <div className="mb-1 flex items-center justify-between text-xs text-[var(--color-silver-400)]">
+                            <span>Min</span>
+                            <span className="font-mono text-[var(--color-gold-400)]">
+                              {formatRatingValue(numericFilters.averageRating.min)}
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min={MIN_RATING}
+                            max={MAX_RATING}
+                            step={RATING_STEP}
+                            value={numericFilters.averageRating.min}
+                            onChange={(event) => {
+                              const nextMin = Number(event.target.value);
+                              setNumericFilters((prev) => ({
+                                ...prev,
+                                averageRating: {
+                                  min: Math.min(nextMin, prev.averageRating.max),
+                                  max: prev.averageRating.max,
+                                },
+                              }));
+                            }}
+                            className="w-full accent-[var(--color-gold-500)]"
+                          />
+                        </label>
+                        <label className="block">
+                          <div className="mb-1 flex items-center justify-between text-xs text-[var(--color-silver-400)]">
+                            <span>Max</span>
+                            <span className="font-mono text-[var(--color-gold-400)]">
+                              {formatRatingValue(numericFilters.averageRating.max)}
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min={MIN_RATING}
+                            max={MAX_RATING}
+                            step={RATING_STEP}
+                            value={numericFilters.averageRating.max}
+                            onChange={(event) => {
+                              const nextMax = Number(event.target.value);
+                              setNumericFilters((prev) => ({
+                                ...prev,
+                                averageRating: {
+                                  min: prev.averageRating.min,
+                                  max: Math.max(nextMax, prev.averageRating.min),
+                                },
+                              }));
+                            }}
+                            className="w-full accent-[var(--color-gold-500)]"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </th>
               {showMemberRatings &&
                 TROVE_MEMBERS.map((member) => (
-                  <th key={`${member}-filter`} className="px-2 sm:px-3 lg:px-3 py-2 w-16 lg:w-20">
-                    <input
-                      type="text"
-                      value={numericFilters.memberRatings[member]}
-                      onChange={(event) =>
-                        setNumericFilters((prev) => ({
-                          ...prev,
-                          memberRatings: {
-                            ...prev.memberRatings,
-                            [member]: event.target.value,
-                          },
-                        }))
-                      }
-                      placeholder="e.g. >=9"
-                      className="w-full rounded-md border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)] px-2 py-1.5 text-sm text-white placeholder:text-[var(--color-silver-500)] focus:outline-none focus:border-[var(--color-gold-500)]"
-                    />
+                  <th key={`${member}-filter`} className="px-2 sm:px-3 lg:px-3 py-2 w-16 lg:w-20 relative">
+                    <div className="relative flex justify-center" data-rating-filter-menu="true">
+                      <button
+                        type="button"
+                        onClick={() => setOpenFilterMenu((current) => (current === member ? null : member))}
+                        className={`relative inline-flex h-8 w-8 items-center justify-center rounded-md border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-gold-500)] ${
+                          openFilterMenu === member || !isMemberFilterDefault(numericFilters.memberRatings[member])
+                            ? 'border-[var(--color-gold-500)] text-[var(--color-gold-400)] bg-[var(--color-cinema-gray)]/60'
+                            : 'border-[var(--color-cinema-gray)] text-[var(--color-silver-400)] hover:text-[var(--color-gold-400)] hover:border-[var(--color-gold-600)]'
+                        }`}
+                        aria-label={`Filter ${member} ratings`}
+                        aria-expanded={openFilterMenu === member}
+                      >
+                        <Filter size={15} />
+                        {!isMemberFilterDefault(numericFilters.memberRatings[member]) && (
+                          <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[var(--color-gold-400)]" />
+                        )}
+                      </button>
+                      {openFilterMenu === member && (
+                        <div className="absolute right-0 top-full z-30 mt-2 w-64 rounded-lg border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)] p-3 text-left shadow-2xl">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-silver-400)]">
+                            {member} Rating
+                          </p>
+                          <div className="mt-3 space-y-3">
+                            <label className="block">
+                              <div className="mb-1 flex items-center justify-between text-xs text-[var(--color-silver-400)]">
+                                <span>Min</span>
+                                <span className="font-mono text-[var(--color-gold-400)]">
+                                  {formatRatingValue(numericFilters.memberRatings[member].min)}
+                                </span>
+                              </div>
+                              <input
+                                type="range"
+                                min={MIN_RATING}
+                                max={MAX_RATING}
+                                step={RATING_STEP}
+                                value={numericFilters.memberRatings[member].min}
+                                onChange={(event) => {
+                                  const nextMin = Number(event.target.value);
+                                  setNumericFilters((prev) => ({
+                                    ...prev,
+                                    memberRatings: {
+                                      ...prev.memberRatings,
+                                      [member]: {
+                                        ...prev.memberRatings[member],
+                                        min: Math.min(nextMin, prev.memberRatings[member].max),
+                                      },
+                                    },
+                                  }));
+                                }}
+                                className="w-full accent-[var(--color-gold-500)]"
+                              />
+                            </label>
+                            <label className="block">
+                              <div className="mb-1 flex items-center justify-between text-xs text-[var(--color-silver-400)]">
+                                <span>Max</span>
+                                <span className="font-mono text-[var(--color-gold-400)]">
+                                  {formatRatingValue(numericFilters.memberRatings[member].max)}
+                                </span>
+                              </div>
+                              <input
+                                type="range"
+                                min={MIN_RATING}
+                                max={MAX_RATING}
+                                step={RATING_STEP}
+                                value={numericFilters.memberRatings[member].max}
+                                onChange={(event) => {
+                                  const nextMax = Number(event.target.value);
+                                  setNumericFilters((prev) => ({
+                                    ...prev,
+                                    memberRatings: {
+                                      ...prev.memberRatings,
+                                      [member]: {
+                                        ...prev.memberRatings[member],
+                                        max: Math.max(nextMax, prev.memberRatings[member].min),
+                                      },
+                                    },
+                                  }));
+                                }}
+                                className="w-full accent-[var(--color-gold-500)]"
+                              />
+                            </label>
+                            <label className="flex items-center gap-2 text-xs text-[var(--color-silver-300)]">
+                              <input
+                                type="checkbox"
+                                checked={numericFilters.memberRatings[member].includeEmpty}
+                                onChange={(event) =>
+                                  setNumericFilters((prev) => ({
+                                    ...prev,
+                                    memberRatings: {
+                                      ...prev.memberRatings,
+                                      [member]: {
+                                        ...prev.memberRatings[member],
+                                        includeEmpty: event.target.checked,
+                                      },
+                                    },
+                                  }))
+                                }
+                                className="h-4 w-4 rounded border-[var(--color-cinema-gray)] bg-[var(--color-cinema-black)] accent-[var(--color-gold-500)]"
+                              />
+                              Include empty ratings
+                            </label>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </th>
                 ))}
             </tr>
