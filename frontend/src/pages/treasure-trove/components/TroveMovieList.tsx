@@ -1,94 +1,365 @@
-import { Edit2, Film, Trash2 } from 'lucide-react';
-import type { TroveMovieRecord } from '../types';
+import { useEffect, useMemo, useState } from 'react';
+import { ArrowDown, ArrowUp, Film } from 'lucide-react';
+import { TROVE_MEMBERS } from '../data';
+import type { TroveMember, TroveMovieRecord } from '../types';
 
-function formatRunTime(minutes: number | null | undefined): string | null {
-  if (!minutes || minutes <= 0) return null;
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
+type SortDirection = 'asc' | 'desc';
+type SortableColumn = 'title' | 'yearReleased' | 'averageRating' | TroveMember;
 
-  if (hours === 0) return `${remainingMinutes}m`;
-  if (remainingMinutes === 0) return `${hours}h`;
-  return `${hours}h ${remainingMinutes}m`;
+interface NumericFilters {
+  yearReleased: string;
+  averageRating: string;
+  memberRatings: Record<TroveMember, string>;
 }
 
-export interface RankedTroveMovie {
-  movie: TroveMovieRecord;
-  rank: number;
-}
+const createDefaultMemberRatingFilters = (): Record<TroveMember, string> =>
+  TROVE_MEMBERS.reduce(
+    (acc, member) => ({ ...acc, [member]: '' }),
+    {} as Record<TroveMember, string>,
+  );
 
 interface TroveMovieListProps {
-  movies: RankedTroveMovie[];
-  isLoggedIn: boolean;
-  onEdit: (movie: TroveMovieRecord) => void;
-  onDelete: (id: string) => void;
+  movies: TroveMovieRecord[];
   onViewDetail: (movie: TroveMovieRecord) => void;
 }
 
-export function TroveMovieList({ movies, isLoggedIn, onEdit, onDelete, onViewDetail }: TroveMovieListProps) {
-  return (
-    <div className="w-full flex flex-col gap-4">
-      {movies.map(({ movie, rank }) => {
-        const formattedRunTime = formatRunTime(movie.runTime);
-        return (
-          <div
-            key={movie.id}
-            className="flex items-stretch bg-[var(--color-cinema-dark)] border border-[var(--color-cinema-gray)] rounded-xl overflow-hidden hover:bg-[var(--color-cinema-gray)]/30 transition-colors duration-200 cursor-pointer shadow-lg"
-            onClick={() => onViewDetail(movie)}
-          >
-            <div className="w-16 sm:w-24 shrink-0 bg-[var(--color-cinema-black)] relative border-r border-[var(--color-cinema-gray)]/50 group">
-              {movie.posterUrl ? (
-                <img src={movie.posterUrl} alt={movie.title} loading="lazy" decoding="async" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-[var(--color-silver-500)]">
-                  <Film className="w-6 h-6 sm:w-8 sm:h-8" />
-                </div>
-              )}
-            </div>
+function parseNumber(value: string): number | null {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
 
-            <div className="flex-1 p-3 sm:p-4 flex flex-col justify-center min-w-0">
-              <div className="bg-[#1565c0] text-white px-2 sm:px-3 py-0.5 text-sm sm:text-lg font-bold w-fit mb-1 rounded-sm [clip-path:polygon(0_0,100%_0,85%_100%,0_100%)] pr-4 sm:pr-6">
-                #{rank}
-              </div>
-              <h3 className="text-lg sm:text-2xl font-bold text-white leading-tight mb-1 truncate">{movie.title}</h3>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm sm:text-lg text-[var(--color-silver-400)] font-medium">
-                <span>{movie.yearReleased}</span>
-                {formattedRunTime && <span>{formattedRunTime}</span>}
-                {movie.mpaaRating && <span>{movie.mpaaRating}</span>}
-              </div>
-            </div>
+function matchesNumericFilter(value: number | null, rawQuery: string): boolean {
+  const query = rawQuery.trim();
+  if (!query) return true;
+  if (value === null) return false;
 
-            <div className="flex flex-col items-center justify-center px-4 sm:px-8 border-l border-[var(--color-cinema-gray)] bg-[var(--color-cinema-gray)]/10 shrink-0">
-              <span className="text-[8px] sm:text-[10px] text-[var(--color-silver-500)] uppercase tracking-wider font-semibold mb-1">CTCSTM</span>
-              <span className="text-xl sm:text-3xl font-mono font-bold text-[var(--color-gold-400)]">
-                {movie.averageRating !== null ? movie.averageRating.toFixed(1) : '-'}
-              </span>
-            </div>
+  const rangeMatch = query.match(/^(-?\d+(?:\.\d+)?)\s*-\s*(-?\d+(?:\.\d+)?)$/);
+  if (rangeMatch) {
+    const minValue = parseNumber(rangeMatch[1]);
+    const maxValue = parseNumber(rangeMatch[2]);
+    if (minValue === null || maxValue === null) return true;
+    const lowerBound = Math.min(minValue, maxValue);
+    const upperBound = Math.max(minValue, maxValue);
+    return value >= lowerBound && value <= upperBound;
+  }
 
-            {isLoggedIn && (
-              <div className="hidden sm:flex flex-col justify-center gap-2 sm:gap-4 px-2 sm:px-4 border-l border-[var(--color-cinema-gray)] bg-[var(--color-cinema-black)]/30 shrink-0">
-                <button
-                  onClick={(e) => { e.stopPropagation(); onEdit(movie); }}
-                  className="text-[var(--color-silver-500)] hover:text-[var(--color-gold-400)] transition-colors p-1.5 sm:p-2 hover:bg-[var(--color-cinema-gray)] rounded-full"
-                  title="Edit Movie"
-                >
-                  <Edit2 className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); onDelete(movie.id); }}
-                  className="text-[var(--color-silver-500)] hover:text-red-400 transition-colors p-1.5 sm:p-2 hover:bg-[var(--color-cinema-gray)] rounded-full"
-                  title="Delete Movie"
-                >
-                  <Trash2 className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
-                </button>
-              </div>
-            )}
-          </div>
+  const comparatorMatch = query.match(/^(<=|>=|<|>|=)\s*(-?\d+(?:\.\d+)?)$/);
+  if (comparatorMatch) {
+    const operator = comparatorMatch[1];
+    const target = parseNumber(comparatorMatch[2]);
+    if (target === null) return true;
+
+    if (operator === '<') return value < target;
+    if (operator === '<=') return value <= target;
+    if (operator === '>') return value > target;
+    if (operator === '>=') return value >= target;
+    return value === target;
+  }
+
+  const exact = parseNumber(query);
+  if (exact === null) return true;
+  return value === exact;
+}
+
+function memberRating(movie: TroveMovieRecord, member: TroveMember): number | null {
+  return movie.ratings[member] ?? null;
+}
+
+function compareValues(
+  aValue: string | number | null,
+  bValue: string | number | null,
+  direction: SortDirection,
+): number {
+  const aIsNull = aValue === null;
+  const bIsNull = bValue === null;
+  if (aIsNull && bIsNull) return 0;
+  if (aIsNull) return 1;
+  if (bIsNull) return -1;
+
+  if (typeof aValue === 'string' && typeof bValue === 'string') {
+    return direction === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+  }
+
+  const aNumber = aValue as number;
+  const bNumber = bValue as number;
+  return direction === 'asc' ? aNumber - bNumber : bNumber - aNumber;
+}
+
+export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
+  const [showMemberRatings, setShowMemberRatings] = useState(false);
+  const [sortColumn, setSortColumn] = useState<SortableColumn>('averageRating');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [titleFilter, setTitleFilter] = useState('');
+  const [numericFilters, setNumericFilters] = useState<NumericFilters>({
+    yearReleased: '',
+    averageRating: '',
+    memberRatings: createDefaultMemberRatingFilters(),
+  });
+
+  useEffect(() => {
+    if (!showMemberRatings) {
+      setNumericFilters((prev) => ({
+        ...prev,
+        memberRatings: createDefaultMemberRatingFilters(),
+      }));
+    }
+  }, [showMemberRatings]);
+
+  const filteredMovies = useMemo(() => {
+    const normalizedTitleFilter = titleFilter.trim().toLowerCase();
+
+    return movies.filter((movie) => {
+      const titleMatches =
+        normalizedTitleFilter === '' || movie.title.toLowerCase().includes(normalizedTitleFilter);
+      const yearMatches = matchesNumericFilter(
+        Number.isFinite(movie.yearReleased) ? movie.yearReleased : null,
+        numericFilters.yearReleased,
+      );
+      const ctcstmMatches = matchesNumericFilter(movie.averageRating, numericFilters.averageRating);
+
+      if (!titleMatches || !yearMatches || !ctcstmMatches) {
+        return false;
+      }
+
+      if (!showMemberRatings) {
+        return true;
+      }
+
+      return TROVE_MEMBERS.every((member) =>
+        matchesNumericFilter(memberRating(movie, member), numericFilters.memberRatings[member]),
+      );
+    });
+  }, [movies, numericFilters, showMemberRatings, titleFilter]);
+
+  const sortedMovies = useMemo(() => {
+    return [...filteredMovies].sort((a, b) => {
+      if (sortColumn === 'title') {
+        const titleComparison = compareValues(
+          a.title.toLowerCase(),
+          b.title.toLowerCase(),
+          sortDirection,
         );
-      })}
+        if (titleComparison !== 0) return titleComparison;
+      } else if (sortColumn === 'yearReleased') {
+        const yearComparison = compareValues(a.yearReleased, b.yearReleased, sortDirection);
+        if (yearComparison !== 0) return yearComparison;
+      } else if (sortColumn === 'averageRating') {
+        const ratingComparison = compareValues(a.averageRating, b.averageRating, sortDirection);
+        if (ratingComparison !== 0) return ratingComparison;
+      } else {
+        const memberComparison = compareValues(
+          memberRating(a, sortColumn),
+          memberRating(b, sortColumn),
+          sortDirection,
+        );
+        if (memberComparison !== 0) return memberComparison;
+      }
 
-      {movies.length === 0 && (
+      return a.title.localeCompare(b.title);
+    });
+  }, [filteredMovies, sortColumn, sortDirection]);
+
+  const onSortColumn = (column: SortableColumn) => {
+    if (sortColumn === column) {
+      setSortDirection((current) => (current === 'asc' ? 'desc' : 'asc'));
+      return;
+    }
+    setSortColumn(column);
+    setSortDirection(column === 'title' || column === 'yearReleased' ? 'asc' : 'desc');
+  };
+
+  const sortIcon = (column: SortableColumn) => {
+    if (column !== sortColumn) {
+      return <span className="text-[10px] text-[var(--color-silver-500)]"></span>;
+    }
+    return sortDirection === 'asc' ? (
+      <ArrowUp size={14} className="text-[var(--color-gold-400)]" />
+    ) : (
+      <ArrowDown size={14} className="text-[var(--color-gold-400)]" />
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/85 px-4 py-3">
+        <p className="text-xs sm:text-sm text-[var(--color-silver-400)]">
+          Sort by clicking headers. Numeric filters support values like <code>8</code>, <code>8-9.5</code>, <code>&gt;=9</code>.
+        </p>
+        <label className="inline-flex items-center gap-3 text-sm text-[var(--color-silver-300)]">
+          <span>Show member ratings</span>
+          <button
+            type="button"
+            onClick={() => setShowMemberRatings((current) => !current)}
+            role="switch"
+            aria-checked={showMemberRatings}
+            className={`relative h-6 w-11 rounded-full transition-colors ${
+              showMemberRatings ? 'bg-[var(--color-gold-500)]' : 'bg-[var(--color-cinema-gray)]'
+            }`}
+            aria-label="Toggle member rating columns"
+          >
+            <span
+              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
+                showMemberRatings ? 'translate-x-5' : 'translate-x-0.5'
+              }`}
+            />
+          </button>
+        </label>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/85">
+        <table className="min-w-[900px] w-full border-collapse">
+          <thead className="bg-[var(--color-cinema-black)]/80">
+            <tr className="text-left text-xs uppercase tracking-wider text-[var(--color-silver-400)]">
+              <th className="px-3 py-3 w-16"></th>
+              <th className="px-3 py-3">
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 hover:text-[var(--color-gold-400)] transition-colors"
+                  onClick={() => onSortColumn('title')}
+                >
+                  Movie Title
+                  {sortIcon('title')}
+                </button>
+              </th>
+              <th className="px-3 py-3">
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 hover:text-[var(--color-gold-400)] transition-colors"
+                  onClick={() => onSortColumn('yearReleased')}
+                >
+                  Release Year
+                  {sortIcon('yearReleased')}
+                </button>
+              </th>
+              <th className="px-3 py-3">
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 hover:text-[var(--color-gold-400)] transition-colors"
+                  onClick={() => onSortColumn('averageRating')}
+                >
+                  CTCSTM
+                  {sortIcon('averageRating')}
+                </button>
+              </th>
+              {showMemberRatings &&
+                TROVE_MEMBERS.map((member) => (
+                  <th key={member} className="px-3 py-3">
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-2 hover:text-[var(--color-gold-400)] transition-colors"
+                      onClick={() => onSortColumn(member)}
+                    >
+                      {member}
+                      {sortIcon(member)}
+                    </button>
+                  </th>
+                ))}
+            </tr>
+            <tr className="border-t border-[var(--color-cinema-gray)]/70">
+              <th className="px-3 py-2" />
+              <th className="px-3 py-2">
+                <input
+                  type="text"
+                  value={titleFilter}
+                  onChange={(event) => setTitleFilter(event.target.value)}
+                  placeholder="Filter title..."
+                  className="w-full rounded-md border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)] px-2 py-1.5 text-sm text-white placeholder:text-[var(--color-silver-500)] focus:outline-none focus:border-[var(--color-gold-500)]"
+                />
+              </th>
+              <th className="px-3 py-2">
+                <input
+                  type="text"
+                  value={numericFilters.yearReleased}
+                  onChange={(event) =>
+                    setNumericFilters((prev) => ({ ...prev, yearReleased: event.target.value }))
+                  }
+                  placeholder="e.g. >=2000"
+                  className="w-full rounded-md border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)] px-2 py-1.5 text-sm text-white placeholder:text-[var(--color-silver-500)] focus:outline-none focus:border-[var(--color-gold-500)]"
+                />
+              </th>
+              <th className="px-3 py-2">
+                <input
+                  type="text"
+                  value={numericFilters.averageRating}
+                  onChange={(event) =>
+                    setNumericFilters((prev) => ({ ...prev, averageRating: event.target.value }))
+                  }
+                  placeholder="e.g. 8-10"
+                  className="w-full rounded-md border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)] px-2 py-1.5 text-sm text-white placeholder:text-[var(--color-silver-500)] focus:outline-none focus:border-[var(--color-gold-500)]"
+                />
+              </th>
+              {showMemberRatings &&
+                TROVE_MEMBERS.map((member) => (
+                  <th key={`${member}-filter`} className="px-3 py-2">
+                    <input
+                      type="text"
+                      value={numericFilters.memberRatings[member]}
+                      onChange={(event) =>
+                        setNumericFilters((prev) => ({
+                          ...prev,
+                          memberRatings: {
+                            ...prev.memberRatings,
+                            [member]: event.target.value,
+                          },
+                        }))
+                      }
+                      placeholder="e.g. >=9"
+                      className="w-full rounded-md border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)] px-2 py-1.5 text-sm text-white placeholder:text-[var(--color-silver-500)] focus:outline-none focus:border-[var(--color-gold-500)]"
+                    />
+                  </th>
+                ))}
+            </tr>
+          </thead>
+          <tbody>
+            {sortedMovies.map((movie) => (
+              <tr
+                key={movie.id}
+                className="border-t border-[var(--color-cinema-gray)]/70 hover:bg-[var(--color-cinema-gray)]/35 cursor-pointer transition-colors"
+                onClick={() => onViewDetail(movie)}
+              >
+                <td className="px-3 py-2 align-middle">
+                  <div className="w-12 h-16 rounded overflow-hidden border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-black)]">
+                    {movie.posterUrl ? (
+                      <img
+                        src={movie.posterUrl}
+                        alt={`${movie.title} poster`}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[var(--color-silver-500)]">
+                        <Film size={16} />
+                      </div>
+                    )}
+                  </div>
+                </td>
+                <td className="px-3 py-2 text-sm sm:text-base text-white">{movie.title}</td>
+                <td className="px-3 py-2 text-sm sm:text-base text-[var(--color-silver-300)] font-mono">
+                  {movie.yearReleased}
+                </td>
+                <td className="px-3 py-2 text-sm sm:text-base font-mono text-[var(--color-gold-400)]">
+                  {movie.averageRating !== null ? movie.averageRating.toFixed(1) : '-'}
+                </td>
+                {showMemberRatings &&
+                  TROVE_MEMBERS.map((member) => (
+                    <td
+                      key={`${movie.id}-${member}`}
+                      className="px-3 py-2 text-sm sm:text-base font-mono text-[var(--color-silver-300)]"
+                    >
+                      {movie.ratings[member] ?? '-'}
+                    </td>
+                  ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {sortedMovies.length === 0 && (
         <div className="p-12 text-center text-[var(--color-silver-500)] italic border border-[var(--color-cinema-gray)] rounded-xl bg-[var(--color-cinema-dark)]">
-          No trove entries yet. Add the first all-time treasure.
+          No trove entries match the current filters.
         </div>
       )}
     </div>
