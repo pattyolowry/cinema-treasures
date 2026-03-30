@@ -299,7 +299,7 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/85 px-4 py-3">
         <p className="text-xs sm:text-sm text-[var(--color-silver-400)]">
-          Sort by clicking headers. Use rating filter icons to select inclusive ranges from 1.0 to 10.0.
+          Sort by clicking headers. Use rating filter icons to filter by ratings.
         </p>
         <label className="inline-flex items-center gap-3 text-sm text-[var(--color-silver-300)]">
           <span>Show member ratings</span>
