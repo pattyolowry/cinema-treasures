@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AlertCircle, ChevronDown, Gem, Plus } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { AlertCircle, Gem, Plus } from 'lucide-react';
 import { useAppSession } from '../../context/AppSessionContext';
 import treasureService from '../../services/treasures';
 import type { NewTreasure, Rating, Treasure } from '../../types';
@@ -9,7 +8,7 @@ import { TROVE_MEMBERS } from './data';
 import type { TroveMember, TroveMovieRecord } from './types';
 import { TroveMovieDetail } from './components/TroveMovieDetail';
 import { TroveMovieForm } from './components/TroveMovieForm';
-import { TroveMovieList, type RankedTroveMovie } from './components/TroveMovieList';
+import { TroveMovieList } from './components/TroveMovieList';
 
 const TREASURE_ENTRIES_QUERY_KEY = ['treasureEntries'] as const;
 const TREASURE_ERROR_MESSAGE = 'Unable to load treasure trove right now. Please try again.';
@@ -110,14 +109,6 @@ export default function TreasureTrovePage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingMovie, setEditingMovie] = useState<TroveMovieRecord | null>(null);
   const [selectedMovie, setSelectedMovie] = useState<TroveMovieRecord | null>(null);
-  const [titleQuery, setTitleQuery] = useState('');
-  const [reviewedBy, setReviewedBy] = useState<TroveMember[]>([]);
-  const [notReviewedBy, setNotReviewedBy] = useState<TroveMember[]>([]);
-  const [isReviewedByOpen, setIsReviewedByOpen] = useState(false);
-  const [isNotReviewedByOpen, setIsNotReviewedByOpen] = useState(false);
-  const reviewedByRef = useRef<HTMLDivElement | null>(null);
-  const notReviewedByRef = useRef<HTMLDivElement | null>(null);
-  const location = useLocation();
 
   const treasureQuery = useQuery({
     queryKey: TREASURE_ENTRIES_QUERY_KEY,
@@ -227,52 +218,6 @@ export default function TreasureTrovePage() {
   const isInitialLoading = treasureQuery.isPending && !treasureQuery.data;
   const isRefreshing = treasureQuery.isFetching && !!treasureQuery.data;
 
-  const rankedAllMovies = useMemo<RankedTroveMovie[]>(() => {
-    const sortedMovies = [...movies].sort((a, b) => {
-      const aRating = a.averageRating ?? -1;
-      const bRating = b.averageRating ?? -1;
-      if (bRating !== aRating) {
-        return bRating - aRating;
-      }
-      return a.title.localeCompare(b.title);
-    });
-
-    let previousAverageRating: number | null | undefined = undefined;
-    let previousRank = 0;
-
-    return sortedMovies.map((movie, index) => {
-      const rank =
-        index === 0 || movie.averageRating !== previousAverageRating
-          ? index + 1
-          : previousRank;
-
-      previousAverageRating = movie.averageRating;
-      previousRank = rank;
-
-      return { movie, rank };
-    });
-  }, [movies]);
-
-  const visibleMovies = useMemo(() => {
-    const normalizedTitleQuery = titleQuery.trim().toLowerCase();
-
-    return rankedAllMovies.filter(({ movie }) => {
-      const titleMatches = normalizedTitleQuery === '' || movie.title.toLowerCase().includes(normalizedTitleQuery);
-      const reviewedByMatches = reviewedBy.every((member) => movie.ratings[member] !== null);
-      const notReviewedByMatches = notReviewedBy.every((member) => movie.ratings[member] === null);
-
-      return titleMatches && reviewedByMatches && notReviewedByMatches;
-    });
-  }, [rankedAllMovies, titleQuery, reviewedBy, notReviewedBy]);
-
-  const toggleMember = (members: TroveMember[], member: TroveMember, setter: (members: TroveMember[]) => void) => {
-    if (members.includes(member)) {
-      setter(members.filter((m) => m !== member));
-      return;
-    }
-    setter([...members, member]);
-  };
-
   const handleSaveMovie = async (movieData: Omit<TroveMovieRecord, 'id' | 'averageRating'>) => {
     if (!editingMovie) {
       const normalizedNewTitle = normalizeTitle(movieData.title);
@@ -336,26 +281,6 @@ export default function TreasureTrovePage() {
     setIsFormOpen(true);
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (reviewedByRef.current && !reviewedByRef.current.contains(target)) {
-        setIsReviewedByOpen(false);
-      }
-      if (notReviewedByRef.current && !notReviewedByRef.current.contains(target)) {
-        setIsNotReviewedByOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    setIsReviewedByOpen(false);
-    setIsNotReviewedByOpen(false);
-  }, [location.pathname]);
-
   return (
     <>
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -410,138 +335,6 @@ export default function TreasureTrovePage() {
               )}
             </div>
 
-            <div className="rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/70 p-4 sm:p-5 space-y-5">
-              <div className="space-y-2">
-                <label className="block text-xs font-semibold text-[var(--color-silver-400)] uppercase tracking-wider">
-                  Movie Title
-                </label>
-                <input
-                  type="text"
-                  value={titleQuery}
-                  onChange={(e) => setTitleQuery(e.target.value)}
-                  placeholder="Search title..."
-                  className="w-full bg-[var(--color-cinema-black)] border border-[var(--color-cinema-gray)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-gold-500)] focus:ring-1 focus:ring-[var(--color-gold-500)] transition-all"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="space-y-2" ref={reviewedByRef}>
-                  <label className="block text-xs font-semibold text-[var(--color-silver-400)] uppercase tracking-wider">
-                    Reviewed By
-                  </label>
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setIsReviewedByOpen((open) => !open)}
-                      aria-label="Toggle reviewed by filter menu"
-                      aria-expanded={isReviewedByOpen}
-                      aria-controls="reviewed-by-menu"
-                      className="w-full flex items-center justify-between bg-[var(--color-cinema-black)] border border-[var(--color-cinema-gray)] rounded-lg px-4 py-2 text-left text-white hover:border-[var(--color-gold-600)] focus:outline-none focus:border-[var(--color-gold-500)] focus:ring-1 focus:ring-[var(--color-gold-500)] transition-all"
-                    >
-                      <span className="text-sm">
-                        Reviewed By{reviewedBy.length > 0 ? ` (${reviewedBy.length})` : ''}
-                      </span>
-                      <ChevronDown
-                        size={16}
-                        className={`text-[var(--color-silver-400)] transition-transform ${isReviewedByOpen ? 'rotate-180' : ''}`}
-                      />
-                    </button>
-
-                    {isReviewedByOpen && (
-                      <div
-                        id="reviewed-by-menu"
-                        className="absolute z-20 mt-2 w-full rounded-lg border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-black)] shadow-[0_8px_24px_rgba(0,0,0,0.4)] p-3 space-y-2"
-                      >
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs text-[var(--color-silver-400)] uppercase tracking-wider">Select Members</p>
-                          <button
-                            type="button"
-                            onClick={() => setReviewedBy([])}
-                            className="text-xs text-[var(--color-silver-500)] hover:text-[var(--color-gold-400)] transition-colors"
-                          >
-                            Clear
-                          </button>
-                        </div>
-                        <div className="space-y-1">
-                          {TROVE_MEMBERS.map((member) => (
-                            <label
-                              key={member}
-                              className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-[var(--color-silver-200)] hover:bg-[var(--color-cinema-gray)] cursor-pointer"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={reviewedBy.includes(member)}
-                                onChange={() => toggleMember(reviewedBy, member, setReviewedBy)}
-                                className="accent-[var(--color-gold-500)]"
-                              />
-                              {member}
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-2" ref={notReviewedByRef}>
-                  <label className="block text-xs font-semibold text-[var(--color-silver-400)] uppercase tracking-wider">
-                    Not Reviewed By
-                  </label>
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setIsNotReviewedByOpen((open) => !open)}
-                      aria-label="Toggle not reviewed by filter menu"
-                      aria-expanded={isNotReviewedByOpen}
-                      aria-controls="not-reviewed-by-menu"
-                      className="w-full flex items-center justify-between bg-[var(--color-cinema-black)] border border-[var(--color-cinema-gray)] rounded-lg px-4 py-2 text-left text-white hover:border-[var(--color-gold-600)] focus:outline-none focus:border-[var(--color-gold-500)] focus:ring-1 focus:ring-[var(--color-gold-500)] transition-all"
-                    >
-                      <span className="text-sm">
-                        Not Reviewed By{notReviewedBy.length > 0 ? ` (${notReviewedBy.length})` : ''}
-                      </span>
-                      <ChevronDown
-                        size={16}
-                        className={`text-[var(--color-silver-400)] transition-transform ${isNotReviewedByOpen ? 'rotate-180' : ''}`}
-                      />
-                    </button>
-
-                    {isNotReviewedByOpen && (
-                      <div
-                        id="not-reviewed-by-menu"
-                        className="absolute z-20 mt-2 w-full rounded-lg border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-black)] shadow-[0_8px_24px_rgba(0,0,0,0.4)] p-3 space-y-2"
-                      >
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs text-[var(--color-silver-400)] uppercase tracking-wider">Select Members</p>
-                          <button
-                            type="button"
-                            onClick={() => setNotReviewedBy([])}
-                            className="text-xs text-[var(--color-silver-500)] hover:text-[var(--color-gold-400)] transition-colors"
-                          >
-                            Clear
-                          </button>
-                        </div>
-                        <div className="space-y-1">
-                          {TROVE_MEMBERS.map((member) => (
-                            <label
-                              key={member}
-                              className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-[var(--color-silver-200)] hover:bg-[var(--color-cinema-gray)] cursor-pointer"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={notReviewedBy.includes(member)}
-                                onChange={() => toggleMember(notReviewedBy, member, setNotReviewedBy)}
-                                className="accent-[var(--color-gold-500)]"
-                              />
-                              {member}
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -555,10 +348,7 @@ export default function TreasureTrovePage() {
           </div>
         ) : (
           <TroveMovieList
-            movies={visibleMovies}
-            isLoggedIn={!!currentUser}
-            onEdit={openEditForm}
-            onDelete={(id) => void handleDeleteMovie(id)}
+            movies={movies}
             onViewDetail={setSelectedMovie}
           />
         )}
@@ -570,6 +360,7 @@ export default function TreasureTrovePage() {
           isLoggedIn={!!currentUser}
           onClose={() => setSelectedMovie(null)}
           onEdit={openEditForm}
+          onDelete={(id) => void handleDeleteMovie(id)}
         />
       )}
 

@@ -1,4 +1,4 @@
-import { Calendar, Edit2, Globe, Star, X } from 'lucide-react';
+import { Calendar, Edit2, Globe, Star, Trash2, X } from 'lucide-react';
 import { TROVE_MEMBERS } from '../data';
 import type { TroveMovieRecord } from '../types';
 
@@ -17,9 +17,10 @@ interface TroveMovieDetailProps {
   isLoggedIn: boolean;
   onClose: () => void;
   onEdit: (movie: TroveMovieRecord) => void;
+  onDelete: (id: string) => void;
 }
 
-export function TroveMovieDetail({ movie, isLoggedIn, onClose, onEdit }: TroveMovieDetailProps) {
+export function TroveMovieDetail({ movie, isLoggedIn, onClose, onEdit, onDelete }: TroveMovieDetailProps) {
   const formattedRunTime = formatRunTime(movie.runTime);
 
   return (
@@ -90,13 +91,22 @@ export function TroveMovieDetail({ movie, isLoggedIn, onClose, onEdit }: TroveMo
             <div className="flex items-center justify-between pt-6 border-t border-[var(--color-cinema-gray)]">
               <div className="text-sm text-[var(--color-silver-500)]">Treasure Trove</div>
               {isLoggedIn && (
-                <button
-                  onClick={() => onEdit(movie)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-cinema-gray)] text-white hover:bg-[var(--color-gold-500)] hover:text-black transition-all font-medium text-sm"
-                >
-                  <Edit2 size={16} />
-                  Edit Entry
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => onEdit(movie)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-cinema-gray)] text-white hover:bg-[var(--color-gold-500)] hover:text-black transition-all font-medium text-sm"
+                  >
+                    <Edit2 size={16} />
+                    Edit Entry
+                  </button>
+                  <button
+                    onClick={() => onDelete(movie.id)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-700/80 text-white hover:bg-red-600 transition-all font-medium text-sm"
+                  >
+                    <Trash2 size={16} />
+                    Delete
+                  </button>
+                </div>
               )}
             </div>
           </div>
