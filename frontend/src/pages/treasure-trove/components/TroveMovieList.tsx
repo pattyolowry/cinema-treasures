@@ -172,12 +172,12 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
 
   const sortIcon = (column: SortableColumn) => {
     if (column !== sortColumn) {
-      return <span className="text-[10px] text-[var(--color-silver-500)]"></span>;
+      return <span className="inline-block w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>;
     }
     return sortDirection === 'asc' ? (
-      <ArrowUp size={14} className="text-[var(--color-gold-400)]" />
+      <ArrowUp size={14} className="text-[var(--color-gold-400)] shrink-0" />
     ) : (
-      <ArrowDown size={14} className="text-[var(--color-gold-400)]" />
+      <ArrowDown size={14} className="text-[var(--color-gold-400)] shrink-0" />
     );
   };
 
@@ -209,24 +209,28 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/85">
-        <table className="min-w-[900px] w-full border-collapse">
+        <table
+          className={`w-full border-collapse ${
+            showMemberRatings ? 'min-w-[900px]' : 'min-w-0 table-fixed'
+          }`}
+        >
           <thead className="bg-[var(--color-cinema-black)]/80">
             <tr className="text-left text-xs uppercase tracking-wider text-[var(--color-silver-400)]">
-              <th className="px-3 py-3 w-16"></th>
-              <th className="px-3 py-3">
+              <th className="px-2 sm:px-3 py-3 w-12 sm:w-16"></th>
+              <th className="px-2 sm:px-3 py-3">
                 <button
                   type="button"
-                  className="inline-flex items-center gap-2 hover:text-[var(--color-gold-400)] transition-colors"
+                  className="inline-flex items-center gap-1 sm:gap-2 hover:text-[var(--color-gold-400)] transition-colors whitespace-nowrap"
                   onClick={() => onSortColumn('title')}
                 >
                   Movie Title
                   {sortIcon('title')}
                 </button>
               </th>
-              <th className="px-3 py-3">
+              <th className="px-2 sm:px-3 py-3 w-24 sm:w-28">
                 <button
                   type="button"
-                  className="inline-flex items-center gap-2 hover:text-[var(--color-gold-400)] transition-colors"
+                  className="inline-flex items-center gap-1 sm:gap-2 hover:text-[var(--color-gold-400)] transition-colors whitespace-nowrap"
                   onClick={() => onSortColumn('averageRating')}
                 >
                   CTCSTM
@@ -248,8 +252,8 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
                 ))}
             </tr>
             <tr className="border-t border-[var(--color-cinema-gray)]/70">
-              <th className="px-3 py-2" />
-              <th className="px-3 py-2">
+              <th className="px-2 sm:px-3 py-2" />
+              <th className="px-2 sm:px-3 py-2">
                 <input
                   type="text"
                   value={titleFilter}
@@ -258,7 +262,7 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
                   className="w-full rounded-md border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)] px-2 py-1.5 text-sm text-white placeholder:text-[var(--color-silver-500)] focus:outline-none focus:border-[var(--color-gold-500)]"
                 />
               </th>
-              <th className="px-3 py-2">
+              <th className="px-2 sm:px-3 py-2">
                 <input
                   type="text"
                   value={numericFilters.averageRating}
@@ -298,8 +302,8 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
                 className="border-t border-[var(--color-cinema-gray)]/70 hover:bg-[var(--color-cinema-gray)]/35 cursor-pointer transition-colors"
                 onClick={() => onViewDetail(movie)}
               >
-                <td className="px-3 py-2 align-middle">
-                  <div className="w-12 h-16 rounded overflow-hidden border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-black)]">
+                <td className="px-2 sm:px-3 py-2 align-middle">
+                  <div className="w-10 h-14 sm:w-12 sm:h-16 rounded overflow-hidden border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-black)]">
                     {movie.posterUrl ? (
                       <img
                         src={movie.posterUrl}
@@ -316,17 +320,17 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
                     )}
                   </div>
                 </td>
-                <td className="px-3 py-2">
+                <td className="px-2 sm:px-3 py-2">
                   <div className="min-w-0">
-                    <p className="text-base sm:text-lg font-semibold text-white tracking-wide leading-tight truncate [text-shadow:0_1px_6px_rgba(212,175,55,0.25)]">
+                    <p className="text-sm sm:text-lg font-semibold text-white tracking-wide leading-tight truncate [text-shadow:0_1px_6px_rgba(212,175,55,0.25)]">
                       {movie.title}
                     </p>
-                    <p className="mt-1 text-xs sm:text-sm text-[var(--color-silver-400)]">
+                    <p className="mt-1 text-[11px] sm:text-sm text-[var(--color-silver-400)] truncate">
                       {movie.yearReleased} • {formatRunTime(movie.runTime)}
                     </p>
                   </div>
                 </td>
-                <td className="px-3 py-2 text-sm sm:text-base font-mono text-[var(--color-gold-400)]">
+                <td className="px-2 sm:px-3 py-2 text-sm sm:text-base font-mono font-semibold text-[var(--color-gold-400)] [text-shadow:0_1px_6px_rgba(212,175,55,0.3)]">
                   {movie.averageRating !== null ? movie.averageRating.toFixed(1) : '-'}
                 </td>
                 {showMemberRatings &&
