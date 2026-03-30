@@ -211,13 +211,13 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
       <div className="overflow-x-auto rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/85">
         <table
           className={`w-full border-collapse ${
-            showMemberRatings ? 'min-w-[900px] lg:min-w-0 lg:table-fixed' : 'min-w-0 table-fixed'
+            showMemberRatings ? 'min-w-[900px] table-fixed lg:min-w-0 lg:table-fixed' : 'min-w-0 table-fixed'
           }`}
         >
           <thead className="bg-[var(--color-cinema-black)]/80">
             <tr className="text-left text-xs uppercase tracking-wider text-[var(--color-silver-400)]">
               <th className="px-2 sm:px-3 py-3 w-12 sm:w-16"></th>
-              <th className="px-2 sm:px-3 py-3">
+              <th className={`px-2 sm:px-3 py-3 ${showMemberRatings ? 'w-[12rem] sm:w-[14rem] lg:w-auto' : ''}`}>
                 <button
                   type="button"
                   className="inline-flex items-center gap-1 sm:gap-2 hover:text-[var(--color-gold-400)] transition-colors whitespace-nowrap"
@@ -320,7 +320,7 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
                     )}
                   </div>
                 </td>
-                <td className="px-2 sm:px-3 py-2 min-w-0">
+                <td className={`px-2 sm:px-3 py-2 min-w-0 ${showMemberRatings ? 'w-[12rem] sm:w-[14rem] lg:w-auto' : ''}`}>
                   <div className="min-w-0">
                     <p className="text-sm sm:text-lg font-semibold text-white tracking-wide leading-tight truncate [text-shadow:0_1px_6px_rgba(212,175,55,0.25)]">
                       {movie.title}
