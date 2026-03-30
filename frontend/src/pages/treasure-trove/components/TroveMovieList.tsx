@@ -330,14 +330,14 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
                     </p>
                   </div>
                 </td>
-                <td className="px-2 sm:px-3 lg:px-3 py-2 text-sm sm:text-base font-mono font-semibold text-[var(--color-gold-400)] [text-shadow:0_1px_6px_rgba(212,175,55,0.3)]">
+                <td className="px-2 sm:px-3 lg:px-3 py-2 text-center text-sm sm:text-base font-mono font-semibold text-[var(--color-gold-400)] [text-shadow:0_1px_6px_rgba(212,175,55,0.3)]">
                   {movie.averageRating !== null ? movie.averageRating.toFixed(1) : '-'}
                 </td>
                 {showMemberRatings &&
                   TROVE_MEMBERS.map((member) => (
                     <td
                       key={`${movie.id}-${member}`}
-                      className="px-2 sm:px-3 lg:px-3 py-2 w-16 lg:w-20 text-sm sm:text-base font-mono text-[var(--color-silver-300)]"
+                      className="px-2 sm:px-3 lg:px-3 py-2 w-16 lg:w-20 text-center text-sm sm:text-base font-mono text-[var(--color-silver-300)]"
                     >
                       {movie.ratings[member] ?? '-'}
                     </td>
