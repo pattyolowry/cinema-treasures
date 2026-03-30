@@ -211,7 +211,7 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
       <div className="overflow-x-auto rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)]/85">
         <table
           className={`w-full border-collapse ${
-            showMemberRatings ? 'min-w-[900px]' : 'min-w-0 table-fixed'
+            showMemberRatings ? 'min-w-[900px] lg:min-w-0 lg:table-fixed' : 'min-w-0 table-fixed'
           }`}
         >
           <thead className="bg-[var(--color-cinema-black)]/80">
@@ -227,7 +227,7 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
                   {sortIcon('title')}
                 </button>
               </th>
-              <th className="px-2 sm:px-3 py-3 w-24 sm:w-28">
+              <th className={`px-2 sm:px-3 lg:px-3 py-3 w-24 sm:w-28 ${showMemberRatings ? 'lg:w-20' : ''}`}>
                 <button
                   type="button"
                   className="inline-flex items-center gap-1 sm:gap-2 hover:text-[var(--color-gold-400)] transition-colors whitespace-nowrap"
@@ -239,13 +239,13 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
               </th>
               {showMemberRatings &&
                 TROVE_MEMBERS.map((member) => (
-                  <th key={member} className="px-3 py-3">
+                  <th key={member} className="px-2 sm:px-3 lg:px-3 py-3 w-16 lg:w-20">
                     <button
                       type="button"
-                      className="inline-flex items-center gap-2 hover:text-[var(--color-gold-400)] transition-colors"
+                      className="w-full inline-flex items-center justify-between gap-1 whitespace-nowrap hover:text-[var(--color-gold-400)] transition-colors"
                       onClick={() => onSortColumn(member)}
                     >
-                      {member}
+                      <span className="truncate">{member}</span>
                       {sortIcon(member)}
                     </button>
                   </th>
@@ -262,7 +262,7 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
                   className="w-full rounded-md border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)] px-2 py-1.5 text-sm text-white placeholder:text-[var(--color-silver-500)] focus:outline-none focus:border-[var(--color-gold-500)]"
                 />
               </th>
-              <th className="px-2 sm:px-3 py-2">
+              <th className="px-2 sm:px-3 lg:px-3 py-2">
                 <input
                   type="text"
                   value={numericFilters.averageRating}
@@ -275,7 +275,7 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
               </th>
               {showMemberRatings &&
                 TROVE_MEMBERS.map((member) => (
-                  <th key={`${member}-filter`} className="px-3 py-2">
+                  <th key={`${member}-filter`} className="px-2 sm:px-3 lg:px-3 py-2 w-16 lg:w-20">
                     <input
                       type="text"
                       value={numericFilters.memberRatings[member]}
@@ -320,7 +320,7 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
                     )}
                   </div>
                 </td>
-                <td className="px-2 sm:px-3 py-2">
+                <td className="px-2 sm:px-3 py-2 min-w-0">
                   <div className="min-w-0">
                     <p className="text-sm sm:text-lg font-semibold text-white tracking-wide leading-tight truncate [text-shadow:0_1px_6px_rgba(212,175,55,0.25)]">
                       {movie.title}
@@ -330,14 +330,14 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
                     </p>
                   </div>
                 </td>
-                <td className="px-2 sm:px-3 py-2 text-sm sm:text-base font-mono font-semibold text-[var(--color-gold-400)] [text-shadow:0_1px_6px_rgba(212,175,55,0.3)]">
+                <td className="px-2 sm:px-3 lg:px-3 py-2 text-sm sm:text-base font-mono font-semibold text-[var(--color-gold-400)] [text-shadow:0_1px_6px_rgba(212,175,55,0.3)]">
                   {movie.averageRating !== null ? movie.averageRating.toFixed(1) : '-'}
                 </td>
                 {showMemberRatings &&
                   TROVE_MEMBERS.map((member) => (
                     <td
                       key={`${movie.id}-${member}`}
-                      className="px-3 py-2 text-sm sm:text-base font-mono text-[var(--color-silver-300)]"
+                      className="px-2 sm:px-3 lg:px-3 py-2 w-16 lg:w-20 text-sm sm:text-base font-mono text-[var(--color-silver-300)]"
                     >
                       {movie.ratings[member] ?? '-'}
                     </td>
