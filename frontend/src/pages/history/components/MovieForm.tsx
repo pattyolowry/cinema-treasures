@@ -32,6 +32,10 @@ const MONTH_OPTIONS: Month[] = [
 ];
 const MONTH_SELECT_OPTIONS: Array<Month | ''> = ['', ...MONTH_OPTIONS];
 
+function getCurrentMonth(): Month {
+  return MONTH_OPTIONS[new Date().getMonth()];
+}
+
 interface MovieFormState {
   clubNumber: number | '';
   title: string;
@@ -143,7 +147,7 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
     clubNumber: movie?.clubNumber ?? nextClubNumber,
     title: movie?.movie.title ?? '',
     pickedBy: movie?.pickedBy ?? '',
-    monthWatched: movie?.monthWatched ?? '',
+    monthWatched: movie ? (movie.monthWatched ?? '') : getCurrentMonth(),
     yearReleased: movie?.movie.yearReleased ?? '',
     yearWatched: movie?.yearWatched ?? new Date().getFullYear(),
     originCountry: movie?.movie.originCountry ?? '',
