@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronDown, Film, X } from 'lucide-react';
 import { MEMBERS } from '../../../data';
-import type { LogEntry, Member, NewLogEntry, Rating, TmdbMovieDetails, TmdbSearchMovie } from '../../../types';
+import type { LogEntry, Member, Month, NewLogEntry, Rating, TmdbMovieDetails, TmdbSearchMovie } from '../../../types';
 import tmdb from '../../../services/tmdb';
 
 interface MovieFormProps {
@@ -16,6 +16,38 @@ const TMDB_POSTER_BASE_URL = 'https://image.tmdb.org/t/p/';
 const SEARCH_DEBOUNCE_MS = 300;
 const MIN_SEARCH_CHARS = 2;
 const MAX_RESULTS = 3;
+const MONTH_OPTIONS: Month[] = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+const MONTH_SELECT_OPTIONS: Array<Month | ''> = ['', ...MONTH_OPTIONS];
+
+interface MovieFormState {
+  clubNumber: number | '';
+  title: string;
+  pickedBy: Member | '';
+  monthWatched: Month | '';
+  yearReleased: number | '';
+  yearWatched: number | '';
+  originCountry: string;
+  streamingPlatform: string;
+  runTime: string;
+  mpaaRating: string;
+  posterUrl: string;
+  backdropUrl: string;
+  ratings: Record<Member, number | null>;
+  notes: string;
+}
 
 function toTmdbImageUrl(path: string | null | undefined, size: string): string {
   if (!path) return '';
@@ -107,10 +139,11 @@ function calculateAverage(ratingsMap: Record<Member, number | null>): number | u
 export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting = false }: MovieFormProps) {
   const isAddMode = !movie;
   const PICKED_BY_OPTIONS: Member[] = ['Ren', 'Greg', 'Max', 'Quinn', 'Patio', 'Ian'];
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<MovieFormState>({
     clubNumber: movie?.clubNumber ?? nextClubNumber,
     title: movie?.movie.title ?? '',
     pickedBy: movie?.pickedBy ?? '',
+    monthWatched: movie?.monthWatched ?? '',
     yearReleased: movie?.movie.yearReleased ?? '',
     yearWatched: movie?.yearWatched ?? new Date().getFullYear(),
     originCountry: movie?.movie.originCountry ?? '',
@@ -120,6 +153,7 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
     posterUrl: movie?.movie.posterUrl ?? '',
     backdropUrl: movie?.movie.backdropUrl ?? '',
     ratings: ratingsArrayToMap(movie?.ratings),
+    notes: movie?.notes ?? '',
   });
   const [suggestions, setSuggestions] = useState<TmdbSearchMovie[]>([]);
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
@@ -129,19 +163,26 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
   const [selectedTmdbId, setSelectedTmdbId] = useState<number | null>(null);
   const [selectedTmdbTitle, setSelectedTmdbTitle] = useState<string | null>(null);
   const [isPickedByMenuOpen, setIsPickedByMenuOpen] = useState(false);
+  const [isMonthMenuOpen, setIsMonthMenuOpen] = useState(false);
   const [pickedByError, setPickedByError] = useState<string | null>(null);
   const [highlightedPickedByIndex, setHighlightedPickedByIndex] = useState(0);
+  const [highlightedMonthIndex, setHighlightedMonthIndex] = useState(0);
   const titleContainerRef = useRef<HTMLDivElement | null>(null);
   const pickedByContainerRef = useRef<HTMLDivElement | null>(null);
   const pickedByButtonRef = useRef<HTMLButtonElement | null>(null);
   const pickedByOptionRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const monthContainerRef = useRef<HTMLDivElement | null>(null);
+  const monthButtonRef = useRef<HTMLButtonElement | null>(null);
+  const monthOptionRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const searchRequestIdRef = useRef(0);
   const detailsRequestIdRef = useRef(0);
   const skipSearchForTitleRef = useRef<string | null>(null);
   const isPickedByPlaceholder = formData.pickedBy === '';
+  const isMonthPlaceholder = formData.monthWatched === '';
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type } = e.target;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    const isNumberInput = e.target instanceof HTMLInputElement && e.target.type === 'number';
 
     if (isAddMode && name === 'title' && selectedTmdbTitle && value.trim() !== selectedTmdbTitle) {
       setSelectedTmdbId(null);
@@ -150,7 +191,7 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
 
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'number' ? (value ? Number(value) : '') : value,
+      [name]: isNumberInput ? (value ? Number(value) : '') : value,
     }));
   };
 
@@ -168,11 +209,31 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
     setHighlightedPickedByIndex(initialIndex);
   };
 
+  const moveMonthHighlight = (delta: number) => {
+    setHighlightedMonthIndex((prev) => {
+      const next = prev + delta;
+      if (next < 0) return MONTH_SELECT_OPTIONS.length - 1;
+      if (next >= MONTH_SELECT_OPTIONS.length) return 0;
+      return next;
+    });
+  };
+
+  const openMonthMenu = (initialIndex: number) => {
+    setIsMonthMenuOpen(true);
+    setHighlightedMonthIndex(initialIndex);
+  };
+
   const selectPickedBy = (member: Member) => {
     setFormData((prev) => ({ ...prev, pickedBy: member }));
     setPickedByError(null);
     setIsPickedByMenuOpen(false);
     window.requestAnimationFrame(() => pickedByButtonRef.current?.focus());
+  };
+
+  const selectMonth = (month: Month | '') => {
+    setFormData((prev) => ({ ...prev, monthWatched: month }));
+    setIsMonthMenuOpen(false);
+    window.requestAnimationFrame(() => monthButtonRef.current?.focus());
   };
 
   const handleRatingChange = (member: Member, value: string) => {
@@ -288,6 +349,9 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
       if (pickedByContainerRef.current && !pickedByContainerRef.current.contains(target)) {
         setIsPickedByMenuOpen(false);
       }
+      if (monthContainerRef.current && !monthContainerRef.current.contains(target)) {
+        setIsMonthMenuOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -299,6 +363,12 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
     const option = pickedByOptionRefs.current[highlightedPickedByIndex];
     option?.focus();
   }, [highlightedPickedByIndex, isPickedByMenuOpen]);
+
+  useEffect(() => {
+    if (!isMonthMenuOpen) return;
+    const option = monthOptionRefs.current[highlightedMonthIndex];
+    option?.focus();
+  }, [highlightedMonthIndex, isMonthMenuOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -324,10 +394,12 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
         backdropUrl: formData.backdropUrl.trim() || undefined,
       },
       pickedBy: formData.pickedBy as Member,
+      monthWatched: formData.monthWatched || undefined,
       yearWatched: Number(formData.yearWatched),
       streamingPlatform: formData.streamingPlatform.trim() || undefined,
       ratings,
       averageRating: calculateAverage(formData.ratings),
+      notes: formData.notes.trim() || undefined,
     };
 
     onSave(payload);
@@ -574,6 +646,117 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
               </div>
 
               <div className="space-y-2">
+                <label className="block text-xs font-semibold text-[var(--color-silver-400)] uppercase tracking-wider">Month Watched</label>
+                <div className="relative" ref={monthContainerRef}>
+                  <button
+                    ref={monthButtonRef}
+                    type="button"
+                    aria-haspopup="listbox"
+                    aria-controls="month-watched-listbox"
+                    aria-expanded={isMonthMenuOpen}
+                    onClick={() => {
+                      if (isMonthMenuOpen) {
+                        setIsMonthMenuOpen(false);
+                        return;
+                      }
+                      const selectedIndex = MONTH_SELECT_OPTIONS.indexOf(formData.monthWatched);
+                      openMonthMenu(selectedIndex >= 0 ? selectedIndex : 0);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'ArrowDown') {
+                        event.preventDefault();
+                        const selectedIndex = MONTH_SELECT_OPTIONS.indexOf(formData.monthWatched);
+                        openMonthMenu(selectedIndex >= 0 ? selectedIndex : 0);
+                        return;
+                      }
+                      if (event.key === 'ArrowUp') {
+                        event.preventDefault();
+                        const selectedIndex = MONTH_SELECT_OPTIONS.indexOf(formData.monthWatched);
+                        openMonthMenu(selectedIndex >= 0 ? selectedIndex : MONTH_SELECT_OPTIONS.length - 1);
+                        return;
+                      }
+                      if (event.key === 'Escape') {
+                        setIsMonthMenuOpen(false);
+                      }
+                    }}
+                    className={`w-full bg-[var(--color-cinema-black)] border border-[var(--color-cinema-gray)] rounded-lg pl-4 pr-10 py-3 md:py-2 min-h-11 text-left focus:outline-none focus:border-[var(--color-gold-500)] focus:ring-1 focus:ring-[var(--color-gold-500)] transition-all text-sm md:text-base ${
+                      isMonthPlaceholder ? 'text-[var(--color-silver-500)]' : 'text-white'
+                    }`}
+                  >
+                    {isMonthPlaceholder ? 'Select month' : formData.monthWatched}
+                  </button>
+                  <ChevronDown
+                    size={16}
+                    className={`pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 transition-transform text-[var(--color-silver-400)] ${
+                      isMonthMenuOpen ? 'rotate-180' : ''
+                    }`}
+                    aria-hidden="true"
+                  />
+                  {isMonthMenuOpen && (
+                    <div
+                      id="month-watched-listbox"
+                      role="listbox"
+                      aria-label="Month watched"
+                      className="absolute left-0 right-0 mt-1 z-40 max-h-64 overflow-y-auto rounded-lg border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-black)] shadow-[0_12px_24px_rgba(0,0,0,0.45)]"
+                    >
+                      {MONTH_SELECT_OPTIONS.map((month, index) => {
+                        const isSelected = formData.monthWatched === month;
+                        const label = month || 'No month';
+                        return (
+                          <button
+                            key={month || 'no-month'}
+                            ref={(element) => {
+                              monthOptionRefs.current[index] = element;
+                            }}
+                            type="button"
+                            role="option"
+                            aria-selected={isSelected}
+                            onClick={() => selectMonth(month)}
+                            onMouseEnter={() => setHighlightedMonthIndex(index)}
+                            onKeyDown={(event) => {
+                              if (event.key === 'ArrowDown') {
+                                event.preventDefault();
+                                moveMonthHighlight(1);
+                                return;
+                              }
+                              if (event.key === 'ArrowUp') {
+                                event.preventDefault();
+                                moveMonthHighlight(-1);
+                                return;
+                              }
+                              if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                selectMonth(month);
+                                return;
+                              }
+                              if (event.key === 'Escape') {
+                                event.preventDefault();
+                                setIsMonthMenuOpen(false);
+                                window.requestAnimationFrame(() => monthButtonRef.current?.focus());
+                                return;
+                              }
+                              if (event.key === 'Tab') {
+                                setIsMonthMenuOpen(false);
+                              }
+                            }}
+                            className={`w-full text-left px-4 py-3 text-sm md:text-base transition-colors ${
+                              highlightedMonthIndex === index
+                                ? 'bg-[var(--color-cinema-gray)] text-white'
+                                : month
+                                  ? 'text-[var(--color-silver-300)]'
+                                  : 'text-[var(--color-silver-500)]'
+                            } ${isSelected ? 'font-semibold text-[var(--color-gold-400)]' : ''}`}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
                 <label className="block text-xs font-semibold text-[var(--color-silver-400)] uppercase tracking-wider">Origin Country</label>
                 <input
                   required
@@ -667,6 +850,18 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
                   </div>
                 ))}
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold text-[var(--color-silver-400)] uppercase tracking-wider">Notes</label>
+              <textarea
+                name="notes"
+                value={formData.notes}
+                onChange={handleChange}
+                rows={4}
+                className="w-full resize-y bg-[var(--color-cinema-black)] border border-[var(--color-cinema-gray)] rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--color-gold-500)] focus:ring-1 focus:ring-[var(--color-gold-500)] transition-all"
+                placeholder="Add discussion notes, context, or observations..."
+              />
             </div>
 
             <div className="pt-6 flex justify-end gap-4">
