@@ -14,6 +14,13 @@ const logEntrySchema = new mongoose.Schema({
             message: '{VALUE} is not a valid user'
         }
     },
+    monthWatched: {
+        type: String,
+        enum: {
+            values: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+            message: '{VALUE} is not a valid user'
+        }
+    },
     yearWatched: Number,
     streamingPlatform: String,
     ratings: [
@@ -28,7 +35,8 @@ const logEntrySchema = new mongoose.Schema({
             rating: Number
         }
     ],
-    averageRating: Number
+    averageRating: Number,
+    notes: String
 })
 
 logEntrySchema.set("toJSON", {

@@ -15,7 +15,21 @@ function getMemberRating(entry: LogEntry, member: Member): number | null {
   return match ? match.rating : null;
 }
 
+function formatWatchedDate(entry: LogEntry): string {
+  if (entry.monthWatched && entry.yearWatched) {
+    return `Watched in ${entry.monthWatched} ${entry.yearWatched}`;
+  }
+
+  if (entry.yearWatched) {
+    return `Watched in ${entry.yearWatched}`;
+  }
+
+  return 'Watch date unavailable';
+}
+
 export function MovieDetail({ movie, isLoggedIn, onClose, onEdit }: MovieDetailProps) {
+  const notes = movie.notes?.trim();
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm" onClick={onClose}>
       <div className="flex min-h-full items-center justify-center p-4">
@@ -97,9 +111,16 @@ export function MovieDetail({ movie, isLoggedIn, onClose, onEdit }: MovieDetailP
               </div>
             </div>
 
+            <div className="mb-8 border-t border-[var(--color-cinema-gray)] pt-6">
+              <h3 className="mb-3 text-lg font-serif text-[var(--color-gold-400)]">Notes</h3>
+              <p className={`whitespace-pre-wrap text-sm leading-6 ${notes ? 'text-[var(--color-silver-300)]' : 'text-[var(--color-silver-500)] italic'}`}>
+                {notes || 'No notes yet.'}
+              </p>
+            </div>
+
             <div className="flex items-center justify-between pt-6 border-t border-[var(--color-cinema-gray)]">
               <div className="text-sm text-[var(--color-silver-500)]">
-                {movie.yearWatched ? `Watched in ${movie.yearWatched}` : 'Watch year unavailable'}
+                {formatWatchedDate(movie)}
               </div>
               {isLoggedIn && (
                 <button
