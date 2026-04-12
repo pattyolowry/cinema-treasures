@@ -1,4 +1,4 @@
-import { Member } from '../types';
+import { Member, Month } from '../types';
 import { z } from "zod";
 
 export const newLogEntrySchema = z.object({
@@ -14,13 +14,15 @@ export const newLogEntrySchema = z.object({
     backdropUrl: z.optional(z.string())
   }),
   pickedBy: z.enum(Member),
+  monthWatched: z.optional(z.enum(Month)),
   yearWatched: z.optional(z.int()),
   streamingPlatform: z.optional(z.string()),
   ratings: z.optional(z.array(z.object({
     user: z.enum(Member),
     rating: z.number()
   }))),
-  averageRating: z.optional(z.number())
+  averageRating: z.optional(z.number()),
+  notes: z.optional(z.string())
 });
 
 export const newTreasureSchema = z.object({
