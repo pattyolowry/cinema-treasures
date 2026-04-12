@@ -403,7 +403,7 @@ export function MovieForm({ movie, onSave, onClose, nextClubNumber, isSubmitting
       streamingPlatform: formData.streamingPlatform.trim() || undefined,
       ratings,
       averageRating: calculateAverage(formData.ratings),
-      notes: formData.notes.trim() || undefined,
+      notes: formData.notes.trim(),
     };
 
     onSave(payload);
