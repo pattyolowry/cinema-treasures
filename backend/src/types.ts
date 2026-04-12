@@ -52,12 +52,12 @@ export interface NewLogEntry {
     clubNumber: number,
     movie: MovieInfo,
     pickedBy: Member,
-    monthWatched: Month,
+    monthWatched?: Month,
     yearWatched?: number,
     streamingPlatform?: string,
     ratings?: Rating[],
     averageRating?:  number
-    notes: string
+    notes?: string
 }
 
 export interface NewTreasure {

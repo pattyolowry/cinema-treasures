@@ -1,5 +1,7 @@
 export type Member = 'Ren' | 'Patio' | 'Greg' | 'Max' | 'Quinn' | 'Ian';
 
+export type Month = 'January' | 'February' | 'March' | 'April' | 'May' | 'June' | 'July' | 'August' | 'September' | 'October' | 'November' | 'December'
+
 export interface MovieRecord {
   id: string;
   clubNumber: number;
@@ -76,10 +78,12 @@ export interface LogEntry {
     clubNumber: number,
     movie: MovieInfo,
     pickedBy: Member,
+    monthWatched?: Month,
     yearWatched?: number,
     streamingPlatform?: string,
     ratings?: Rating[],
     averageRating?:  number
+    notes?: string
 }
 
 export type NewLogEntry = Omit<LogEntry, 'id'>;
