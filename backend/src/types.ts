@@ -17,6 +17,21 @@ export enum Member {
   Ian = "Ian"
 }
 
+export enum Month {
+  January = "January",
+  February = "February",
+  March = "March",
+  April = "April",
+  May = "May",
+  June = "June",
+  July = "July",
+  August = "August",
+  September = "September",
+  October = "October",
+  November = "November",
+  December = "December"
+}
+
 export interface MovieInfo {
   title: string,
   yearReleased?: number,
@@ -37,10 +52,12 @@ export interface NewLogEntry {
     clubNumber: number,
     movie: MovieInfo,
     pickedBy: Member,
+    monthWatched: Month,
     yearWatched?: number,
     streamingPlatform?: string,
     ratings?: Rating[],
     averageRating?:  number
+    notes: string
 }
 
 export interface NewTreasure {
