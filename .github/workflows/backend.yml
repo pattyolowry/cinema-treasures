@@ -1,10 +1,17 @@
 name: Backend Deployment Pipeline
 
 on:
+  pull_request:
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend.yml"
   push:
     branches:
       - main
       - backend-tests
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend.yml"
 
 jobs:
   backend_deployment_pipeline:
