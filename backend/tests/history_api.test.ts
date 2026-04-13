@@ -5,8 +5,10 @@ import app from '../src/utils/app';
 import connectToDatabase from '../src/utils/db';
 import LogEntry from '../src/models/logEntry'
 import Movie from '../src/models/movie'
+import User from '../src/models/user'
 import config from '../src/utils/config'
 import assert from 'node:assert'
+import bcrypt from 'bcrypt'
 
 const api = supertest(app);
 
@@ -97,6 +99,18 @@ before(async () => {
 beforeEach(async () => {
   await Movie.deleteMany({});
   await LogEntry.deleteMany({});
+  await User.deleteMany({});
+
+  const saltRounds = 10
+  const passwordHash = await bcrypt.hash("testpassword", saltRounds)
+
+  const userObject = new User({
+    "name": "Test User 1",
+    "username": "testuser1",
+    "passwordHash": passwordHash
+  });
+
+  await userObject.save();
 
   for (const entry of initialEntries) {
     const movieObject = new Movie(entry.movie);
@@ -126,6 +140,66 @@ test("first entry includes movie info", async () => {
     const movies = response.body.map((entry) => entry.movie.title);
     assert(movies.includes('Dog Day Afternoon'));
 });
+
+test("a valid entry can be added", async () => {
+    const loggedUser = await api
+        .post("/users/login")
+        .send({"username": "testuser1", "password": "testpassword"})
+
+    const token = loggedUser.body.token
+
+    const newEntry = {
+        "clubNumber": 3,
+        "movie": {
+            "title": "After Yang",
+            "yearReleased": 2022,
+            "originCountry": "United States of America",
+            "runTime": 96,
+            "posterUrl": "https://image.tmdb.org/t/p/w154/qjEuDeKOhA7JqaaqhLSfoS9titb.jpg",
+            "backdropUrl": "https://image.tmdb.org/t/p/original/y8ZholsWIn4jR3JoDWOSSFY87vf.jpg",
+        },
+        "yearWatched": 2024,
+        "streamingPlatform": "Tubi",
+        "ratings": [],
+        "pickedBy": "Patio"
+    }
+
+    await api
+        .post("/history")
+        .set("Authorization", `Bearer ${token}`)
+        .send(newEntry)
+        .expect(200)
+        .expect('Content-Type', /application\/json/)
+
+    const response = await api.get("/history");
+    assert.strictEqual(response.body.length, initialEntries.length + 1)
+
+    const titles = response.body.map(e => e.movie.title);
+    assert(titles.includes("After Yang"));
+});
+
+test("adding entry without token returns 401", async () => {
+    const newEntry = {
+        "clubNumber": 3,
+        "movie": {
+            "title": "After Yang",
+            "yearReleased": 2022,
+            "originCountry": "United States of America",
+            "runTime": 96,
+            "posterUrl": "https://image.tmdb.org/t/p/w154/qjEuDeKOhA7JqaaqhLSfoS9titb.jpg",
+            "backdropUrl": "https://image.tmdb.org/t/p/original/y8ZholsWIn4jR3JoDWOSSFY87vf.jpg",
+        },
+        "yearWatched": 2024,
+        "streamingPlatform": "Tubi",
+        "ratings": [],
+        "pickedBy": "Patio"
+    }
+
+    await api
+        .post("/history")
+        .send(newEntry)
+        .expect(401)
+})
 
 after(async () => {
   await mongoose.connection.close();
