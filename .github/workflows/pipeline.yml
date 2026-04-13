@@ -1,0 +1,23 @@
+name: Deployment pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - backend-tests
+
+jobs:
+  backend_deployment_pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24.14.0-bookworm-slim"
+      - name: Say hello
+        run: |
+          echo "Hello world"
+      # - name: Install dependencies
+      #   run: npm install
+      # - name: Check style
+      #   run: npm run eslint
