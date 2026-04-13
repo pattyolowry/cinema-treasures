@@ -9,11 +9,10 @@ on:
 jobs:
   backend_deployment_pipeline:
     runs-on: ubuntu-latest
+    container:
+      image: node:24.14.0-bookworm-slim
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "24.14.0"
       - name: Say hello
         run: |
           echo "Hello world"
