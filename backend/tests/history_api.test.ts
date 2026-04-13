@@ -1,4 +1,4 @@
-import { test, after, beforeEach } from "node:test";
+import { test, after, before, beforeEach } from "node:test";
 import mongoose from "mongoose";
 import supertest from "supertest";
 import app from '../src/utils/app';
@@ -6,6 +6,7 @@ import connectToDatabase from '../src/utils/db';
 import LogEntry from '../src/models/logEntry'
 import Movie from '../src/models/movie'
 import config from '../src/utils/config'
+import assert from 'node:assert'
 
 const api = supertest(app);
 
@@ -48,25 +49,64 @@ const initialEntries = [
         ],
         "averageRating": 9.6,
         "pickedBy": "Ren"
-    }  
+    },
+    {
+        "clubNumber": 2,
+        "movie": {
+            "title": "Sorcerer",
+            "yearReleased": 1977,
+            "originCountry": "United States of America",
+            "runTime": 122,
+            "posterUrl": "https://image.tmdb.org/t/p/w154/2b7oexm173SF1FSEq0DdgxZZNRH.jpg",
+            "backdropUrl": "https://image.tmdb.org/t/p/original/g7prwSflNODkHZI6792MYoU4qoh.jpg",
+        },
+        "monthWatched": "April",
+        "yearWatched": 2025,
+        "streamingPlatform": "Amazon Prime",
+        "ratings": [
+            {
+                "user": "Ren",
+                "rating": 5,
+            },
+            {
+                "user": "Patio",
+                "rating": 6,
+            },
+            {
+                "user": "Greg",
+                "rating": 7,
+            },
+            {
+                "user": "Max",
+                "rating": 8,
+            },
+            {
+                "user": "Quinn",
+                "rating": 9,
+            }
+        ],
+        "averageRating": 7,
+        "pickedBy": "Quinn"
+    }
 ]
 
-const loadMongo = async () => {
-    await connectToDatabase(config.MONGODB_URI)
-}
-
-loadMongo();
+before(async () => {
+  await connectToDatabase(config.MONGODB_URI);
+});
 
 beforeEach(async () => {
   await Movie.deleteMany({});
   await LogEntry.deleteMany({});
-  let movieObject = new Movie(initialEntries[0].movie)
-  await movieObject.save()
-  let entryObject = new LogEntry({
-    ...initialEntries[0],
-    movie: movieObject._id
-})
-  await entryObject.save()
+
+  for (const entry of initialEntries) {
+    const movieObject = new Movie(entry.movie);
+    await movieObject.save();
+    const entryObject = new LogEntry({
+        ...entry,
+        movie: movieObject._id
+    });
+    await entryObject.save();
+  }
 })
 
 test("film log entries returned as json", async () => {
@@ -74,6 +114,17 @@ test("film log entries returned as json", async () => {
     .get("/history")
     .expect(200)
     .expect("Content-Type", /application\/json/);
+});
+
+test("all entries are returned", async () => {
+    const response = await api.get("/history");
+    assert.strictEqual(response.body.length, 2)
+});
+
+test("first entry includes movie info", async () => {
+    const response = await api.get('/history');
+    const movies = response.body.map((entry) => entry.movie.title);
+    assert(movies.includes('Dog Day Afternoon'));
 });
 
 after(async () => {
