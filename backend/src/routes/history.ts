@@ -4,6 +4,7 @@ import { z } from "zod";
 import { Response, Request, NextFunction } from 'express';
 import { newLogEntrySchema } from '../utils/schemas';
 import middleware from '../utils/middleware';
+import { NewLogEntry } from '../types';
 
 const router = express.Router();
 
@@ -29,7 +30,7 @@ const errorMiddleware = (error: unknown, _req: Request, res: Response, next: Nex
   }
 };
 
-router.post('/', newLogEntryParser, middleware.userExtractor, async (req, res) => {
+router.post('/', newLogEntryParser, middleware.userExtractor, async (req: Request<unknown, unknown, NewLogEntry>, res: Response) => {
   try {
     const addedEntry = await historyService.addEntry(req.body);
     res.json(addedEntry);
@@ -42,9 +43,13 @@ router.post('/', newLogEntryParser, middleware.userExtractor, async (req, res) =
   }
 });
 
-router.put('/:id', newLogEntryParser, middleware.userExtractor, async (req, res) => {
+type IdParams = {
+  id: string;
+};
+
+router.put('/:id', newLogEntryParser, middleware.userExtractor, async (req: Request<IdParams, unknown, NewLogEntry>, res: Response) => {
   try {
-      const entry = await historyService.updateEntry(req.params.id as string, req.body);
+      const entry = await historyService.updateEntry(req.params.id, req.body);
       res.json(entry);
   } catch (error: unknown) {
       let errorMessage = 'Something went wrong.';
