@@ -8,7 +8,7 @@ const getHistory = async () => {
 };
 
 const findAndUpdateLinkedMovie = async (entry: NewLogEntry) => {
-    let movie = undefined;
+    let movie;
     if (entry.movie.tmdbId) {
         movie = await Movie.findOne({tmdbId: entry.movie.tmdbId});
     } else {

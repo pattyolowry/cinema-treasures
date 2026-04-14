@@ -8,7 +8,7 @@ const getAll = async () => {
 };
 
 const findAndUpdateLinkedMovie = async (entry: NewTreasure) => {
-    let movie = undefined;
+    let movie;
     if (entry.movie.tmdbId) {
         movie = await Movie.findOne({tmdbId: entry.movie.tmdbId});
     } else {
