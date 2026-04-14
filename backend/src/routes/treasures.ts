@@ -4,6 +4,7 @@ import { z } from "zod";
 import { Response, Request, NextFunction } from 'express';
 import { newTreasureSchema } from '../utils/schemas';
 import middleware from '../utils/middleware';
+import { NewTreasure, IdParams } from '../types';
 
 const router = express.Router();
 
@@ -29,7 +30,7 @@ const errorMiddleware = (error: unknown, _req: Request, res: Response, next: Nex
   }
 };
 
-router.post('/', newTreasureParser, middleware.userExtractor, async (req, res) => {
+router.post('/', newTreasureParser, middleware.userExtractor, async (req: Request<unknown, unknown, NewTreasure>, res: Response) => {
   try {
     const addedTreasure = await treasureService.addTreasure(req.body);
     res.json(addedTreasure);
@@ -42,9 +43,9 @@ router.post('/', newTreasureParser, middleware.userExtractor, async (req, res) =
   }
 });
 
-router.put('/:id', newTreasureParser, middleware.userExtractor, async (req, res) => {
+router.put('/:id', newTreasureParser, middleware.userExtractor, async (req: Request<IdParams, unknown, NewTreasure>, res: Response) => {
   try {
-      const treasure = await treasureService.updateTreasure(req.params.id as string, req.body);
+      const treasure = await treasureService.updateTreasure(req.params.id, req.body);
       res.json(treasure);
   } catch (error: unknown) {
       let errorMessage = 'Something went wrong.';

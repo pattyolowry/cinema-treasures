@@ -17,6 +17,10 @@ export enum Member {
   Ian = "Ian"
 }
 
+export type IdParams = {
+  id: string;
+};
+
 export enum Month {
   January = "January",
   February = "February",

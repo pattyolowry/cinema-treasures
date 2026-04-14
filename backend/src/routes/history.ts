@@ -4,7 +4,7 @@ import { z } from "zod";
 import { Response, Request, NextFunction } from 'express';
 import { newLogEntrySchema } from '../utils/schemas';
 import middleware from '../utils/middleware';
-import { NewLogEntry } from '../types';
+import { NewLogEntry, IdParams } from '../types';
 
 const router = express.Router();
 
@@ -42,10 +42,6 @@ router.post('/', newLogEntryParser, middleware.userExtractor, async (req: Reques
     res.status(400).send({ "error": errorMessage});
   }
 });
-
-type IdParams = {
-  id: string;
-};
 
 router.put('/:id', newLogEntryParser, middleware.userExtractor, async (req: Request<IdParams, unknown, NewLogEntry>, res: Response) => {
   try {
