@@ -29,4 +29,4 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Check style
-        run: npm run eslint
+        run: npm run lint
