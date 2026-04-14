@@ -1,21 +1,21 @@
 import express from 'express';
-import userService from '../services/userService'
-import middleware from '../utils/middleware'
-import { UserInfo } from '../types'
-import config from '../utils/config'
+import userService from '../services/userService';
+import middleware from '../utils/middleware';
+import { UserInfo } from '../types';
+import config from '../utils/config';
 
 const router = express.Router();
 
 router.post('/', middleware.userExtractor, async (req, res) => {
-    const loggedUser = req.user as UserInfo | undefined
+    const loggedUser = req.user as UserInfo | undefined;
     if (!loggedUser || loggedUser.username !== config.ADMIN_USER) {
-        res.status(401).send({ "error": "Only admins can create new users"})
-        return
+        res.status(401).send({ "error": "Only admins can create new users"});
+        return;
     }
 
     try {
         const user = await userService.createUser(req.body);
-        res.json(user)
+        res.json(user);
     } catch (error: unknown) {
         let errorMessage = 'Something went wrong.';
         if (error instanceof Error) {
@@ -28,7 +28,7 @@ router.post('/', middleware.userExtractor, async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const user = await userService.login(req.body);
-        res.json(user)
+        res.json(user);
     } catch (error: unknown) {
         let errorMessage = 'Something went wrong.';
         if (error instanceof Error) {

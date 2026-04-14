@@ -1,5 +1,5 @@
-import { TmdbMovieDetails, TmdbSearchResults } from '../types'
-import config from '../utils/config'
+import { TmdbMovieDetails, TmdbSearchResults } from '../types';
+import config from '../utils/config';
 import axios from 'axios';
 
 const baseUrl = 'https://api.themoviedb.org/3';
@@ -29,4 +29,4 @@ const getMovieDetails = async (id: string) => {
 export default {
     searchMovie,
     getMovieDetails
-}
+};

@@ -1,17 +1,17 @@
-import AwardYear from '../models/award'
-import { AwardYearType } from '../types'
+import AwardYear from '../models/award';
+import { AwardYearType } from '../types';
 
 const getAll = async (visibleOnly: boolean = true) => {
-    let awards = await AwardYear.find({}).lean<AwardYearType[]>();
+    const awards = await AwardYear.find({}).lean<AwardYearType[]>();
     if (visibleOnly) {
         for (const year of awards) {
-            year.categories = year.categories.filter(c => c.isVisible)
+            year.categories = year.categories.filter(c => c.isVisible);
         }
     }
 
-    return awards
-}
+    return awards;
+};
 
 export default {
     getAll
-}
+};

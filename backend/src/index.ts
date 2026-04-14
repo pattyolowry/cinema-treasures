@@ -1,5 +1,5 @@
-import config from './utils/config'
-import app from './utils/app'
+import config from './utils/config';
+import app from './utils/app';
 import connectToDatabase from './utils/db';
 
 const start = async () => {
@@ -12,6 +12,6 @@ const start = async () => {
     console.error(err);
     process.exit(1);
   }
-}
+};
 
 start();

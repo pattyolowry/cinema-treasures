@@ -11,7 +11,7 @@ const awardYearSchema = new mongoose.Schema({
             subText: String
         }]
     }]
-})
+});
 
 awardYearSchema.set("toJSON", {
     transform: (_document, returnedObject: any) => {
@@ -19,7 +19,7 @@ awardYearSchema.set("toJSON", {
     delete returnedObject._id;
     delete returnedObject.__v;
   },
-})
+});
 
 const AwardYear = mongoose.model("AwardYear", awardYearSchema);
 export default AwardYear;

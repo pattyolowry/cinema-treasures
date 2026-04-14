@@ -1,5 +1,5 @@
-import mongoose from 'mongoose'
-import 'express'
+import mongoose from 'mongoose';
+import 'express';
 
 export interface UserInfo {
     id: string,

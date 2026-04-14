@@ -1,14 +1,14 @@
 import express from 'express';
-import treasureService from '../services/treasureService'
+import treasureService from '../services/treasureService';
 import { z } from "zod";
 import { Response, Request, NextFunction } from 'express';
-import { newTreasureSchema } from '../utils/schemas'
-import middleware from '../utils/middleware'
+import { newTreasureSchema } from '../utils/schemas';
+import middleware from '../utils/middleware';
 
 const router = express.Router();
 
 router.get('/', async (_req, res) => {
-  const allTreasures = await treasureService.getAll()
+  const allTreasures = await treasureService.getAll();
   res.send(allTreasures);
 });
 
@@ -31,8 +31,8 @@ const errorMiddleware = (error: unknown, _req: Request, res: Response, next: Nex
 
 router.post('/', newTreasureParser, middleware.userExtractor, async (req, res) => {
   try {
-    const addedTreasure = await treasureService.addTreasure(req.body)
-    res.json(addedTreasure)
+    const addedTreasure = await treasureService.addTreasure(req.body);
+    res.json(addedTreasure);
   } catch (error: unknown) {
     let errorMessage = 'Something went wrong.';
     if (error instanceof Error) {
@@ -40,29 +40,29 @@ router.post('/', newTreasureParser, middleware.userExtractor, async (req, res) =
     }
     res.status(400).send({ "error": errorMessage});
   }
-})
+});
 
 router.put('/:id', newTreasureParser, middleware.userExtractor, async (req, res) => {
   try {
       const treasure = await treasureService.updateTreasure(req.params.id as string, req.body);
-      res.json(treasure)
+      res.json(treasure);
   } catch (error: unknown) {
       let errorMessage = 'Something went wrong.';
       if (error instanceof Error) {
         if (error.message === "Not found") {
-          res.status(404).end()
+          res.status(404).end();
         } else {
           errorMessage += ' Error: ' + error.message;
         }
       }
       res.status(400).send({ "error": errorMessage});
   }
-})
+});
 
 router.delete('/:id', middleware.userExtractor, async (req, res) => {
   try {
-    await treasureService.deleteTreasure(req.params.id as string)
-    res.status(204).end()
+    await treasureService.deleteTreasure(req.params.id as string);
+    res.status(204).end();
   } catch (error: unknown) {
     let errorMessage = 'Something went wrong.';
     if (error instanceof Error) {
@@ -70,7 +70,7 @@ router.delete('/:id', middleware.userExtractor, async (req, res) => {
     }
     res.status(400).send({ "error": errorMessage});
   }
-})
+});
 
 router.use(errorMiddleware);
 

@@ -3,12 +3,12 @@ import mongoose from "mongoose";
 import supertest from "supertest";
 import app from '../src/utils/app';
 import connectToDatabase from '../src/utils/db';
-import LogEntry from '../src/models/logEntry'
-import Movie from '../src/models/movie'
-import User from '../src/models/user'
-import config from '../src/utils/config'
-import assert from 'node:assert'
-import bcrypt from 'bcrypt'
+import LogEntry from '../src/models/logEntry';
+import Movie from '../src/models/movie';
+import User from '../src/models/user';
+import config from '../src/utils/config';
+import assert from 'node:assert';
+import bcrypt from 'bcrypt';
 
 const api = supertest(app);
 
@@ -90,7 +90,7 @@ const initialEntries = [
         "averageRating": 7,
         "pickedBy": "Quinn"
     }
-]
+];
 
 before(async () => {
   await connectToDatabase(config.MONGODB_URI);
@@ -101,8 +101,8 @@ beforeEach(async () => {
   await LogEntry.deleteMany({});
   await User.deleteMany({});
 
-  const saltRounds = 10
-  const passwordHash = await bcrypt.hash("testpassword", saltRounds)
+  const saltRounds = 10;
+  const passwordHash = await bcrypt.hash("testpassword", saltRounds);
 
   const userObject = new User({
     "name": "Test User 1",
@@ -121,7 +121,7 @@ beforeEach(async () => {
     });
     await entryObject.save();
   }
-})
+});
 
 test("film log entries returned as json", async () => {
   await api
@@ -132,7 +132,7 @@ test("film log entries returned as json", async () => {
 
 test("all entries are returned", async () => {
     const response = await api.get("/history");
-    assert.strictEqual(response.body.length, 2)
+    assert.strictEqual(response.body.length, 2);
 });
 
 test("first entry includes movie info", async () => {
@@ -144,9 +144,9 @@ test("first entry includes movie info", async () => {
 test("a valid entry can be added", async () => {
     const loggedUser = await api
         .post("/users/login")
-        .send({"username": "testuser1", "password": "testpassword"})
+        .send({"username": "testuser1", "password": "testpassword"});
 
-    const token = loggedUser.body.token
+    const token = loggedUser.body.token;
 
     const newEntry = {
         "clubNumber": 3,
@@ -162,17 +162,17 @@ test("a valid entry can be added", async () => {
         "streamingPlatform": "Tubi",
         "ratings": [],
         "pickedBy": "Patio"
-    }
+    };
 
     await api
         .post("/history")
         .set("Authorization", `Bearer ${token}`)
         .send(newEntry)
         .expect(200)
-        .expect('Content-Type', /application\/json/)
+        .expect('Content-Type', /application\/json/);
 
     const response = await api.get("/history");
-    assert.strictEqual(response.body.length, initialEntries.length + 1)
+    assert.strictEqual(response.body.length, initialEntries.length + 1);
 
     const titles = response.body.map(e => e.movie.title);
     assert(titles.includes("After Yang"));
@@ -193,13 +193,13 @@ test("adding entry without token returns 401", async () => {
         "streamingPlatform": "Tubi",
         "ratings": [],
         "pickedBy": "Patio"
-    }
+    };
 
     await api
         .post("/history")
         .send(newEntry)
-        .expect(401)
-})
+        .expect(401);
+});
 
 after(async () => {
   await mongoose.connection.close();

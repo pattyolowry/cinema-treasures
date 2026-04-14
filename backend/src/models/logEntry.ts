@@ -37,7 +37,7 @@ const logEntrySchema = new mongoose.Schema({
     ],
     averageRating: Number,
     notes: String
-})
+});
 
 logEntrySchema.set("toJSON", {
     transform: (_document, returnedObject: any) => {
@@ -45,7 +45,7 @@ logEntrySchema.set("toJSON", {
     delete returnedObject._id;
     delete returnedObject.__v;
   },
-})
+});
 
 const LogEntry = mongoose.model("LogEntry", logEntrySchema);
 export default LogEntry;
