@@ -18,6 +18,19 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: node:24.14.0-bookworm-slim
+    services:
+      mongodb:
+        image: mongo:8
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd="echo 'db.runCommand({ ping: 1 }).ok' | mongosh localhost:27017/test --quiet"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      NODE_ENV: test
+      MONGODB_URI: mongodb://mongodb:27017/testdb
     defaults:
       run:
         working-directory: backend
