@@ -31,7 +31,7 @@ jobs:
     env:
       NODE_ENV: test
       TEST_MONGODB_URI: mongodb://mongodb:27017/testdb
-      TEST_JWT_SECRET: { { secrets.TEST_JWT_SECRET } }
+      TEST_JWT_SECRET: ${{secrets.TEST_JWT_SECRET}}
     defaults:
       run:
         working-directory: backend
