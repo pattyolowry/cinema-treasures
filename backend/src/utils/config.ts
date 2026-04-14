@@ -13,7 +13,7 @@ const JWT_SECRET = process.env.NODE_ENV === 'test'
   : process.env.JWT_SECRET;
 
 if (!MONGODB_URI) {
-  throw new Error("MONGO_URI environment variable is not defined");
+  throw new Error("MONGODB_URI environment variable is not defined");
 }
 
 if (!JWT_SECRET) {
