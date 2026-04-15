@@ -167,6 +167,27 @@ describe("When there are initially some log entries saved", () => {
     await api.post("/history").send(newEntry).expect(401);
   });
 
+  test("updating entry without token returns 401", async () => {
+    const entriesAtStart = await api.get("/history");
+    const entryToUpdate = entriesAtStart.body[0];
+
+    const updatedEntry = {
+      ...entryToUpdate,
+      streamingPlatform: "Fake Streamer",
+    };
+
+    await api
+      .put(`/history/${entryToUpdate.id}`)
+      .send(updatedEntry)
+      .expect(401);
+  });
+
+  test("deleting entry without token returns 401", async () => {
+    const entriesAtStart = await api.get("/history");
+
+    await api.delete(`/history/${entriesAtStart.body[0].id}`).expect(401);
+  });
+
   describe("And a user is logged in", () => {
     let token: string;
 
@@ -219,6 +240,57 @@ describe("When there are initially some log entries saved", () => {
         .set("Authorization", `Bearer ${token}`)
         .send(newEntry)
         .expect(400);
+    });
+
+    test("an existing entry can be updated", async () => {
+      const entriesAtStart = await api.get("/history");
+      const entryToUpdate = entriesAtStart.body[0];
+
+      const updatedEntry = {
+        ...entryToUpdate,
+        streamingPlatform: "Fake Streamer",
+      };
+
+      await api
+        .put(`/history/${entryToUpdate.id}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send(updatedEntry)
+        .expect(200)
+        .expect("Content-Type", /application\/json/);
+
+      const refetchedEntry = await LogEntry.findById(updatedEntry.id);
+      assert.strictEqual(refetchedEntry.streamingPlatform, "Fake Streamer");
+
+      const entriesAtEnd = await api.get("/history");
+      assert.strictEqual(entriesAtEnd.body.length, entriesAtStart.body.length);
+    });
+
+    test("an invalid update returns 400", async () => {
+      const entriesAtStart = await LogEntry.find({}).populate("movie");
+      const entryToUpdate = entriesAtStart[0].toJSON();
+
+      const updatedEntry = {};
+
+      await api
+        .put(`/history/${entryToUpdate.id}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send(updatedEntry)
+        .expect(400);
+    });
+
+    test("an existing entry can be deleted", async () => {
+      const entriesAtStart = await api.get("/history");
+
+      await api
+        .delete(`/history/${entriesAtStart.body[0].id}`)
+        .set("Authorization", `Bearer ${token}`)
+        .expect(204);
+
+      const entriesAtEnd = await api.get("/history");
+      assert.strictEqual(
+        entriesAtEnd.body.length,
+        entriesAtStart.body.length - 1,
+      );
     });
   });
 });
