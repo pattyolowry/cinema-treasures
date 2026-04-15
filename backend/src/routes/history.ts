@@ -1,14 +1,15 @@
 import express from 'express';
-import historyService from '../services/historyService'
+import historyService from '../services/historyService';
 import { z } from "zod";
 import { Response, Request, NextFunction } from 'express';
-import { newLogEntrySchema } from '../utils/schemas'
-import middleware from '../utils/middleware'
+import { newLogEntrySchema } from '../utils/schemas';
+import middleware from '../utils/middleware';
+import { NewLogEntry, IdParams } from '../types';
 
 const router = express.Router();
 
 router.get('/', async (_req, res) => {
-  const fullHistory = await historyService.getHistory()
+  const fullHistory = await historyService.getHistory();
   res.send(fullHistory);
 });
 
@@ -29,10 +30,10 @@ const errorMiddleware = (error: unknown, _req: Request, res: Response, next: Nex
   }
 };
 
-router.post('/', newLogEntryParser, middleware.userExtractor, async (req, res) => {
+router.post('/', newLogEntryParser, middleware.userExtractor, async (req: Request<unknown, unknown, NewLogEntry>, res: Response) => {
   try {
-    const addedEntry = await historyService.addEntry(req.body)
-    res.json(addedEntry)
+    const addedEntry = await historyService.addEntry(req.body);
+    res.json(addedEntry);
   } catch (error: unknown) {
     let errorMessage = 'Something went wrong.';
     if (error instanceof Error) {
@@ -40,29 +41,29 @@ router.post('/', newLogEntryParser, middleware.userExtractor, async (req, res) =
     }
     res.status(400).send({ "error": errorMessage});
   }
-})
+});
 
-router.put('/:id', newLogEntryParser, middleware.userExtractor, async (req, res) => {
+router.put('/:id', newLogEntryParser, middleware.userExtractor, async (req: Request<IdParams, unknown, NewLogEntry>, res: Response) => {
   try {
-      const entry = await historyService.updateEntry(req.params.id as string, req.body);
-      res.json(entry)
+      const entry = await historyService.updateEntry(req.params.id, req.body);
+      res.json(entry);
   } catch (error: unknown) {
       let errorMessage = 'Something went wrong.';
       if (error instanceof Error) {
         if (error.message === "Not found") {
-          res.status(404).end()
+          res.status(404).end();
         } else {
           errorMessage += ' Error: ' + error.message;
         }
       }
       res.status(400).send({ "error": errorMessage});
   }
-})
+});
 
 router.delete('/:id', middleware.userExtractor, async (req, res) => {
   try {
-    await historyService.deleteEntry(req.params.id as string)
-    res.status(204).end()
+    await historyService.deleteEntry(req.params.id as string);
+    res.status(204).end();
   } catch (error: unknown) {
     let errorMessage = 'Something went wrong.';
     if (error instanceof Error) {
@@ -70,7 +71,7 @@ router.delete('/:id', middleware.userExtractor, async (req, res) => {
     }
     res.status(400).send({ "error": errorMessage});
   }
-})
+});
 
 router.use(errorMiddleware);
 

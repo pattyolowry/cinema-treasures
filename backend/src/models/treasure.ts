@@ -19,7 +19,7 @@ const treasureSchema = new mongoose.Schema({
         }
     ],
     ctcstm: Number
-})
+});
 
 treasureSchema.set("toJSON", {
     transform: (_document, returnedObject: any) => {
@@ -27,7 +27,7 @@ treasureSchema.set("toJSON", {
     delete returnedObject._id;
     delete returnedObject.__v;
   },
-})
+});
 
 const Treasure = mongoose.model("Treasure", treasureSchema);
 export default Treasure;

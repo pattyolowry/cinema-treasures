@@ -9,7 +9,7 @@ const movieSchema = new mongoose.Schema({
     tmdbId: Number,
     posterUrl: String,
     backdropUrl: String,
-})
+});
 
 movieSchema.set("toJSON", {
     transform: (_document, returnedObject: any) => {
@@ -17,7 +17,7 @@ movieSchema.set("toJSON", {
     delete returnedObject._id;
     delete returnedObject.__v;
   },
-})
+});
 
 const Movie = mongoose.model("Movie", movieSchema);
 export default Movie;

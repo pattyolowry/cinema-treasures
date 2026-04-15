@@ -1,5 +1,5 @@
-import mongoose from 'mongoose'
-import 'express'
+import mongoose from 'mongoose';
+import 'express';
 
 export interface UserInfo {
     id: string,
@@ -16,6 +16,10 @@ export enum Member {
   Quinn = "Quinn",
   Ian = "Ian"
 }
+
+export type IdParams = {
+  id: string;
+};
 
 export enum Month {
   January = "January",

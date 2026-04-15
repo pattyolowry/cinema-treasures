@@ -1,0 +1,42 @@
+name: Backend Deployment Pipeline
+
+on:
+  pull_request:
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend.yml"
+  push:
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend.yml"
+
+jobs:
+  backend_deployment_pipeline:
+    runs-on: ubuntu-latest
+    container:
+      image: node:24.14.0-bookworm-slim
+    services:
+      mongodb:
+        image: mongo:8
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd="echo 'db.runCommand({ ping: 1 }).ok' | mongosh localhost:27017/test --quiet"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      NODE_ENV: test
+      TEST_MONGODB_URI: mongodb://mongodb:27017/testdb
+      TEST_JWT_SECRET: ${{secrets.TEST_JWT_SECRET}}
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install dependencies
+        run: npm install
+      - name: Check style
+        run: npm run lint
+      - name: Run tests
+        run: npm run test
