@@ -6,9 +6,6 @@ on:
       - "backend/**"
       - ".github/workflows/backend.yml"
   push:
-    branches:
-      - main
-      - backend-tests
     paths:
       - "backend/**"
       - ".github/workflows/backend.yml"
