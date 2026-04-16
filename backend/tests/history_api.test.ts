@@ -97,7 +97,7 @@ const initialEntries = [
 ];
 
 before(async () => {
-  await connectToDatabase(config.MONGODB_URI);
+  await connectToDatabase(`${config.MONGODB_URI}/testHistory`);
   await User.deleteMany({});
   const saltRounds = 10;
   const passwordHash = await bcrypt.hash("testpassword", saltRounds);

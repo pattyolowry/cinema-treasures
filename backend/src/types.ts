@@ -1,11 +1,12 @@
-import mongoose from 'mongoose';
-import 'express';
+import mongoose from "mongoose";
+import "express";
 
 export interface UserInfo {
-    id: string,
-    name: string,
-    username: string,
-    password: string
+  id: string;
+  name: string;
+  username: string;
+  password: string;
+  admin?: boolean;
 }
 
 export enum Member {
@@ -14,7 +15,7 @@ export enum Member {
   Greg = "Greg",
   Max = "Max",
   Quinn = "Quinn",
-  Ian = "Ian"
+  Ian = "Ian",
 }
 
 export type IdParams = {
@@ -33,41 +34,41 @@ export enum Month {
   September = "September",
   October = "October",
   November = "November",
-  December = "December"
+  December = "December",
 }
 
 export interface MovieInfo {
-  title: string,
-  yearReleased?: number,
-  originCountry?: string,
-  runTime?: number,
-  mpaaRating?: string,
-  tmdbId?: number,
-  posterUrl?: string,
-  backdropUrl?: string
+  title: string;
+  yearReleased?: number;
+  originCountry?: string;
+  runTime?: number;
+  mpaaRating?: string;
+  tmdbId?: number;
+  posterUrl?: string;
+  backdropUrl?: string;
 }
 
 export interface Rating {
-  user: Member,
-  rating: number
+  user: Member;
+  rating: number;
 }
 
 export interface NewLogEntry {
-    clubNumber: number,
-    movie: MovieInfo,
-    pickedBy: Member,
-    monthWatched?: Month,
-    yearWatched?: number,
-    streamingPlatform?: string,
-    ratings?: Rating[],
-    averageRating?:  number
-    notes?: string
+  clubNumber: number;
+  movie: MovieInfo;
+  pickedBy: Member;
+  monthWatched?: Month;
+  yearWatched?: number;
+  streamingPlatform?: string;
+  ratings?: Rating[];
+  averageRating?: number;
+  notes?: string;
 }
 
 export interface NewTreasure {
-  movie: MovieInfo,
-  ratings?: Rating[],
-  ctcstm?:  number
+  movie: MovieInfo;
+  ratings?: Rating[];
+  ctcstm?: number;
 }
 
 export interface AwardNominee {
@@ -115,7 +116,7 @@ export interface TmdbMovieDetails {
   production_countries?: TmdbProductionCountry[];
 }
 
-declare module 'express-serve-static-core' {
+declare module "express-serve-static-core" {
   interface Request {
     token?: string | null;
     user?: mongoose.Model<UserInfo> | null;

@@ -54,7 +54,6 @@ Create `backend/.env` with:
 ```env
 MONGODB_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
-ADMIN_USER=optional_admin_username
 PORT=3003
 ```
 
