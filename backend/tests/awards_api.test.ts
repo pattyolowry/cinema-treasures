@@ -97,6 +97,35 @@ describe("When there are initially some awards saved", () => {
       await awardObject.save();
     }
   });
+
+  test("only visible entries returned for unauthenticated users", async () => {
+    const response = await api.get("/awards");
+
+    assert.strictEqual(response.statusCode, 200);
+
+    const categories = response.body[0].categories;
+    assert.strictEqual(categories.length, 1);
+    for (const category of categories) {
+      assert.strictEqual(category.isVisible, true);
+    }
+  });
+
+  test("all entries returned for authenticated users", async () => {
+    const loggedUser = await api
+      .post("/users/login")
+      .send({ username: "testuser1", password: "testpassword" });
+
+    const token = loggedUser.body.token;
+
+    const response = await api
+      .get("/awards")
+      .set("Authorization", `Bearer ${token}`);
+
+    assert.strictEqual(response.statusCode, 200);
+
+    const categories = response.body[0].categories;
+    assert.strictEqual(categories.length, initialAwards[0].categories.length);
+  });
 });
 
 after(async () => {
