@@ -46,9 +46,9 @@ router.post(
         return res.status(400).send("Image must be 16:9");
       }
 
-      const imageLink = await blogService.uploadImage(req.file);
+      const imagePath = await blogService.uploadImage(req.file);
 
-      return res.status(200).send({ imageLink });
+      return res.status(200).send({ imagePath });
     } catch (err) {
       console.log(err);
       return res.status(400).send({ error: "Error processing image" });

@@ -9,16 +9,17 @@ const getBlogs = async () => {
 
 const uploadImage = async (file: Express.Multer.File) => {
   const filename = Date.now() + "-" + file.originalname;
+  const key = `images/blogs/${filename}`;
   await s3.send(
     new PutObjectCommand({
       Bucket: "cinema-treasures-images",
-      Key: `images/blogs/${filename}`,
+      Key: key,
       Body: file.buffer,
       ContentType: file.mimetype,
     }),
   );
 
-  return `https://cinematreasures.club/images/blogs/${filename}`;
+  return key;
 };
 
 export default {
