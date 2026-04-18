@@ -46,8 +46,11 @@ router.post(
         return res.status(400).send("Image must be 16:9");
       }
 
-      return res.status(200).send("Valid image");
-    } catch {
+      const imageLink = await blogService.uploadImage(req.file);
+
+      return res.status(200).send({ imageLink });
+    } catch (err) {
+      console.log(err);
       return res.status(400).send({ error: "Error processing image" });
     }
   },
