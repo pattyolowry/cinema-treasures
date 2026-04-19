@@ -13,7 +13,7 @@ const blogSchema = new mongoose.Schema({
   ],
   url: String,
   date: Date,
-  imagePath: String,
+  imageKey: String,
   shortDescription: String,
 });
 

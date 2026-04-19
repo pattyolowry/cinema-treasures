@@ -3,6 +3,8 @@ import blogService from "../services/blogService";
 import middleware from "../utils/middleware";
 import multer from "multer";
 import sharp from "sharp";
+import { newBlogSchema } from "../utils/schemas";
+import { Response, Request, NextFunction } from "express";
 
 const router = express.Router();
 
@@ -25,10 +27,20 @@ router.get("/", middleware.userExtractor, async (_req, res) => {
   res.send(allBlogs);
 });
 
+const newBlogParser = (req: Request, _res: Response, next: NextFunction) => {
+  try {
+    newBlogSchema.parse(req.body);
+    next();
+  } catch (error: unknown) {
+    next(error);
+  }
+};
+
 router.post(
   "/",
   middleware.userExtractor,
   upload.single("image"),
+  newBlogParser,
   async (req, res) => {
     try {
       if (!req.file) {
@@ -46,12 +58,20 @@ router.post(
         return res.status(400).send("Image must be 16:9");
       }
 
-      const imagePath = await blogService.uploadImage(req.file);
+      const imageKey = await blogService.uploadImage(req.file);
 
-      return res.status(200).send({ imagePath });
+      const newBlog = await blogService.addBlog({
+        title: req.body.title,
+        authors: req.body.authors,
+        url: req.body.url,
+        date: req.body.date,
+        imageKey,
+      });
+
+      return res.json(newBlog);
     } catch (err) {
       console.log(err);
-      return res.status(400).send({ error: "Error processing image" });
+      return res.status(400).send({ error: "Error saving blog" });
     }
   },
 );
