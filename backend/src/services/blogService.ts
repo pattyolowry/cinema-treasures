@@ -28,8 +28,25 @@ const addBlog = async (blog: NewBlog) => {
   return await newBlog.save();
 };
 
+const updateBlog = async (id: string, blog: NewBlog) => {
+  const blogToUpdate = await Blog.findById(id);
+  if (!blogToUpdate) {
+    throw Error("Not found");
+  } else {
+    blogToUpdate.set({
+      title: blog.title,
+      authors: blog.authors,
+      url: blog.url,
+      date: blog.date,
+    });
+
+    return await blogToUpdate.save();
+  }
+};
+
 export default {
   getBlogs,
   uploadImage,
   addBlog,
+  updateBlog,
 };

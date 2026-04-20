@@ -5,17 +5,9 @@ import multer from "multer";
 import sharp from "sharp";
 import { newBlogSchema } from "../utils/schemas";
 import { Response, Request, NextFunction } from "express";
+import { NewBlog, IdParams } from "../types";
 
 const router = express.Router();
-
-// const storage = multer.diskStorage({
-//   destination: function (_req, _file, cb) {
-//     cb(null, "uploads/");
-//   },
-//   filename: function (_req, file, cb) {
-//     cb(null, Date.now() + "-" + file.originalname);
-//   },
-// });
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -72,6 +64,28 @@ router.post(
     } catch (err) {
       console.log(err);
       return res.status(400).send({ error: "Error saving blog" });
+    }
+  },
+);
+
+router.put(
+  "/:id",
+  middleware.userExtractor,
+  newBlogParser,
+  async (req: Request<IdParams, unknown, NewBlog>, res: Response) => {
+    try {
+      const updatedBlog = await blogService.updateBlog(req.params.id, req.body);
+      return res.json(updatedBlog);
+    } catch (error) {
+      let errorMessage = "Something went wrong.";
+      if (error instanceof Error) {
+        if (error.message === "Not found") {
+          return res.status(404).end();
+        } else {
+          errorMessage += " Error: " + error.message;
+        }
+      }
+      return res.status(400).send({ error: errorMessage });
     }
   },
 );
