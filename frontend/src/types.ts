@@ -1,6 +1,18 @@
-export type Member = 'Ren' | 'Patio' | 'Greg' | 'Max' | 'Quinn' | 'Ian';
+export type Member = "Ren" | "Patio" | "Greg" | "Max" | "Quinn" | "Ian";
 
-export type Month = 'January' | 'February' | 'March' | 'April' | 'May' | 'June' | 'July' | 'August' | 'September' | 'October' | 'November' | 'December'
+export type Month =
+  | "January"
+  | "February"
+  | "March"
+  | "April"
+  | "May"
+  | "June"
+  | "July"
+  | "August"
+  | "September"
+  | "October"
+  | "November"
+  | "December";
 
 export interface MovieRecord {
   id: string;
@@ -52,50 +64,50 @@ export interface UserCredentials {
 }
 
 export interface LoggedUser {
-  name: string,
-  username: string,
-  token: string
+  name: string;
+  username: string;
+  token: string;
 }
 
 export interface MovieInfo {
-  title: string,
-  yearReleased?: number,
-  originCountry?: string,
-  runTime?: number,
-  mpaaRating?: string,
-  tmdbId?: number,
-  posterUrl?: string,
-  backdropUrl?: string
+  title: string;
+  yearReleased?: number;
+  originCountry?: string;
+  runTime?: number;
+  mpaaRating?: string;
+  tmdbId?: number;
+  posterUrl?: string;
+  backdropUrl?: string;
 }
 
 export interface Rating {
-  user: Member,
-  rating: number
+  user: Member;
+  rating: number;
 }
 
 export interface LogEntry {
-    id: string
-    clubNumber: number,
-    movie: MovieInfo,
-    pickedBy: Member,
-    monthWatched?: Month,
-    yearWatched?: number,
-    streamingPlatform?: string,
-    ratings?: Rating[],
-    averageRating?:  number
-    notes?: string
+  id: string;
+  clubNumber: number;
+  movie: MovieInfo;
+  pickedBy: Member;
+  monthWatched?: Month;
+  yearWatched?: number;
+  streamingPlatform?: string;
+  ratings?: Rating[];
+  averageRating?: number;
+  notes?: string;
 }
 
-export type NewLogEntry = Omit<LogEntry, 'id'>;
+export type NewLogEntry = Omit<LogEntry, "id">;
 
 export interface Treasure {
-  id: string,
-  movie: MovieInfo,
-  ratings?: Rating[],
-  ctcstm?:  number
+  id: string;
+  movie: MovieInfo;
+  ratings?: Rating[];
+  ctcstm?: number;
 }
 
-export type NewTreasure = Omit<Treasure, 'id'>;
+export type NewTreasure = Omit<Treasure, "id">;
 
 export interface AwardNominee {
   name: string;
@@ -110,7 +122,19 @@ export interface AwardCategory {
 }
 
 export interface AwardYear {
-  id: string,
-  year: number,
-  categories: AwardCategory[]
+  id: string;
+  year: number;
+  categories: AwardCategory[];
 }
+
+export interface Blog {
+  id: string;
+  title: string;
+  authors: Member[];
+  url: string;
+  date: Date;
+  imageKey?: string;
+  shortDescription?: string;
+}
+
+export type NewBlog = Omit<Blog, "id">;
