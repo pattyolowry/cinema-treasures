@@ -116,6 +116,15 @@ export interface TmdbMovieDetails {
   production_countries?: TmdbProductionCountry[];
 }
 
+export interface NewBlog {
+  title: string;
+  authors: Member[];
+  url: string;
+  date: Date;
+  imageKey?: string;
+  shortDescription?: string;
+}
+
 declare module "express-serve-static-core" {
   interface Request {
     token?: string | null;
