@@ -5,6 +5,7 @@ import { Response, Request, NextFunction } from "express";
 import { rateLimit } from "express-rate-limit";
 import { RequestHandler } from "express";
 import multer from "multer";
+import { z } from "zod";
 
 const requestLogger = (
   request: Request,
@@ -89,6 +90,8 @@ const errorHandler = (
     return response
       .status(400)
       .json({ error: "Image file too large. Max size is 100 KB." });
+  } else if (error instanceof z.ZodError) {
+    return response.status(400).send({ error: error.issues });
   }
 
   return next(error);
