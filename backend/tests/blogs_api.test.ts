@@ -68,7 +68,7 @@ describe("When there are initially some blogs saved", () => {
     await api.post("/blogs").send(newBlog).expect(401);
   });
 
-  describe("and a user is logged in", async () => {
+  describe("and a user is logged in", () => {
     let token: string;
 
     before(async () => {
