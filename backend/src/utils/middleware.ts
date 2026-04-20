@@ -68,7 +68,9 @@ const errorHandler = (
   response: Response,
   next: NextFunction,
 ) => {
-  console.error(error.message);
+  if (process.env.NODE_ENV != "test") {
+    console.error(error.message);
+  }
 
   if (error.name === "CastError") {
     return response.status(400).send({ error: "malformatted id" });

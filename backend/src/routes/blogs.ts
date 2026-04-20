@@ -35,22 +35,21 @@ router.post(
   newBlogParser,
   async (req, res) => {
     try {
-      if (!req.file) {
-        return res.status(400).send({ error: "No file provided" });
+      let imageKey = undefined;
+      if (req.file) {
+        const metadata = await sharp(req.file.buffer).metadata();
+
+        if (!metadata.width || !metadata.height) {
+          return res.status(400).send({ error: "Invalid image" });
+        }
+
+        const aspectRatio = metadata.width / metadata.height;
+        if (Math.abs(aspectRatio - 16 / 9) > 0.01) {
+          return res.status(400).send("Image must be 16:9");
+        }
+
+        imageKey = await blogService.uploadImage(req.file);
       }
-
-      const metadata = await sharp(req.file.buffer).metadata();
-
-      if (!metadata.width || !metadata.height) {
-        return res.status(400).send({ error: "Invalid image" });
-      }
-
-      const aspectRatio = metadata.width / metadata.height;
-      if (Math.abs(aspectRatio - 16 / 9) > 0.01) {
-        return res.status(400).send("Image must be 16:9");
-      }
-
-      const imageKey = await blogService.uploadImage(req.file);
 
       const newBlog = await blogService.addBlog({
         title: req.body.title,
@@ -61,8 +60,7 @@ router.post(
       });
 
       return res.json(newBlog);
-    } catch (err) {
-      console.log(err);
+    } catch {
       return res.status(400).send({ error: "Error saving blog" });
     }
   },
