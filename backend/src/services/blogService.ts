@@ -44,9 +44,14 @@ const updateBlog = async (id: string, blog: NewBlog) => {
   }
 };
 
+const deleteBlog = async (id: string) => {
+  return await Blog.findByIdAndDelete(id);
+};
+
 export default {
   getBlogs,
   uploadImage,
   addBlog,
   updateBlog,
+  deleteBlog,
 };

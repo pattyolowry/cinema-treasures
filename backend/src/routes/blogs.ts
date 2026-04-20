@@ -90,4 +90,17 @@ router.put(
   },
 );
 
+router.delete("/:id", middleware.userExtractor, async (req, res) => {
+  try {
+    await blogService.deleteBlog(req.params.id as string);
+    res.status(204).end();
+  } catch (error: unknown) {
+    let errorMessage = "Something went wrong.";
+    if (error instanceof Error) {
+      errorMessage += " Error: " + error.message;
+    }
+    res.status(400).send({ error: errorMessage });
+  }
+});
+
 export default router;
