@@ -3,6 +3,7 @@ import utils from "./utils";
 import { Blog, NewBlog } from "../types";
 
 const baseUrl = `${utils.backendUrl()}/blogs`;
+const formatDateForApi = (date: Date) => date.toISOString().slice(0, 10);
 
 const getAllBlogs = async () => {
   const { data } = await axios.get<Blog[]>(baseUrl, utils.getAuthConfig());
@@ -18,9 +19,11 @@ const addBlog = async (file: File | null, blog: NewBlog) => {
   }
 
   formData.append("title", blog.title);
-  formData.append("authors", JSON.stringify(blog.authors));
+  for (const author of blog.authors) {
+    formData.append("authors", author);
+  }
   formData.append("url", blog.url);
-  formData.append("date", blog.date.toISOString());
+  formData.append("date", formatDateForApi(blog.date));
 
   if (blog.shortDescription) {
     formData.append("shortDescription", blog.shortDescription);
@@ -38,7 +41,10 @@ const addBlog = async (file: File | null, blog: NewBlog) => {
 const updateBlog = async (id: string, blog: NewBlog) => {
   const { data } = await axios.put<Blog>(
     `${baseUrl}/${id}`,
-    blog,
+    {
+      ...blog,
+      date: formatDateForApi(blog.date),
+    },
     utils.getAuthConfig(),
   );
 

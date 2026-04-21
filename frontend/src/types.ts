@@ -132,9 +132,16 @@ export interface Blog {
   title: string;
   authors: Member[];
   url: string;
-  date: Date;
+  date: string;
   imageKey?: string;
   shortDescription?: string;
 }
 
-export type NewBlog = Omit<Blog, "id">;
+export interface NewBlog {
+  title: string;
+  authors: Member[];
+  url: string;
+  date: Date;
+  imageKey?: string;
+  shortDescription?: string;
+}
