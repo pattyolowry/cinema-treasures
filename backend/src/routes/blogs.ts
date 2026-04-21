@@ -56,6 +56,7 @@ router.post(
         authors: req.body.authors,
         url: req.body.url,
         date: req.body.date,
+        shortDescription: req.body.shortDescription,
         imageKey,
       });
 

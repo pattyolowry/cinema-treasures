@@ -238,6 +238,20 @@ export function AppLayout() {
                       >
                         Awards
                       </NavLink>
+                      {currentUser && (
+                        <NavLink
+                          to="/artifacts"
+                          className={({ isActive }) =>
+                            `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                              isActive
+                                ? 'text-[var(--color-gold-400)] bg-[var(--color-cinema-gray)]'
+                                : 'text-[var(--color-silver-300)] hover:text-[var(--color-gold-400)] hover:bg-[var(--color-cinema-gray)]/70'
+                            }`
+                          }
+                        >
+                          Artifacts
+                        </NavLink>
+                      )}
                       <NavLink
                         to="/about"
                         className={({ isActive }) =>
@@ -358,6 +372,20 @@ export function AppLayout() {
                 >
                   Awards
                 </NavLink>
+                {currentUser && (
+                  <NavLink
+                    to="/artifacts"
+                    className={({ isActive }) =>
+                      `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        isActive
+                          ? 'text-[var(--color-gold-400)] bg-[var(--color-cinema-gray)]'
+                          : 'text-[var(--color-silver-300)] hover:text-[var(--color-gold-400)] hover:bg-[var(--color-cinema-gray)]/70'
+                      }`
+                    }
+                  >
+                    Artifacts
+                  </NavLink>
+                )}
                 <NavLink
                   to="/about"
                   className={({ isActive }) =>

@@ -6,6 +6,7 @@ import { HistoryPage } from './pages/history';
 import { TreasureTrovePage } from './pages/treasure-trove';
 import { AwardsPage } from './pages/awards';
 import { AboutPage } from './pages/about';
+import { ArtifactsPage } from './pages/artifacts';
 import { ScrollToTop } from './components/ScrollToTop';
 
 export default function App() {
@@ -20,6 +21,7 @@ export default function App() {
           <Route path="treasure-trove" element={<TreasureTrovePage />} />
           <Route path="ctcstm-scale" element={<CTCSTMScalePage />} />
           <Route path="awards" element={<AwardsPage />} />
+          <Route path="artifacts" element={<ArtifactsPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
