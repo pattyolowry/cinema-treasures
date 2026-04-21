@@ -51,6 +51,7 @@ export default function ArtifactsPage() {
   const [actionErrorMessage, setActionErrorMessage] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingBlog, setEditingBlog] = useState<Blog | null>(null);
+  const [areAdminActionsVisible, setAreAdminActionsVisible] = useState(false);
 
   const blogsQuery = useQuery({
     queryKey: BLOGS_QUERY_KEY,
@@ -122,6 +123,9 @@ export default function ArtifactsPage() {
   const isInitialLoading = !!currentUser && blogsQuery.isPending && !blogsQuery.data;
   const isRefreshing = !!currentUser && blogsQuery.isFetching && !!blogsQuery.data;
   const isSaving = createBlogMutation.isPending || updateBlogMutation.isPending;
+  const adminActionsToggleLabel = areAdminActionsVisible
+    ? 'Hide artifact edit and delete controls'
+    : 'Show artifact edit and delete controls';
 
   const openAddForm = () => {
     setActionErrorMessage(null);
@@ -206,14 +210,30 @@ export default function ArtifactsPage() {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={openAddForm}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-gold-500)] px-5 py-3 text-sm font-semibold text-black transition-colors hover:bg-[var(--color-gold-400)]"
-          >
-            <Plus size={18} />
-            Add Artifact
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setAreAdminActionsVisible((current) => !current)}
+              aria-label={adminActionsToggleLabel}
+              title={adminActionsToggleLabel}
+              aria-pressed={areAdminActionsVisible}
+              className={`inline-flex h-11 w-11 items-center justify-center rounded-full border transition-colors ${
+                areAdminActionsVisible
+                  ? 'border-[var(--color-gold-500)] bg-[var(--color-gold-500)] text-black'
+                  : 'border-[var(--color-cinema-gray)] bg-[var(--color-cinema-dark)] text-[var(--color-silver-300)] hover:border-[var(--color-gold-600)] hover:text-[var(--color-gold-400)]'
+              }`}
+            >
+              <Pencil size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={openAddForm}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-gold-500)] px-5 py-3 text-sm font-semibold text-black transition-colors hover:bg-[var(--color-gold-400)]"
+            >
+              <Plus size={18} />
+              Add Artifact
+            </button>
+          </div>
         </header>
 
         {errorMessage && (
@@ -299,24 +319,26 @@ export default function ArtifactsPage() {
                       </p>
                     )}
 
-                    <div className="mt-6 flex flex-wrap items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => openEditForm(blog)}
-                        className="inline-flex items-center gap-2 rounded-full border border-[var(--color-cinema-gray)] px-4 py-2 text-sm font-medium text-[var(--color-silver-300)] transition-colors hover:border-[var(--color-gold-600)] hover:text-white"
-                      >
-                        <Pencil size={16} />
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => void handleDeleteBlog(blog)}
-                        className="inline-flex items-center gap-2 rounded-full border border-red-500/40 px-4 py-2 text-sm font-medium text-red-200 transition-colors hover:bg-red-500/10"
-                      >
-                        <Trash2 size={16} />
-                        Delete
-                      </button>
-                    </div>
+                    {areAdminActionsVisible && (
+                      <div className="mt-6 flex flex-wrap items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => openEditForm(blog)}
+                          className="inline-flex items-center gap-2 rounded-full border border-[var(--color-cinema-gray)] px-4 py-2 text-sm font-medium text-[var(--color-silver-300)] transition-colors hover:border-[var(--color-gold-600)] hover:text-white"
+                        >
+                          <Pencil size={16} />
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void handleDeleteBlog(blog)}
+                          className="inline-flex items-center gap-2 rounded-full border border-red-500/40 px-4 py-2 text-sm font-medium text-red-200 transition-colors hover:bg-red-500/10"
+                        >
+                          <Trash2 size={16} />
+                          Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </article>
               );
