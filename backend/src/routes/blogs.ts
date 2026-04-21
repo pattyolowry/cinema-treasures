@@ -33,7 +33,7 @@ router.post(
   middleware.userExtractor,
   upload.single("image"),
   newBlogParser,
-  async (req, res) => {
+  async (req, res, next: NextFunction) => {
     try {
       let imageKey = undefined;
       if (req.file) {
@@ -61,8 +61,8 @@ router.post(
       });
 
       return res.json(newBlog);
-    } catch {
-      return res.status(400).send({ error: "Error saving blog" });
+    } catch (err) {
+      return next(err);
     }
   },
 );
