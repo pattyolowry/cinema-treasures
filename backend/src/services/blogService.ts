@@ -38,6 +38,7 @@ const updateBlog = async (id: string, blog: NewBlog) => {
       authors: blog.authors,
       url: blog.url,
       date: blog.date,
+      shortDescription: blog.shortDescription,
     });
 
     return await blogToUpdate.save();
