@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AlertCircle, Archive, CalendarDays, ExternalLink, FileText, Pencil, Plus, Trash2 } from 'lucide-react';
+import { AlertCircle, Archive, CalendarDays, FileText, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useAppSession } from '../../context/AppSessionContext';
 import blogService from '../../services/blogs';
 import serviceUtils from '../../services/utils';
@@ -282,7 +282,16 @@ export default function ArtifactsPage() {
                       </span>
                     </div>
 
-                    <h3 className="mt-4 text-2xl font-serif leading-tight text-white">{blog.title}</h3>
+                    <h3 className="mt-4 text-2xl font-serif leading-tight">
+                      <a
+                        href={blog.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-white transition-colors hover:text-[var(--color-gold-400)] focus:outline-none focus-visible:text-[var(--color-gold-400)] focus-visible:underline"
+                      >
+                        {blog.title}
+                      </a>
+                    </h3>
 
                     {blog.shortDescription?.trim() && (
                       <p className="mt-4 text-sm leading-6 text-[var(--color-silver-400)]">
@@ -291,15 +300,6 @@ export default function ArtifactsPage() {
                     )}
 
                     <div className="mt-6 flex flex-wrap items-center gap-3">
-                      <a
-                        href={blog.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 rounded-full bg-[var(--color-gold-500)] px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-[var(--color-gold-400)]"
-                      >
-                        Read Artifact
-                        <ExternalLink size={16} />
-                      </a>
                       <button
                         type="button"
                         onClick={() => openEditForm(blog)}
