@@ -22,6 +22,7 @@ interface ArtifactFormState {
   authors: Member[];
   url: string;
   date: string;
+  shortDescription: string;
 }
 
 const formatDateForInput = (date: string) => {
@@ -46,6 +47,7 @@ export function ArtifactForm({
     authors: blog?.authors ?? [],
     url: blog?.url ?? '',
     date: blog ? formatDateForInput(blog.date) : '',
+    shortDescription: blog?.shortDescription ?? '',
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(
@@ -64,7 +66,7 @@ export function ArtifactForm({
     return () => URL.revokeObjectURL(objectUrl);
   }, [selectedFile]);
 
-  const handleFieldChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleFieldChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
     setFormData((current) => ({ ...current, [name]: value }));
   };
@@ -111,6 +113,7 @@ export function ArtifactForm({
         authors: formData.authors,
         url: formData.url.trim(),
         date: parsedDate,
+        shortDescription: formData.shortDescription.trim() || undefined,
       },
     });
   };
@@ -176,6 +179,19 @@ export function ArtifactForm({
                   value={formData.url}
                   onChange={handleFieldChange}
                   className="w-full rounded-lg border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-black)] px-4 py-2 text-white transition-all focus:border-[var(--color-gold-500)] focus:outline-none focus:ring-1 focus:ring-[var(--color-gold-500)]"
+                />
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--color-silver-400)]">
+                  Short Description
+                </label>
+                <textarea
+                  name="shortDescription"
+                  value={formData.shortDescription}
+                  onChange={handleFieldChange}
+                  rows={3}
+                  className="w-full rounded-lg border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-black)] px-4 py-3 text-white transition-all focus:border-[var(--color-gold-500)] focus:outline-none focus:ring-1 focus:ring-[var(--color-gold-500)]"
                 />
               </div>
 

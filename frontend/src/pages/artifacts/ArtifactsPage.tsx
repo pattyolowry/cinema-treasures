@@ -231,7 +231,6 @@ export default function ArtifactsPage() {
               className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-gold-500)] px-5 py-3 text-sm font-semibold text-black transition-colors hover:bg-[var(--color-gold-400)]"
             >
               <Plus size={18} />
-              Add Artifact
             </button>
           </div>
         </header>
@@ -314,7 +313,7 @@ export default function ArtifactsPage() {
                     </h3>
 
                     {blog.shortDescription?.trim() && (
-                      <p className="mt-4 text-sm leading-6 text-[var(--color-silver-400)]">
+                      <p className="mt-2 text-sm leading-5 text-[var(--color-silver-500)]">
                         {blog.shortDescription.trim()}
                       </p>
                     )}
