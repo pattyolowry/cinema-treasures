@@ -206,7 +206,7 @@ export default function ArtifactsPage() {
               Artifacts
             </h2>
             <p className="mt-2 max-w-3xl text-sm text-[var(--color-silver-400)] sm:text-base">
-              A private archive of movie club posts, old presentations, and long-form dispatches from the group.
+              An archive of club posts and presentations.
             </p>
           </div>
 
