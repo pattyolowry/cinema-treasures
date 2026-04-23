@@ -60,9 +60,16 @@ export const movieHandler = async (event: SQSEvent) => {
         );
       }
 
+      // Director(s)
+      const movieCredits = await tmdbService.getMovieCredits(
+        movie.tmdbId.toString(),
+      );
+
+      const directors = movieCredits.crew.filter((c) => c.job === "Director");
+      movie.directors = directors.map((d) => d.name);
+
       // Parental guidance
       // MPAA Rating
-      // Director
     }
   }
 };

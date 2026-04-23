@@ -1,8 +1,12 @@
-import { TmdbMovieDetails, TmdbSearchResults } from '../types';
-import config from '../utils/config';
-import axios from 'axios';
+import {
+  TmdbMovieDetails,
+  TmdbSearchResults,
+  TmdbMovieCredits,
+} from "../types";
+import config from "../utils/config";
+import axios from "axios";
 
-const baseUrl = 'https://api.themoviedb.org/3';
+const baseUrl = "https://api.themoviedb.org/3";
 
 const apiConfig = {
   headers: { Authorization: `Bearer ${config.TMDB_API_KEY}` },
@@ -26,7 +30,17 @@ const getMovieDetails = async (id: string) => {
   return data;
 };
 
+const getMovieCredits = async (id: string) => {
+  const { data } = await axios.get<TmdbMovieCredits>(
+    `${baseUrl}/movie/${id}/credits`,
+    apiConfig,
+  );
+
+  return data;
+};
+
 export default {
-    searchMovie,
-    getMovieDetails
+  searchMovie,
+  getMovieDetails,
+  getMovieCredits,
 };

@@ -13,6 +13,7 @@ const movieSchema = new mongoose.Schema({
   tmdbRating: Number,
   genres: [String],
   language: String,
+  directors: [String],
 });
 
 movieSchema.set("toJSON", {

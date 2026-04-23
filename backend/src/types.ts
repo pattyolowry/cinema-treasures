@@ -122,7 +122,23 @@ export interface TmdbMovieDetails {
   overview?: string;
   vote_average?: number;
   genres: Genre[];
-  original_language: string;
+  original_language?: string;
+}
+
+export type CastCredit = {
+  name: string;
+  order: number;
+};
+
+export type CrewCredit = {
+  name: string;
+  job: string;
+};
+
+export interface TmdbMovieCredits {
+  id: number;
+  cast: CastCredit[];
+  crew: CrewCredit[];
 }
 
 export interface NewBlog {
