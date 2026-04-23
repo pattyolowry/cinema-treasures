@@ -2,6 +2,8 @@ import { SQSEvent, SQSRecord } from "aws-lambda";
 import { z } from "zod";
 import connectToDatabase from "../utils/db";
 import config from "../utils/config";
+import tmdbService from "../services/tmdbService";
+import Movie from "../models/movie";
 
 let dbIsConnected = false;
 
@@ -31,8 +33,37 @@ export const movieHandler = async (event: SQSEvent) => {
 
   for (const record of event.Records) {
     const body = parseBody(record);
+    const movieId = body.movieId;
 
-    console.log(body.type);
+    const movie = await Movie.findById(movieId);
+
+    if (movie?.tmdbId) {
+      // Fetch movie details from tmdb API
+      const movieDetails = await tmdbService.getMovieDetails(
+        movie.tmdbId.toString(),
+      );
+
+      // Description / overview
+      movie.overview = movieDetails.overview;
+
+      // TMDB Rating
+      movie.tmdbRating = movieDetails.vote_average;
+
+      // Genres
+      movie.genres = movieDetails.genres?.map((genre) => genre.name);
+
+      // Language
+      const languageCode = movieDetails.original_language;
+      if (languageCode) {
+        movie.language = new Intl.DisplayNames(["en"], { type: "language" }).of(
+          languageCode,
+        );
+      }
+
+      // Parental guidance
+      // MPAA Rating
+      // Director
+    }
   }
 };
 
