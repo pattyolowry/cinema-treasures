@@ -125,12 +125,12 @@ export interface TmdbMovieDetails {
   original_language?: string;
 }
 
-export type CastCredit = {
+type CastCredit = {
   name: string;
   order: number;
 };
 
-export type CrewCredit = {
+type CrewCredit = {
   name: string;
   job: string;
 };
@@ -139,6 +139,20 @@ export interface TmdbMovieCredits {
   id: number;
   cast: CastCredit[];
   crew: CrewCredit[];
+}
+
+type ReleaseDate = {
+  certification: string;
+};
+
+type Release = {
+  iso_3166_1: string;
+  release_dates: ReleaseDate[];
+};
+
+export interface TmdbReleaseResults {
+  id: number;
+  results: Release[];
 }
 
 export interface NewBlog {

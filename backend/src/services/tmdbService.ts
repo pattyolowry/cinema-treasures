@@ -2,6 +2,7 @@ import {
   TmdbMovieDetails,
   TmdbSearchResults,
   TmdbMovieCredits,
+  TmdbReleaseResults,
 } from "../types";
 import config from "../utils/config";
 import axios from "axios";
@@ -39,8 +40,18 @@ const getMovieCredits = async (id: string) => {
   return data;
 };
 
+const getReleaseDates = async (id: string) => {
+  const { data } = await axios.get<TmdbReleaseResults>(
+    `${baseUrl}/movie/${id}/release_dates`,
+    apiConfig,
+  );
+
+  return data;
+};
+
 export default {
   searchMovie,
   getMovieDetails,
   getMovieCredits,
+  getReleaseDates,
 };

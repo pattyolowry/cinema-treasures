@@ -68,8 +68,23 @@ export const movieHandler = async (event: SQSEvent) => {
       const directors = movieCredits.crew.filter((c) => c.job === "Director");
       movie.directors = directors.map((d) => d.name);
 
-      // Parental guidance
       // MPAA Rating
+      const releases = await tmdbService.getReleaseDates(
+        movie.tmdbId.toString(),
+      );
+
+      const usReleases = releases.results.filter(
+        (r) => r.iso_3166_1 === "US",
+      )[0];
+      let mpaaRating = "Not Rated";
+      for (const release of usReleases.release_dates) {
+        if (release.certification !== "") {
+          mpaaRating = release.certification;
+          break;
+        }
+      }
+
+      movie.mpaaRating = mpaaRating;
     }
   }
 };
