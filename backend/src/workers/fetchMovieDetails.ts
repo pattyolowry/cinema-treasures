@@ -85,6 +85,9 @@ export const movieHandler = async (event: SQSEvent) => {
       }
 
       movie.mpaaRating = mpaaRating;
+
+      // Save movie back to DB
+      await movie.save();
     }
   }
 };
