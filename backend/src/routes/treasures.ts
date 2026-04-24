@@ -5,6 +5,9 @@ import { Response, Request, NextFunction } from "express";
 import { newTreasureSchema } from "../utils/schemas";
 import middleware from "../utils/middleware";
 import { NewTreasure, IdParams } from "../types";
+import { SendMessageCommand } from "@aws-sdk/client-sqs";
+import config from "../utils/config";
+import { sqs } from "../utils/aws";
 
 const router = express.Router();
 
@@ -46,6 +49,21 @@ router.post(
   async (req: Request<unknown, unknown, NewTreasure>, res: Response) => {
     try {
       const addedTreasure = await treasureService.addTreasure(req.body);
+
+      const user = req.user ? req.user.name : "Unknown User";
+
+      // Add message to SQS queue
+      await sqs.send(
+        new SendMessageCommand({
+          QueueUrl: config.SQS_QUEUE_URL!,
+          MessageBody: JSON.stringify({
+            type: "TREASURE_ADDED",
+            user: user,
+            movieId: addedTreasure.id,
+          }),
+        }),
+      );
+
       res.json(addedTreasure);
     } catch (error: unknown) {
       let errorMessage = "Something went wrong.";
