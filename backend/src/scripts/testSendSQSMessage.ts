@@ -9,7 +9,11 @@ const main = async () => {
   await sqs.send(
     new SendMessageCommand({
       QueueUrl: config.SQS_QUEUE_URL!,
-      MessageBody: JSON.stringify({ hello: "world" }),
+      MessageBody: JSON.stringify({
+        type: "TREASURE_ADDED",
+        user: "Patio",
+        movieId: "69b47333e4360a983c3adb5d",
+      }),
     }),
   );
   console.log("sent");
