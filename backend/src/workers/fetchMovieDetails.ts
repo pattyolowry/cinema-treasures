@@ -59,6 +59,18 @@ export const movieHandler = async (event: SQSEvent) => {
         // Genres
         movie.genres = movieDetails.genres?.map((genre) => genre.name);
 
+        // Origin Country
+        const countryCode =
+          movieDetails.origin_country &&
+          movieDetails.origin_country.length !== 0
+            ? movieDetails.origin_country[0]
+            : "";
+        if (countryCode) {
+          movie.originCountry = new Intl.DisplayNames(["en"], {
+            type: "region",
+          }).of(countryCode);
+        }
+
         // Language
         const languageCode = movieDetails.original_language
           ? movieDetails.original_language
