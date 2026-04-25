@@ -49,16 +49,20 @@ export const movieHandler = async (event: SQSEvent) => {
         console.log("Fetched movie details from tmdb");
 
         // Description / overview
-        movie.overview = movieDetails.overview;
+        movie.overview = movieDetails.overview ? movieDetails.overview : "";
 
         // TMDB Rating
-        movie.tmdbRating = movieDetails.vote_average;
+        movie.tmdbRating = movieDetails.vote_average
+          ? movieDetails.vote_average
+          : 0;
 
         // Genres
         movie.genres = movieDetails.genres?.map((genre) => genre.name);
 
         // Language
-        const languageCode = movieDetails.original_language;
+        const languageCode = movieDetails.original_language
+          ? movieDetails.original_language
+          : "";
         if (languageCode) {
           movie.language = new Intl.DisplayNames(["en"], {
             type: "language",
@@ -73,7 +77,9 @@ export const movieHandler = async (event: SQSEvent) => {
         console.log("Fetched movie credits from tmdb");
 
         const directors = movieCredits.crew.filter((c) => c.job === "Director");
-        movie.directors = directors.map((d) => d.name);
+        if (directors.length !== 0) {
+          movie.directors = directors.map((d) => d.name);
+        }
 
         // MPAA Rating
         const releases = await tmdbService.getReleaseDates(
@@ -86,10 +92,12 @@ export const movieHandler = async (event: SQSEvent) => {
           (r) => r.iso_3166_1 === "US",
         )[0];
         let mpaaRating = "Not Rated";
-        for (const release of usReleases.release_dates) {
-          if (release.certification !== "") {
-            mpaaRating = release.certification;
-            break;
+        if (usReleases.release_dates && usReleases.release_dates.length !== 0) {
+          for (const release of usReleases.release_dates) {
+            if (release.certification !== "") {
+              mpaaRating = release.certification;
+              break;
+            }
           }
         }
 
