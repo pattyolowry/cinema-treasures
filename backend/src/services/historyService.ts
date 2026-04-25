@@ -1,72 +1,73 @@
-import LogEntry from '../models/logEntry';
-import Movie from '../models/movie';
-import { NewLogEntry } from '../types';
+import LogEntry from "../models/logEntry";
+import Movie from "../models/movie";
+import { NewLogEntry } from "../types";
 
 const getHistory = async () => {
-    const fullHistory = await LogEntry.find({}).populate("movie");
-    return fullHistory;
+  const fullHistory = await LogEntry.find({}).populate(
+    "movie",
+    "title yearReleased originCountry runTime tmdbId posterUrl backdropUrl mpaaRating",
+  );
+  return fullHistory;
 };
 
 const findAndUpdateLinkedMovie = async (entry: NewLogEntry) => {
-    let movie;
-    if (entry.movie.tmdbId) {
-        movie = await Movie.findOne({tmdbId: entry.movie.tmdbId});
-    } else {
-        movie = await Movie.findOne({title: entry.movie.title});
-    }
-    if (movie) {
-        const tmdbId = movie.tmdbId
-            ? movie.tmdbId
-            : entry.movie.tmdbId;
-        movie.set({
-            ...entry.movie,
-            tmdbId
-        });
-    } else {
-        movie = new Movie({
-            ...entry.movie
-        });
-    }
+  let movie;
+  if (entry.movie.tmdbId) {
+    movie = await Movie.findOne({ tmdbId: entry.movie.tmdbId });
+  } else {
+    movie = await Movie.findOne({ title: entry.movie.title });
+  }
+  if (movie) {
+    const tmdbId = movie.tmdbId ? movie.tmdbId : entry.movie.tmdbId;
+    movie.set({
+      ...entry.movie,
+      tmdbId,
+    });
+  } else {
+    movie = new Movie({
+      ...entry.movie,
+    });
+  }
 
-    return await movie.save();
+  return await movie.save();
 };
 
 const addEntry = async (entry: NewLogEntry) => {
-    const movie = await findAndUpdateLinkedMovie(entry);
+  const movie = await findAndUpdateLinkedMovie(entry);
 
-    const newLogEntry = new LogEntry({
-        ...entry,
-        movie: movie._id
-    });
+  const newLogEntry = new LogEntry({
+    ...entry,
+    movie: movie._id,
+  });
 
-    const addedEntry = await newLogEntry.save();
-    return await addedEntry.populate("movie");
+  const addedEntry = await newLogEntry.save();
+  return await addedEntry.populate("movie");
 };
 
 const updateEntry = async (id: string, entry: NewLogEntry) => {
-    const logEntry = await LogEntry.findById(id);
-    if (!logEntry) {
-        throw Error("Not found");
-    } else {
-        const movie = await findAndUpdateLinkedMovie(entry);
+  const logEntry = await LogEntry.findById(id);
+  if (!logEntry) {
+    throw Error("Not found");
+  } else {
+    const movie = await findAndUpdateLinkedMovie(entry);
 
-        logEntry.set({
-            ...entry,
-            movie: movie._id
-        });
+    logEntry.set({
+      ...entry,
+      movie: movie._id,
+    });
 
-        const updatedEntry = await logEntry.save();
-        return await updatedEntry.populate("movie");
-    }
+    const updatedEntry = await logEntry.save();
+    return await updatedEntry.populate("movie");
+  }
 };
 
 const deleteEntry = async (id: string) => {
-    return await LogEntry.findByIdAndDelete(id);
+  return await LogEntry.findByIdAndDelete(id);
 };
 
 export default {
   getHistory,
   addEntry,
   updateEntry,
-  deleteEntry
+  deleteEntry,
 };

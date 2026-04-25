@@ -105,6 +105,11 @@ export interface TmdbProductionCountry {
   name: string;
 }
 
+export type Genre = {
+  id: number;
+  name: string;
+};
+
 export interface TmdbMovieDetails {
   id: number;
   title: string;
@@ -114,6 +119,40 @@ export interface TmdbMovieDetails {
   runtime: number | null;
   origin_country?: string[];
   production_countries?: TmdbProductionCountry[];
+  overview?: string;
+  vote_average?: number;
+  genres: Genre[];
+  original_language?: string;
+}
+
+type CastCredit = {
+  name: string;
+  order: number;
+};
+
+type CrewCredit = {
+  name: string;
+  job: string;
+};
+
+export interface TmdbMovieCredits {
+  id: number;
+  cast: CastCredit[];
+  crew: CrewCredit[];
+}
+
+type ReleaseDate = {
+  certification: string;
+};
+
+type Release = {
+  iso_3166_1: string;
+  release_dates: ReleaseDate[];
+};
+
+export interface TmdbReleaseResults {
+  id: number;
+  results: Release[];
 }
 
 export interface NewBlog {
