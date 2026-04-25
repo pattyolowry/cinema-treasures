@@ -45,6 +45,8 @@ export const movieHandler = async (event: SQSEvent) => {
         movie.tmdbId.toString(),
       );
 
+      console.log("Fetched movie details from tmdb");
+
       // Description / overview
       movie.overview = movieDetails.overview;
 
@@ -67,6 +69,8 @@ export const movieHandler = async (event: SQSEvent) => {
         movie.tmdbId.toString(),
       );
 
+      console.log("Fetched movie credits from tmdb");
+
       const directors = movieCredits.crew.filter((c) => c.job === "Director");
       movie.directors = directors.map((d) => d.name);
 
@@ -74,6 +78,8 @@ export const movieHandler = async (event: SQSEvent) => {
       const releases = await tmdbService.getReleaseDates(
         movie.tmdbId.toString(),
       );
+
+      console.log("Fetched release info from tmdb");
 
       const usReleases = releases.results.filter(
         (r) => r.iso_3166_1 === "US",
@@ -90,6 +96,8 @@ export const movieHandler = async (event: SQSEvent) => {
 
       // Save movie back to DB
       await movie.save();
+
+      console.log("Saved updates to DB");
     }
   }
 };
