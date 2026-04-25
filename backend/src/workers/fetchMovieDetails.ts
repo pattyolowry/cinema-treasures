@@ -29,6 +29,7 @@ const connectDB = async () => {
 };
 
 export const movieHandler = async (event: SQSEvent) => {
+  console.log("Handling new movie event");
   await connectDB();
 
   for (const record of event.Records) {
@@ -36,6 +37,7 @@ export const movieHandler = async (event: SQSEvent) => {
     const movieId = body.movieId;
 
     const movie = await Movie.findById(movieId);
+    console.log(`Movie: ${movie?.title}`);
 
     if (movie?.tmdbId) {
       // Fetch movie details from tmdb API
