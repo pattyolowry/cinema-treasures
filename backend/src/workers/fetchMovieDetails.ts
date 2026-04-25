@@ -29,75 +29,81 @@ const connectDB = async () => {
 };
 
 export const movieHandler = async (event: SQSEvent) => {
-  console.log("Handling new movie event");
-  await connectDB();
+  try {
+    console.log("Handling new movie event");
+    await connectDB();
 
-  for (const record of event.Records) {
-    const body = parseBody(record);
-    const movieId = body.movieId;
+    for (const record of event.Records) {
+      const body = parseBody(record);
+      const movieId = body.movieId;
 
-    const movie = await Movie.findById(movieId);
-    console.log(`Movie: ${movie?.title}`);
+      const movie = await Movie.findById(movieId);
+      console.log(`Movie: ${movie?.title}`);
 
-    if (movie?.tmdbId) {
-      // Fetch movie details from tmdb API
-      const movieDetails = await tmdbService.getMovieDetails(
-        movie.tmdbId.toString(),
-      );
-
-      console.log("Fetched movie details from tmdb");
-
-      // Description / overview
-      movie.overview = movieDetails.overview;
-
-      // TMDB Rating
-      movie.tmdbRating = movieDetails.vote_average;
-
-      // Genres
-      movie.genres = movieDetails.genres?.map((genre) => genre.name);
-
-      // Language
-      const languageCode = movieDetails.original_language;
-      if (languageCode) {
-        movie.language = new Intl.DisplayNames(["en"], { type: "language" }).of(
-          languageCode,
+      if (movie?.tmdbId) {
+        // Fetch movie details from tmdb API
+        const movieDetails = await tmdbService.getMovieDetails(
+          movie.tmdbId.toString(),
         );
-      }
 
-      // Director(s)
-      const movieCredits = await tmdbService.getMovieCredits(
-        movie.tmdbId.toString(),
-      );
+        console.log("Fetched movie details from tmdb");
 
-      console.log("Fetched movie credits from tmdb");
+        // Description / overview
+        movie.overview = movieDetails.overview;
 
-      const directors = movieCredits.crew.filter((c) => c.job === "Director");
-      movie.directors = directors.map((d) => d.name);
+        // TMDB Rating
+        movie.tmdbRating = movieDetails.vote_average;
 
-      // MPAA Rating
-      const releases = await tmdbService.getReleaseDates(
-        movie.tmdbId.toString(),
-      );
+        // Genres
+        movie.genres = movieDetails.genres?.map((genre) => genre.name);
 
-      console.log("Fetched release info from tmdb");
-
-      const usReleases = releases.results.filter(
-        (r) => r.iso_3166_1 === "US",
-      )[0];
-      let mpaaRating = "Not Rated";
-      for (const release of usReleases.release_dates) {
-        if (release.certification !== "") {
-          mpaaRating = release.certification;
-          break;
+        // Language
+        const languageCode = movieDetails.original_language;
+        if (languageCode) {
+          movie.language = new Intl.DisplayNames(["en"], {
+            type: "language",
+          }).of(languageCode);
         }
+
+        // Director(s)
+        const movieCredits = await tmdbService.getMovieCredits(
+          movie.tmdbId.toString(),
+        );
+
+        console.log("Fetched movie credits from tmdb");
+
+        const directors = movieCredits.crew.filter((c) => c.job === "Director");
+        movie.directors = directors.map((d) => d.name);
+
+        // MPAA Rating
+        const releases = await tmdbService.getReleaseDates(
+          movie.tmdbId.toString(),
+        );
+
+        console.log("Fetched release info from tmdb");
+
+        const usReleases = releases.results.filter(
+          (r) => r.iso_3166_1 === "US",
+        )[0];
+        let mpaaRating = "Not Rated";
+        for (const release of usReleases.release_dates) {
+          if (release.certification !== "") {
+            mpaaRating = release.certification;
+            break;
+          }
+        }
+
+        movie.mpaaRating = mpaaRating;
+
+        // Save movie back to DB
+        await movie.save();
+
+        console.log("Saved updates to DB");
       }
-
-      movie.mpaaRating = mpaaRating;
-
-      // Save movie back to DB
-      await movie.save();
-
-      console.log("Saved updates to DB");
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      console.log(error.message);
     }
   }
 };
