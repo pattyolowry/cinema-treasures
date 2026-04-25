@@ -9,6 +9,10 @@ import User from "../src/models/user";
 import config from "../src/utils/config";
 import assert from "node:assert";
 import bcrypt from "bcrypt";
+import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
+import { mockClient } from "aws-sdk-client-mock";
+
+const sqsMock = mockClient(SQSClient);
 
 const api = supertest(app);
 
@@ -90,6 +94,12 @@ before(async () => {
 
 describe("When there are initially some trove entries saved", () => {
   beforeEach(async () => {
+    // Reset the SQS mock client
+    sqsMock.reset();
+    sqsMock.on(SendMessageCommand).resolves({
+      MessageId: "test-message-id",
+    });
+
     await Movie.deleteMany({});
     await Treasure.deleteMany({});
 
