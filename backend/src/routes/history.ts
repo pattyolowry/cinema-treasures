@@ -5,6 +5,9 @@ import { Response, Request, NextFunction } from "express";
 import { newLogEntrySchema } from "../utils/schemas";
 import middleware from "../utils/middleware";
 import { NewLogEntry, IdParams } from "../types";
+import { SendMessageCommand } from "@aws-sdk/client-sqs";
+import config from "../utils/config";
+import { sqs } from "../utils/aws";
 
 const router = express.Router();
 
@@ -46,6 +49,18 @@ router.post(
   async (req: Request<unknown, unknown, NewLogEntry>, res: Response) => {
     try {
       const addedEntry = await historyService.addEntry(req.body);
+
+      // Add message to SQS queue
+      await sqs.send(
+        new SendMessageCommand({
+          QueueUrl: config.SQS_QUEUE_URL!,
+          MessageBody: JSON.stringify({
+            type: "HISTORY_ADDED",
+            movieId: addedEntry.id,
+          }),
+        }),
+      );
+
       res.json(addedEntry);
     } catch (error: unknown) {
       let errorMessage = "Something went wrong.";
