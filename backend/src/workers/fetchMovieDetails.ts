@@ -88,12 +88,11 @@ export const movieHandler = async (event: SQSEvent) => {
 
         console.log("Fetched release info from tmdb");
 
-        const usReleases = releases.results.filter(
-          (r) => r.iso_3166_1 === "US",
-        )[0];
+        const usResults = releases.results.filter((r) => r.iso_3166_1 === "US");
         let mpaaRating = "Not Rated";
-        if (usReleases.release_dates && usReleases.release_dates.length !== 0) {
-          for (const release of usReleases.release_dates) {
+
+        if (usResults.length !== 0) {
+          for (const release of usResults[0].release_dates) {
             if (release.certification !== "") {
               mpaaRating = release.certification;
               break;

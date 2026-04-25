@@ -10,9 +10,8 @@ const main = async () => {
     new SendMessageCommand({
       QueueUrl: config.SQS_QUEUE_URL!,
       MessageBody: JSON.stringify({
-        type: "TREASURE_ADDED",
-        user: "Patio",
-        movieId: "69b47333e4360a983c3adb5d",
+        type: "HISTORY_ADDED",
+        movieId: "69b8a1621ed6b9380318323b",
       }),
     }),
   );
