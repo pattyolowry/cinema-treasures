@@ -56,7 +56,7 @@ router.post(
           QueueUrl: config.SQS_QUEUE_URL!,
           MessageBody: JSON.stringify({
             type: "HISTORY_ADDED",
-            movieId: addedEntry.id,
+            movieId: addedEntry.movie.id,
           }),
         }),
       );

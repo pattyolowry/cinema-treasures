@@ -59,7 +59,7 @@ router.post(
           MessageBody: JSON.stringify({
             type: "TREASURE_ADDED",
             user: user,
-            movieId: addedTreasure.id,
+            movieId: addedTreasure.movie.id,
           }),
         }),
       );
