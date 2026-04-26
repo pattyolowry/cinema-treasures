@@ -52,6 +52,7 @@ const treasureToMovieRecord = (treasure: Treasure): TroveMovieRecord => {
     yearReleased: treasure.movie.yearReleased ?? 0,
     originCountry: treasure.movie.originCountry ?? '',
     runTime: treasure.movie.runTime ?? null,
+    overview: treasure.movie.overview,
     mpaaRating: treasure.movie.mpaaRating ?? '',
     tmdbId: treasure.movie.tmdbId,
     posterUrl: treasure.movie.posterUrl ?? '',
