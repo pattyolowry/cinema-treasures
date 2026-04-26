@@ -38,7 +38,7 @@ export default function HistoryPage() {
 
   const historyQuery = useQuery({
     queryKey: HISTORY_ENTRIES_QUERY_KEY,
-    queryFn: historyService.getAllEntries,
+    queryFn: () => historyService.getAllEntries(),
   });
   const entries = historyQuery.data ?? [];
 

@@ -29,6 +29,7 @@ function formatWatchedDate(entry: LogEntry): string {
 
 export function MovieDetail({ movie, isLoggedIn, onClose, onEdit }: MovieDetailProps) {
   const notes = movie.notes?.trim();
+  const overview = movie.movie.overview?.trim();
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm" onClick={onClose}>
@@ -84,6 +85,14 @@ export function MovieDetail({ movie, isLoggedIn, onClose, onEdit }: MovieDetailP
           </div>
 
           <div className="p-6">
+            {overview && (
+              <div className="mb-8">
+                <p className="whitespace-pre-wrap text-sm leading-7 text-[var(--color-silver-300)]">
+                  {overview}
+                </p>
+              </div>
+            )}
+
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-serif text-[var(--color-gold-400)] flex items-center gap-2">
