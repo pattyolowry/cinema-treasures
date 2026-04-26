@@ -22,6 +22,7 @@ interface TroveMovieDetailProps {
 
 export function TroveMovieDetail({ movie, isLoggedIn, onClose, onEdit, onDelete }: TroveMovieDetailProps) {
   const formattedRunTime = formatRunTime(movie.runTime);
+  const overview = movie.overview?.trim();
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm" onClick={onClose}>
@@ -66,6 +67,14 @@ export function TroveMovieDetail({ movie, isLoggedIn, onClose, onEdit, onDelete 
           </div>
 
           <div className="p-6">
+            {overview && (
+              <div className="mb-8">
+                <p className="whitespace-pre-wrap text-sm leading-7 text-[var(--color-silver-300)]">
+                  {overview}
+                </p>
+              </div>
+            )}
+
             <div className="mb-8">
               <h3 className="text-lg font-serif text-[var(--color-gold-400)] flex items-center gap-2 mb-4">
                 <Star size={18} />

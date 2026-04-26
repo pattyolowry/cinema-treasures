@@ -11,8 +11,13 @@ import { sqs } from "../utils/aws";
 
 const router = express.Router();
 
-router.get("/", async (_req, res) => {
-  const fullHistory = await historyService.getHistory();
+router.get("/", async (req, res) => {
+  let fullHistory;
+  if (req.query.detailed && req.query.detailed === "true") {
+    fullHistory = await historyService.getDetailedHistory();
+  } else {
+    fullHistory = await historyService.getHistory();
+  }
   res.send(fullHistory);
 });
 

@@ -29,6 +29,9 @@ function formatWatchedDate(entry: LogEntry): string {
 
 export function MovieDetail({ movie, isLoggedIn, onClose, onEdit }: MovieDetailProps) {
   const notes = movie.notes?.trim();
+  const overview = movie.movie.overview?.trim();
+  const directors = movie.movie.directors?.map((director) => director.trim()).filter(Boolean) ?? [];
+  const directorsLabel = directors.length > 0 ? directors.join(', ') : null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm" onClick={onClose}>
@@ -54,10 +57,10 @@ export function MovieDetail({ movie, isLoggedIn, onClose, onEdit }: MovieDetailP
               <div>
                 <h2 className="text-3xl font-serif text-white mb-2 leading-tight">{movie.movie.title}</h2>
                 <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--color-silver-400)]">
-                  {movie.pickedBy && (
+                  {directorsLabel && (
                     <div className="flex items-center gap-1.5">
-                      <span className="font-semibold text-[var(--color-gold-500)]">Picked By:</span>
-                      <span>{movie.pickedBy}</span>
+                      <span className="font-semibold text-[var(--color-gold-500)]">Dir:</span>
+                      <span>{directorsLabel}</span>
                     </div>
                   )}
                   {movie.movie.yearReleased && (
@@ -72,10 +75,10 @@ export function MovieDetail({ movie, isLoggedIn, onClose, onEdit }: MovieDetailP
                       <span>{movie.movie.originCountry}</span>
                     </div>
                   )}
-                  {movie.streamingPlatform && (
+                  {movie.pickedBy && (
                     <div className="flex items-center gap-1.5">
-                      <MonitorPlay size={14} className="text-[var(--color-gold-500)]" />
-                      <span>{movie.streamingPlatform}</span>
+                      <span className="font-semibold text-[var(--color-gold-500)]">Picked By:</span>
+                      <span>{movie.pickedBy}</span>
                     </div>
                   )}
                 </div>
@@ -84,6 +87,14 @@ export function MovieDetail({ movie, isLoggedIn, onClose, onEdit }: MovieDetailP
           </div>
 
           <div className="p-6">
+            {overview && (
+              <div className="mb-8">
+                <p className="whitespace-pre-wrap text-sm leading-7 text-[var(--color-silver-300)]">
+                  {overview}
+                </p>
+              </div>
+            )}
+
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-serif text-[var(--color-gold-400)] flex items-center gap-2">

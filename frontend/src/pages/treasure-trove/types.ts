@@ -6,6 +6,8 @@ export interface TroveMovieRecord {
   yearReleased: number;
   originCountry: string;
   runTime?: number | null;
+  directors?: string[];
+  overview?: string;
   mpaaRating?: string;
   tmdbId?: number;
   posterUrl?: string;

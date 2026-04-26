@@ -78,6 +78,11 @@ export interface MovieInfo {
   tmdbId?: number;
   posterUrl?: string;
   backdropUrl?: string;
+  overview?: string;
+  tmdbRating?: number;
+  genres?: string[];
+  language?: string;
+  directors?: string[];
 }
 
 export interface Rating {
