@@ -10,6 +10,11 @@ const getAll = async () => {
   return allTreasures;
 };
 
+const getAllDetailed = async () => {
+  const allTreasures = await Treasure.find({}).populate("movie");
+  return allTreasures;
+};
+
 const findAndUpdateLinkedMovie = async (entry: NewTreasure) => {
   let movie;
   if (entry.movie.tmdbId) {
@@ -68,6 +73,7 @@ const deleteTreasure = async (id: string) => {
 
 export default {
   getAll,
+  getAllDetailed,
   addTreasure,
   updateTreasure,
   deleteTreasure,

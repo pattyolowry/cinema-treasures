@@ -10,6 +10,11 @@ const getHistory = async () => {
   return fullHistory;
 };
 
+const getDetailedHistory = async () => {
+  const fullHistory = await LogEntry.find({}).populate("movie");
+  return fullHistory;
+};
+
 const findAndUpdateLinkedMovie = async (entry: NewLogEntry) => {
   let movie;
   if (entry.movie.tmdbId) {
@@ -67,6 +72,7 @@ const deleteEntry = async (id: string) => {
 
 export default {
   getHistory,
+  getDetailedHistory,
   addEntry,
   updateEntry,
   deleteEntry,

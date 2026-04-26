@@ -11,8 +11,13 @@ import { sqs } from "../utils/aws";
 
 const router = express.Router();
 
-router.get("/", async (_req, res) => {
-  const allTreasures = await treasureService.getAll();
+router.get("/", async (req, res) => {
+  let allTreasures;
+  if (req.query.detailed && req.query.detailed === "true") {
+    allTreasures = await treasureService.getAllDetailed();
+  } else {
+    allTreasures = await treasureService.getAll();
+  }
   res.send(allTreasures);
 });
 
