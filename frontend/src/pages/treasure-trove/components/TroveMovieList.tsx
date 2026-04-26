@@ -91,15 +91,10 @@ function memberRating(movie: TroveMovieRecord, member: TroveMember): number | nu
   return movie.ratings[member] ?? null;
 }
 
-function formatRunTime(minutes: number | null | undefined): string {
-  if (!minutes || minutes <= 0) return 'Runtime N/A';
-
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-
-  if (hours === 0) return `${remainingMinutes}m`;
-  if (remainingMinutes === 0) return `${hours}h`;
-  return `${hours}h ${remainingMinutes}m`;
+function formatDirectors(directors: string[] | undefined): string {
+  const normalizedDirectors = directors?.map((director) => director.trim()).filter(Boolean) ?? [];
+  if (normalizedDirectors.length === 0) return 'Director N/A';
+  return normalizedDirectors.join(', ');
 }
 
 function compareValues(
@@ -456,7 +451,7 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
                       {movie.title}
                     </p>
                     <p className="mt-1 text-[11px] sm:text-sm text-[var(--color-silver-400)] truncate">
-                      {movie.yearReleased} • {formatRunTime(movie.runTime)}
+                      {movie.yearReleased} • {formatDirectors(movie.directors)}
                     </p>
                   </div>
                 </td>
