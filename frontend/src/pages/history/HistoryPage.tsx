@@ -225,15 +225,15 @@ export default function HistoryPage() {
     setIsFormOpen(true);
   };
 
-  const handleCurrentMovieEdit = () => {
-    if (!currentUser || !currentWatchEntry) return;
-    openEditForm(currentWatchEntry);
+  const handleCurrentMovieDetailOpen = () => {
+    if (!currentWatchEntry) return;
+    setSelectedEntry(currentWatchEntry);
   };
 
   const handleCurrentMovieKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      handleCurrentMovieEdit();
+      handleCurrentMovieDetailOpen();
     }
   };
 
@@ -295,15 +295,11 @@ export default function HistoryPage() {
               <div
                 className={`group mb-8 relative overflow-hidden rounded-2xl border border-[var(--color-cinema-gray)] ${
                   currentWatchEntry.movie.backdropUrl ? 'min-h-[220px] sm:min-h-[260px]' : ''
-                } ${
-                  currentUser
-                    ? 'cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-gold-500)]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-cinema-black)]'
-                    : ''
-                }`}
-                onClick={currentUser ? handleCurrentMovieEdit : undefined}
-                onKeyDown={currentUser ? handleCurrentMovieKeyDown : undefined}
-                role={currentUser ? 'button' : undefined}
-                tabIndex={currentUser ? 0 : undefined}
+                } cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-gold-500)]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-cinema-black)]`}
+                onClick={handleCurrentMovieDetailOpen}
+                onKeyDown={handleCurrentMovieKeyDown}
+                role="button"
+                tabIndex={0}
               >
                 {currentWatchEntry.movie.backdropUrl ? (
                   <>
@@ -315,7 +311,7 @@ export default function HistoryPage() {
                     />
                     <div
                       className={`absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40 transition-colors ${
-                        currentUser ? 'group-hover:from-black/75 group-hover:via-black/55 group-hover:to-black/30' : ''
+                        'group-hover:from-black/75 group-hover:via-black/55 group-hover:to-black/30'
                       }`}
                     />
                     <div className="relative z-10 p-6 sm:p-8 md:p-10">
