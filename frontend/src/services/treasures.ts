@@ -4,7 +4,7 @@ import { Treasure, NewTreasure } from "../types";
 
 const baseUrl = `${utils.backendUrl()}/treasures`;
 
-const getAll = async (detailed: boolean = false) => {
+const getAll = async (detailed: boolean = true) => {
   const { data } = await axios.get<Treasure[]>(baseUrl, {
     params: { detailed },
   });
