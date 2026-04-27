@@ -4,6 +4,8 @@ import connectToDatabase from "../utils/db";
 import config from "../utils/config";
 import tmdbService from "../services/tmdbService";
 import Movie from "../models/movie";
+import webpush from "web-push";
+import User from "../models/user";
 
 let dbIsConnected = false;
 
@@ -118,6 +120,32 @@ export const movieHandler = async (event: SQSEvent) => {
         await movie.save();
 
         console.log("Saved updates to DB");
+
+        // Send notification for new Trove entries
+        if (body.type === "TREASURE_ADDED") {
+          webpush.setVapidDetails(
+            `mailto:${config.SUPPORT_EMAIL}`,
+            config.VAPID_PUBLIC_KEY!,
+            config.VAPID_PRIVATE_KEY!,
+          );
+
+          const users = await User.find({
+            webPushSubscriptions: { $exists: true, $ne: [] },
+          });
+
+          for (const user of users) {
+            for (const subscription of user.webPushSubscriptions) {
+              await webpush.sendNotification(
+                subscription,
+                JSON.stringify({
+                  title: "New movie added to Treasure Trove",
+                  body: `${body.user} added ${movie.title} (${movie.yearReleased}) to the Treasure Trove. Seent it? Add your rating!`,
+                  url: `/treasure-trove`,
+                }),
+              );
+            }
+          }
+        }
       }
     }
   } catch (error) {
