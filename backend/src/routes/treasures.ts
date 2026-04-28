@@ -118,6 +118,11 @@ router.delete("/:id", middleware.userExtractor, async (req, res) => {
   }
 });
 
+router.get("/:id/activity", async (req, res) => {
+  const activities = await treasureService.getTreasureActivity(req.params.id);
+  res.send(activities);
+});
+
 router.use(errorMiddleware);
 
 export default router;

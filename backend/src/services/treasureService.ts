@@ -1,6 +1,7 @@
 import Treasure from "../models/treasure";
 import Movie from "../models/movie";
 import { NewTreasure } from "../types";
+import TreasureActivity from "../models/treasureActivity";
 
 const getAll = async () => {
   const allTreasures = await Treasure.find({}).populate(
@@ -71,10 +72,18 @@ const deleteTreasure = async (id: string) => {
   return await Treasure.findByIdAndDelete(id);
 };
 
+const getTreasureActivity = async (id: string) => {
+  const activities = await TreasureActivity.find({ troveId: id }).sort({
+    createdAt: -1,
+  });
+  return activities;
+};
+
 export default {
   getAll,
   getAllDetailed,
   addTreasure,
   updateTreasure,
   deleteTreasure,
+  getTreasureActivity,
 };
