@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
+import { PushSubscription } from "../types";
 
-const webPushSubscriptionSchema = new mongoose.Schema(
+const webPushSubscriptionSchema = new mongoose.Schema<PushSubscription>(
   {
     endpoint: {
       type: String,
@@ -8,15 +9,18 @@ const webPushSubscriptionSchema = new mongoose.Schema(
     },
 
     keys: {
-      p256dh: {
-        type: String,
-        required: true,
-      },
-      auth: {
-        type: String,
-        required: true,
+      type: {
+        p256dh: {
+          type: String,
+          required: true,
+        },
+        auth: {
+          type: String,
+          required: true,
+        },
       },
       required: true,
+      _id: false,
     },
   },
   {
