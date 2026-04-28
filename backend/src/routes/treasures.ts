@@ -65,6 +65,7 @@ router.post(
             type: "TREASURE_ADDED",
             user: user,
             movieId: addedTreasure.movie.id,
+            troveId: addedTreasure.id,
           }),
         }),
       );

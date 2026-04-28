@@ -7,8 +7,10 @@ const main = async () => {
     Records: [
       {
         body: JSON.stringify({
-          type: "HISTORY_ADDED",
-          movieId: "69b8a1621ed6b9380318323b",
+          type: "TREASURE_ADDED",
+          user: "Quinn",
+          movieId: "69f126df483e3461d16f4a6f",
+          troveId: "69f126df483e3461d16f4a71",
         }),
       },
     ],

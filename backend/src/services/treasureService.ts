@@ -29,7 +29,6 @@ const findAndUpdateLinkedMovie = async (entry: NewTreasure) => {
     movie.runTime = entry.movie.runTime;
     movie.mpaaRating = entry.movie.mpaaRating;
     movie.posterUrl = entry.movie.posterUrl;
-    movie.tmdbId = entry.movie.tmdbId;
   } else {
     movie = new Movie({
       ...entry.movie,

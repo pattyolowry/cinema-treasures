@@ -11,7 +11,7 @@ const main = async () => {
 
   let count = 0;
   for (const movie of movies) {
-    if (movie?.tmdbId) {
+    if (movie.tmdbId) {
       // Fetch movie details from tmdb API
       const movieDetails = await tmdbService.getMovieDetails(
         movie.tmdbId.toString(),

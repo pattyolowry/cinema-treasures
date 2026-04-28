@@ -6,6 +6,7 @@ import tmdbService from "../services/tmdbService";
 import Movie from "../models/movie";
 import webpush from "web-push";
 import User from "../models/user";
+import TreasureActivity from "../models/treasureActivity";
 
 let dbIsConnected = false;
 
@@ -18,6 +19,7 @@ const jobSchema = z.discriminatedUnion("type", [
     type: z.literal("TREASURE_ADDED"),
     user: z.string(),
     movieId: z.string(),
+    troveId: z.string(),
   }),
 ]);
 
@@ -121,8 +123,15 @@ export const movieHandler = async (event: SQSEvent) => {
 
         console.log("Saved updates to DB");
 
-        // Send notification for new Trove entries
+        // Save activity and send notification for new Trove entries
         if (body.type === "TREASURE_ADDED") {
+          const activity = new TreasureActivity({
+            troveId: body.troveId,
+            user: body.user,
+            message: `Added to treasure trove`,
+          });
+          await activity.save();
+
           webpush.setVapidDetails(
             `mailto:${config.SUPPORT_EMAIL}`,
             config.VAPID_PUBLIC_KEY!,
@@ -134,16 +143,15 @@ export const movieHandler = async (event: SQSEvent) => {
           });
 
           for (const user of users) {
-            for (const subscription of user.webPushSubscriptions) {
-              await webpush.sendNotification(
-                subscription,
-                JSON.stringify({
-                  title: "New movie added to Treasure Trove",
-                  body: `${body.user} added ${movie.title} (${movie.yearReleased}) to the Treasure Trove. Seent it? Add your rating!`,
-                  url: `/treasure-trove`,
-                }),
-              );
-            }
+            if (!user.webPushSubscription) continue;
+            await webpush.sendNotification(
+              user.webPushSubscription,
+              JSON.stringify({
+                title: "New movie added to Treasure Trove",
+                body: `${body.user} added ${movie.title} (${movie.yearReleased}) to the Treasure Trove. Seent it? Add your rating!`,
+                url: `/treasure-trove/${body.troveId}`,
+              }),
+            );
           }
         }
       }
