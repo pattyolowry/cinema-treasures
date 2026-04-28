@@ -51,7 +51,7 @@ const addPushSubscription = async (
   if (!user) {
     throw Error("user not found");
   }
-  user.webPushSubscriptions.push(pushSubscription);
+  user.webPushSubscription = pushSubscription;
   return await user.save();
 };
 
