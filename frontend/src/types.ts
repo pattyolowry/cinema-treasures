@@ -150,3 +150,13 @@ export interface NewBlog {
   imageKey?: string;
   shortDescription?: string;
 }
+
+type SubscriptionKey = {
+  p256dh: string;
+  auth: string;
+};
+
+export interface PushSubscription {
+  endpoint: string;
+  keys: SubscriptionKey;
+}
