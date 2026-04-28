@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AlertCircle, Gem, Plus } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAppSession } from '../../context/AppSessionContext';
 import treasureService from '../../services/treasures';
 import type { NewTreasure, Rating, Treasure } from '../../types';
@@ -105,12 +106,14 @@ function getRequestErrorMessage(error: unknown, fallback: string): string {
 
 export default function TreasureTrovePage() {
   const { currentUser } = useAppSession();
+  const navigate = useNavigate();
+  const { treasureId } = useParams<{ treasureId?: string }>();
   const queryClient = useQueryClient();
   const [actionErrorMessage, setActionErrorMessage] = useState<string | null>(null);
   const [formErrorMessage, setFormErrorMessage] = useState<string | null>(null);
+  const [deepLinkErrorMessage, setDeepLinkErrorMessage] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingMovie, setEditingMovie] = useState<TroveMovieRecord | null>(null);
-  const [selectedMovie, setSelectedMovie] = useState<TroveMovieRecord | null>(null);
 
   const treasureQuery = useQuery({
     queryKey: TREASURE_ENTRIES_QUERY_KEY,
@@ -120,6 +123,10 @@ export default function TreasureTrovePage() {
     },
   });
   const movies = treasureQuery.data ?? [];
+  const selectedMovie = useMemo(
+    () => movies.find((movie) => movie.id === treasureId) ?? null,
+    [movies, treasureId],
+  );
 
   const addTreasureMutation = useMutation({
     mutationFn: (movieData: Omit<TroveMovieRecord, 'id' | 'averageRating'>) =>
@@ -182,9 +189,6 @@ export default function TreasureTrovePage() {
       queryClient.setQueryData<TroveMovieRecord[]>(TREASURE_ENTRIES_QUERY_KEY, (currentMovies = []) =>
         currentMovies.map((movie) => (movie.id === updatedMovie.id ? updatedMovie : movie)),
       );
-      if (selectedMovie?.id === updatedMovie.id) {
-        setSelectedMovie(updatedMovie);
-      }
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: TREASURE_ENTRIES_QUERY_KEY });
@@ -214,11 +218,32 @@ export default function TreasureTrovePage() {
   });
 
   const isSaving = addTreasureMutation.isPending || updateTreasureMutation.isPending;
-  const errorMessage =
-    actionErrorMessage ??
+  const errorMessage = actionErrorMessage ??
     (treasureQuery.error ? getRequestErrorMessage(treasureQuery.error, TREASURE_ERROR_MESSAGE) : null);
   const isInitialLoading = treasureQuery.isPending && !treasureQuery.data;
   const isRefreshing = treasureQuery.isFetching && !!treasureQuery.data;
+
+  useEffect(() => {
+    if (
+      !treasureId ||
+      treasureQuery.isPending ||
+      treasureQuery.error ||
+      deleteTreasureMutation.isPending ||
+      selectedMovie
+    ) {
+      return;
+    }
+
+    setDeepLinkErrorMessage('That treasure trove entry could not be found.');
+    navigate('/treasure-trove', { replace: true });
+  }, [
+    deleteTreasureMutation.isPending,
+    navigate,
+    selectedMovie,
+    treasureId,
+    treasureQuery.error,
+    treasureQuery.isPending,
+  ]);
 
   const handleSaveMovie = async (movieData: Omit<TroveMovieRecord, 'id' | 'averageRating'>) => {
     if (!editingMovie) {
@@ -241,6 +266,7 @@ export default function TreasureTrovePage() {
       } else {
         setActionErrorMessage(null);
         setFormErrorMessage(null);
+        setDeepLinkErrorMessage(null);
         await addTreasureMutation.mutateAsync(movieData);
       }
 
@@ -258,12 +284,12 @@ export default function TreasureTrovePage() {
     }
     try {
       await deleteTreasureMutation.mutateAsync(id);
-      if (selectedMovie?.id === id) {
-        setSelectedMovie(null);
-      }
       if (editingMovie?.id === id) {
         setEditingMovie(null);
         setIsFormOpen(false);
+      }
+      if (treasureId === id) {
+        navigate('/treasure-trove', { replace: true });
       }
     } catch {
       // Mutation errors are surfaced via onError to keep messages consistent.
@@ -274,18 +300,43 @@ export default function TreasureTrovePage() {
     setEditingMovie(movie);
     setFormErrorMessage(null);
     setIsFormOpen(true);
-    setSelectedMovie(null);
   };
 
   const openAddForm = () => {
     setEditingMovie(null);
     setFormErrorMessage(null);
+    setDeepLinkErrorMessage(null);
     setIsFormOpen(true);
+  };
+
+  const handleViewDetail = (movie: TroveMovieRecord) => {
+    setDeepLinkErrorMessage(null);
+    navigate(`/treasure-trove/${movie.id}`);
+  };
+
+  const handleCloseDetail = () => {
+    navigate('/treasure-trove', { replace: true });
   };
 
   return (
     <>
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {deepLinkErrorMessage && (
+          <div className="mb-6 rounded-xl border border-amber-400/40 bg-amber-950/30 px-4 py-3 text-sm text-amber-100 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <AlertCircle size={16} />
+              <span>{deepLinkErrorMessage}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setDeepLinkErrorMessage(null)}
+              className="shrink-0 rounded-full border border-amber-200/30 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-amber-100 hover:bg-amber-200/10"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         {errorMessage && (
           <div className="mb-6 rounded-xl border border-red-500/50 bg-red-900/30 px-4 py-3 text-sm text-red-100 flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
@@ -351,16 +402,16 @@ export default function TreasureTrovePage() {
         ) : (
           <TroveMovieList
             movies={movies}
-            onViewDetail={setSelectedMovie}
+            onViewDetail={handleViewDetail}
           />
         )}
       </section>
 
-      {selectedMovie && (
+      {selectedMovie && !isFormOpen && (
         <TroveMovieDetail
           movie={selectedMovie}
           isLoggedIn={!!currentUser}
-          onClose={() => setSelectedMovie(null)}
+          onClose={handleCloseDetail}
           onEdit={openEditForm}
           onDelete={(id) => void handleDeleteMovie(id)}
         />

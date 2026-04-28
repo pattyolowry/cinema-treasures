@@ -27,8 +27,8 @@ const main = async () => {
       user.webPushSubscription,
       JSON.stringify({
         title: "Treasure Trove Updated",
-        body: `Patio updated his rating for The Matrix (1999): None --> 10`,
-        url: `/treasure-trove`,
+        body: `Patio updated his rating for The Matrix (1999): 9 --> 10`,
+        url: `/treasure-trove/69c1e70d15ab05d3e9cf7c59`,
       }),
     );
     console.log("Sent push notification");

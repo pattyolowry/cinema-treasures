@@ -18,7 +18,7 @@ export default function App() {
           <Route index element={<LandingPage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="history" element={<HistoryPage />} />
-          <Route path="treasure-trove" element={<TreasureTrovePage />} />
+          <Route path="treasure-trove/:treasureId?" element={<TreasureTrovePage />} />
           <Route path="ctcstm-scale" element={<CTCSTMScalePage />} />
           <Route path="awards" element={<AwardsPage />} />
           <Route path="artifacts" element={<ArtifactsPage />} />
