@@ -87,8 +87,10 @@ router.put(
   middleware.userExtractor,
   async (req: Request<IdParams, unknown, NewTreasure>, res: Response) => {
     try {
+      const user = req.user ? req.user.name : "Unknown User";
       const treasure = await treasureService.updateTreasure(
         req.params.id,
+        user,
         req.body,
       );
       return res.json(treasure);

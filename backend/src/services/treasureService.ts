@@ -2,6 +2,9 @@ import Treasure from "../models/treasure";
 import Movie from "../models/movie";
 import { NewTreasure } from "../types";
 import TreasureActivity from "../models/treasureActivity";
+import { SendMessageCommand } from "@aws-sdk/client-sqs";
+import config from "../utils/config";
+import { sqs } from "../utils/aws";
 
 const getAll = async () => {
   const allTreasures = await Treasure.find({}).populate(
@@ -50,12 +53,24 @@ const addTreasure = async (treasure: NewTreasure) => {
   return await addedTreasure.populate("movie");
 };
 
-const updateTreasure = async (id: string, treasure: NewTreasure) => {
+const updateTreasure = async (
+  id: string,
+  user: string,
+  treasure: NewTreasure,
+) => {
   const treasureToUpdate = await Treasure.findById(id);
   if (!treasureToUpdate) {
     throw Error("Not found");
   } else {
     const movie = await findAndUpdateLinkedMovie(treasure);
+
+    const updateMessage = {
+      type: "TREASURE_UPDATED",
+      user: user,
+      movieId: movie.id,
+      troveId: id,
+      old: { ratings: treasureToUpdate.ratings },
+    };
 
     treasureToUpdate.set({
       ...treasure,
@@ -63,6 +78,18 @@ const updateTreasure = async (id: string, treasure: NewTreasure) => {
     });
 
     const updatedTreasure = await treasureToUpdate.save();
+
+    // Add message to SQS queue
+    await sqs.send(
+      new SendMessageCommand({
+        QueueUrl: config.SQS_QUEUE_URL!,
+        MessageBody: JSON.stringify({
+          ...updateMessage,
+          new: { ratings: updatedTreasure.ratings },
+        }),
+      }),
+    );
+
     return await updatedTreasure.populate("movie");
   }
 };

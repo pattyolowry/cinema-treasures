@@ -21,6 +21,32 @@ const jobSchema = z.discriminatedUnion("type", [
     movieId: z.string(),
     troveId: z.string(),
   }),
+  z.object({
+    type: z.literal("TREASURE_UPDATED"),
+    user: z.string(),
+    movieId: z.string(),
+    troveId: z.string(),
+    old: z.object({
+      ratings: z.optional(
+        z.array(
+          z.object({
+            user: z.string(),
+            rating: z.number(),
+          }),
+        ),
+      ),
+    }),
+    new: z.object({
+      ratings: z.optional(
+        z.array(
+          z.object({
+            user: z.string(),
+            rating: z.number(),
+          }),
+        ),
+      ),
+    }),
+  }),
 ]);
 
 const connectDB = async () => {
@@ -139,7 +165,7 @@ export const movieHandler = async (event: SQSEvent) => {
           );
 
           const users = await User.find({
-            webPushSubscriptions: { $exists: true, $ne: [] },
+            webPushSubscription: { $exists: true, $ne: [] },
           });
 
           for (const user of users) {
@@ -152,6 +178,50 @@ export const movieHandler = async (event: SQSEvent) => {
                 url: `/treasure-trove/${body.troveId}`,
               }),
             );
+          }
+        }
+
+        // Save activity and send notification for trove rating updates
+        if (body.type === "TREASURE_UPDATED") {
+          const oldRating =
+            body.old.ratings?.find((r) => r.user === body.user)?.rating ??
+            "None";
+          const newRating =
+            body.new.ratings?.find((r) => r.user === body.user)?.rating ??
+            "None";
+
+          console.log(`Old Rating: ${oldRating}`);
+          console.log(`New Rating: ${newRating}`);
+          if (oldRating !== newRating) {
+            const activity = new TreasureActivity({
+              troveId: body.troveId,
+              user: body.user,
+              message: `Updated rating from ${oldRating} to ${newRating}`,
+            });
+            await activity.save();
+
+            webpush.setVapidDetails(
+              `mailto:${config.SUPPORT_EMAIL}`,
+              config.VAPID_PUBLIC_KEY!,
+              config.VAPID_PRIVATE_KEY!,
+            );
+
+            const users = await User.find({
+              webPushSubscription: { $exists: true, $ne: [] },
+            });
+
+            for (const user of users) {
+              if (!user.webPushSubscription) continue;
+              await webpush.sendNotification(
+                user.webPushSubscription,
+                JSON.stringify({
+                  title: "New movie added to Treasure Trove",
+                  body: `${body.user} updated his rating for ${movie.title} (${movie.yearReleased}): ${oldRating} --> ${newRating}`,
+                  url: `/treasure-trove/${body.troveId}`,
+                }),
+              );
+              console.log("Sent push notification");
+            }
           }
         }
       }
