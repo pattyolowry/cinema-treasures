@@ -41,9 +41,16 @@ const deleteTreasure = async (id: string) => {
   return data;
 };
 
+const getTreasureActivity = async (id: string) => {
+  const { data } = await axios.get(`${baseUrl}/${id}/activity`);
+
+  return data;
+};
+
 export default {
   getAll,
   addTreasure,
   updateTreasure,
   deleteTreasure,
+  getTreasureActivity,
 };
