@@ -59,6 +59,10 @@ export function TroveMovieDetail({ movie, isLoggedIn, onClose, onEdit, onDelete 
   const activityQuery = useQuery({
     queryKey: [...TREASURE_ACTIVITY_QUERY_KEY, movie.id],
     queryFn: () => treasureService.getTreasureActivity(movie.id),
+    enabled: Boolean(movie.id),
+    staleTime: 5 * 60_000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
   const activities = activityQuery.data ?? [];
 

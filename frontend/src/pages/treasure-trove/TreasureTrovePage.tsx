@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AlertCircle, Gem, Plus } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -309,14 +309,14 @@ export default function TreasureTrovePage() {
     setIsFormOpen(true);
   };
 
-  const handleViewDetail = (movie: TroveMovieRecord) => {
+  const handleViewDetail = useCallback((movie: TroveMovieRecord) => {
     setDeepLinkErrorMessage(null);
     navigate(`/treasure-trove/${movie.id}`);
-  };
+  }, [navigate]);
 
-  const handleCloseDetail = () => {
+  const handleCloseDetail = useCallback(() => {
     navigate('/treasure-trove', { replace: true });
-  };
+  }, [navigate]);
 
   return (
     <>
