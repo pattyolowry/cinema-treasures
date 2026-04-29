@@ -1,6 +1,6 @@
 import axios from "axios";
 import utils from "./utils";
-import { Treasure, NewTreasure } from "../types";
+import { Treasure, NewTreasure, TreasureActivity } from "../types";
 
 const baseUrl = `${utils.backendUrl()}/treasures`;
 
@@ -41,9 +41,18 @@ const deleteTreasure = async (id: string) => {
   return data;
 };
 
+const getTreasureActivity = async (id: string) => {
+  const { data } = await axios.get<TreasureActivity[]>(
+    `${baseUrl}/${id}/activity`,
+  );
+
+  return data;
+};
+
 export default {
   getAll,
   addTreasure,
   updateTreasure,
   deleteTreasure,
+  getTreasureActivity,
 };

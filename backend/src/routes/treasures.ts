@@ -65,6 +65,7 @@ router.post(
             type: "TREASURE_ADDED",
             user: user,
             movieId: addedTreasure.movie.id,
+            troveId: addedTreasure.id,
           }),
         }),
       );
@@ -86,8 +87,10 @@ router.put(
   middleware.userExtractor,
   async (req: Request<IdParams, unknown, NewTreasure>, res: Response) => {
     try {
+      const user = req.user ? req.user.name : "Unknown User";
       const treasure = await treasureService.updateTreasure(
         req.params.id,
+        user,
         req.body,
       );
       return res.json(treasure);
@@ -116,6 +119,11 @@ router.delete("/:id", middleware.userExtractor, async (req, res) => {
     }
     res.status(400).send({ error: errorMessage });
   }
+});
+
+router.get("/:id/activity", async (req, res) => {
+  const activities = await treasureService.getTreasureActivity(req.params.id);
+  res.send(activities);
 });
 
 router.use(errorMiddleware);

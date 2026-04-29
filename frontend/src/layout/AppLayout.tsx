@@ -4,11 +4,19 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Film, LogIn, LogOut, Menu, User, X } from 'lucide-react';
 import loginService from '../services/login';
 import serviceUtils from '../services/utils';
+import usersService from '../services/users';
 import type { LoggedUser } from '../types';
+import {
+  getPermissionErrorMessage,
+  isPushNotificationsSupported,
+  serializePushSubscription,
+  urlBase64ToUint8Array,
+} from '../utils/pushNotifications';
 import logo from '/tmdb-logo.svg';
 import { AppSessionContext } from '../context/AppSessionContext';
 
 const LOGGED_USER_STORAGE_KEY = 'loggedCinemaTreasuresUser';
+type NotificationState = 'idle' | 'pending' | 'enabled' | 'error';
 
 const isLoggedUser = (value: unknown): value is LoggedUser => {
   if (!value || typeof value !== 'object') {
@@ -34,6 +42,21 @@ const getLoginErrorMessage = (error: unknown) => {
   return 'Invalid username or password';
 };
 
+const getNotificationErrorMessage = (error: unknown) => {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const response = (error as { response?: { data?: { error?: unknown } } }).response;
+    if (typeof response?.data?.error === 'string') {
+      return response.data.error;
+    }
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return 'Unable to enable notifications right now. Please try again.';
+};
+
 export function AppLayout() {
   const queryClient = useQueryClient();
   const location = useLocation();
@@ -46,6 +69,8 @@ export function AppLayout() {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDesktopMenuOpen, setIsDesktopMenuOpen] = useState(false);
+  const [notificationState, setNotificationState] = useState<NotificationState>('idle');
+  const [notificationMessage, setNotificationMessage] = useState<string | null>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const desktopMenuRef = useRef<HTMLDivElement>(null);
 
@@ -86,6 +111,58 @@ export function AppLayout() {
     }
   }, []);
 
+  useEffect(() => {
+    let ignore = false;
+
+    const syncNotificationState = async () => {
+      if (!currentUser) {
+        setNotificationState('idle');
+        setNotificationMessage(null);
+        return;
+      }
+
+      if (!isPushNotificationsSupported()) {
+        setNotificationState('idle');
+        setNotificationMessage(null);
+        return;
+      }
+
+      try {
+        const existingRegistration =
+          (await navigator.serviceWorker.getRegistration()) ??
+          (await navigator.serviceWorker.register('/service-worker.js'));
+        const registration = existingRegistration.active
+          ? existingRegistration
+          : await navigator.serviceWorker.ready;
+        const existingSubscription = await registration.pushManager.getSubscription();
+
+        if (ignore) {
+          return;
+        }
+
+        if (existingSubscription && window.Notification.permission === 'granted') {
+          setNotificationState('enabled');
+          setNotificationMessage(null);
+          return;
+        }
+
+        setNotificationState('idle');
+        setNotificationMessage(null);
+      } catch {
+        if (!ignore) {
+          setNotificationState('idle');
+          setNotificationMessage(null);
+        }
+      }
+    };
+
+    void syncNotificationState();
+
+    return () => {
+      ignore = true;
+    };
+  }, [currentUser]);
+
   const closeLoginModal = () => {
     setIsLoginModalOpen(false);
     setPassword('');
@@ -95,6 +172,8 @@ export function AppLayout() {
   const handleSignOut = () => {
     setCurrentUser(null);
     setIsProfileMenuOpen(false);
+    setNotificationState('idle');
+    setNotificationMessage(null);
     window.localStorage.removeItem(LOGGED_USER_STORAGE_KEY);
     queryClient.clear();
   };
@@ -121,6 +200,56 @@ export function AppLayout() {
       setErrorMessage(getLoginErrorMessage(error));
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleEnableNotifications = async () => {
+    setNotificationMessage(null);
+
+    if (!currentUser) {
+      return;
+    }
+
+    if (!isPushNotificationsSupported()) {
+      setNotificationState('error');
+      setNotificationMessage('This browser does not support push notifications.');
+      return;
+    }
+
+    const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY?.trim();
+    if (!vapidPublicKey) {
+      setNotificationState('error');
+      setNotificationMessage('Notifications are not configured for this environment.');
+      return;
+    }
+
+    setNotificationState('pending');
+
+    try {
+      const permission = await window.Notification.requestPermission();
+      if (permission !== 'granted') {
+        setNotificationState('error');
+        setNotificationMessage(getPermissionErrorMessage(permission));
+        return;
+      }
+
+      await navigator.serviceWorker.register('/service-worker.js');
+      const registration = await navigator.serviceWorker.ready;
+      const existingSubscription = await registration.pushManager.getSubscription();
+      const subscription =
+        existingSubscription ??
+        (await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+        }));
+
+      await usersService.addSubscription(serializePushSubscription(subscription));
+
+      setNotificationState('enabled');
+      setNotificationMessage(null);
+    } catch (error: unknown) {
+      setNotificationState('error');
+      setNotificationMessage(getNotificationErrorMessage(error));
     }
   };
 
@@ -412,11 +541,31 @@ export function AppLayout() {
             <div className="flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="flex flex-col items-center md:items-start gap-2">
                 <p className="text-sm text-[var(--color-silver-500)]">&copy; {new Date().getFullYear()} Cinema Treasures. All rights reserved.</p>
-                <div className="flex gap-4 text-sm text-[var(--color-silver-400)]">
+                <div className="flex flex-wrap gap-4 text-sm text-[var(--color-silver-400)]">
                   <a href="#" className="hover:text-[var(--color-gold-400)] transition-colors">Privacy Policy</a>
                   <a href="#" className="hover:text-[var(--color-gold-400)] transition-colors">Terms of Service</a>
-                  <a href="#" className="hover:text-[var(--color-gold-400)] transition-colors">Cookie Preferences</a>
+                  {currentUser && (
+                    notificationState === 'enabled' ? (
+                      <span className="text-[var(--color-gold-400)]">Notifications enabled</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleEnableNotifications}
+                        disabled={notificationState === 'pending'}
+                        className="hover:text-[var(--color-gold-400)] transition-colors disabled:cursor-wait disabled:opacity-60"
+                      >
+                        {notificationState === 'pending' ? 'Enabling Notifications...' : 'Enable Notifications'}
+                      </button>
+                    )
+                  )}
                 </div>
+                {currentUser && notificationState === 'error' && notificationMessage && (
+                  <p
+                    className="text-sm text-red-300"
+                  >
+                    {notificationMessage}
+                  </p>
+                )}
               </div>
               <div className="flex items-center gap-4 text-sm text-[var(--color-silver-500)] max-w-lg text-left md:text-right">
                 <img src={logo} alt="TMDB Logo" className="h-12" referrerPolicy="no-referrer" />

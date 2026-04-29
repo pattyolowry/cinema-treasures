@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowDown, ArrowUp, Film, Filter } from 'lucide-react';
 import { TROVE_MEMBERS } from '../data';
@@ -117,7 +117,7 @@ function compareValues(
   return direction === 'asc' ? aNumber - bNumber : bNumber - aNumber;
 }
 
-export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
+export const TroveMovieList = memo(function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
   const [showMemberRatings, setShowMemberRatings] = useState(false);
   const [sortColumn, setSortColumn] = useState<SortableColumn>('averageRating');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -644,4 +644,4 @@ export function TroveMovieList({ movies, onViewDetail }: TroveMovieListProps) {
       )}
     </div>
   );
-}
+});

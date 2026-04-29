@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AlertCircle, Gem, Plus } from 'lucide-react';
 import { useAppSession } from '../../context/AppSessionContext';
@@ -16,6 +16,15 @@ const TREASURE_SAVE_ERROR_MESSAGE = 'Unable to save this treasure entry. Please 
 const TREASURE_DELETE_ERROR_MESSAGE = 'Unable to delete this treasure entry. Please try again.';
 const TREASURE_DUPLICATE_ERROR_MESSAGE =
   'This movie is already in the Treasure Trove (same title and year).';
+const TREASURE_TROVE_BASE_PATH = '/treasure-trove';
+
+type TroveHistoryState = {
+  idx?: number;
+  key?: string;
+  usr?: {
+    troveModalSource?: 'in-app';
+  } | null;
+};
 
 const createDefaultRatings = (): Record<TroveMember, number | null> =>
   TROVE_MEMBERS.reduce(
@@ -88,6 +97,63 @@ const movieRecordToTreasurePayload = (
 
 const normalizeTitle = (title: string) => title.trim().toLocaleLowerCase();
 
+const createHistoryKey = () => Math.random().toString(36).substring(2, 10);
+
+function buildTreasureTrovePath(treasureId?: string | null) {
+  return treasureId ? `${TREASURE_TROVE_BASE_PATH}/${treasureId}` : TREASURE_TROVE_BASE_PATH;
+}
+
+function getTreasureIdFromPath(pathname: string): string | null {
+  if (pathname === TREASURE_TROVE_BASE_PATH || pathname === `${TREASURE_TROVE_BASE_PATH}/`) {
+    return null;
+  }
+
+  const detailPrefix = `${TREASURE_TROVE_BASE_PATH}/`;
+  if (!pathname.startsWith(detailPrefix)) {
+    return null;
+  }
+
+  const treasureId = pathname.slice(detailPrefix.length).trim();
+  return treasureId || null;
+}
+
+function getCurrentTroveHistoryState(): TroveHistoryState {
+  if (typeof window.history.state === 'object' && window.history.state !== null) {
+    return window.history.state as TroveHistoryState;
+  }
+
+  return {};
+}
+
+function getCurrentHistoryIndex() {
+  const historyIndex = getCurrentTroveHistoryState().idx;
+  return typeof historyIndex === 'number' ? historyIndex : 0;
+}
+
+function getCurrentModalHistorySource() {
+  return getCurrentTroveHistoryState().usr?.troveModalSource ?? null;
+}
+
+function pushTroveHistory(path: string, troveModalSource?: 'in-app') {
+  const nextHistoryState: TroveHistoryState = {
+    idx: getCurrentHistoryIndex() + 1,
+    key: createHistoryKey(),
+    usr: troveModalSource ? { troveModalSource } : null,
+  };
+
+  window.history.pushState(nextHistoryState, '', path);
+}
+
+function replaceTroveHistory(path: string, troveModalSource?: 'in-app') {
+  const nextHistoryState: TroveHistoryState = {
+    idx: getCurrentHistoryIndex(),
+    key: createHistoryKey(),
+    usr: troveModalSource ? { troveModalSource } : null,
+  };
+
+  window.history.replaceState(nextHistoryState, '', path);
+}
+
 function getRequestErrorMessage(error: unknown, fallback: string): string {
   if (typeof error === 'object' && error !== null && 'response' in error) {
     const response = (error as { response?: { data?: { error?: unknown } } }).response;
@@ -108,9 +174,13 @@ export default function TreasureTrovePage() {
   const queryClient = useQueryClient();
   const [actionErrorMessage, setActionErrorMessage] = useState<string | null>(null);
   const [formErrorMessage, setFormErrorMessage] = useState<string | null>(null);
+  const [deepLinkErrorMessage, setDeepLinkErrorMessage] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingMovie, setEditingMovie] = useState<TroveMovieRecord | null>(null);
   const [selectedMovie, setSelectedMovie] = useState<TroveMovieRecord | null>(null);
+  const [routeTreasureId, setRouteTreasureId] = useState<string | null>(() =>
+    getTreasureIdFromPath(window.location.pathname),
+  );
 
   const treasureQuery = useQuery({
     queryKey: TREASURE_ENTRIES_QUERY_KEY,
@@ -214,11 +284,47 @@ export default function TreasureTrovePage() {
   });
 
   const isSaving = addTreasureMutation.isPending || updateTreasureMutation.isPending;
-  const errorMessage =
-    actionErrorMessage ??
+  const errorMessage = actionErrorMessage ??
     (treasureQuery.error ? getRequestErrorMessage(treasureQuery.error, TREASURE_ERROR_MESSAGE) : null);
   const isInitialLoading = treasureQuery.isPending && !treasureQuery.data;
   const isRefreshing = treasureQuery.isFetching && !!treasureQuery.data;
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setRouteTreasureId(getTreasureIdFromPath(window.location.pathname));
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  useEffect(() => {
+    if (treasureQuery.isPending || treasureQuery.error || deleteTreasureMutation.isPending) {
+      return;
+    }
+
+    if (!routeTreasureId) {
+      setSelectedMovie(null);
+      return;
+    }
+
+    const matchingMovie = movies.find((movie) => movie.id === routeTreasureId);
+    if (matchingMovie) {
+      setSelectedMovie(matchingMovie);
+      return;
+    }
+
+    setDeepLinkErrorMessage('That treasure trove entry could not be found.');
+    setSelectedMovie(null);
+    setRouteTreasureId(null);
+    replaceTroveHistory(buildTreasureTrovePath());
+  }, [
+    movies,
+    deleteTreasureMutation.isPending,
+    routeTreasureId,
+    treasureQuery.error,
+    treasureQuery.isPending,
+  ]);
 
   const handleSaveMovie = async (movieData: Omit<TroveMovieRecord, 'id' | 'averageRating'>) => {
     if (!editingMovie) {
@@ -241,6 +347,7 @@ export default function TreasureTrovePage() {
       } else {
         setActionErrorMessage(null);
         setFormErrorMessage(null);
+        setDeepLinkErrorMessage(null);
         await addTreasureMutation.mutateAsync(movieData);
       }
 
@@ -265,6 +372,14 @@ export default function TreasureTrovePage() {
         setEditingMovie(null);
         setIsFormOpen(false);
       }
+      if (routeTreasureId === id) {
+        setRouteTreasureId(null);
+        if (getCurrentModalHistorySource() === 'in-app') {
+          window.history.back();
+        } else {
+          replaceTroveHistory(buildTreasureTrovePath());
+        }
+      }
     } catch {
       // Mutation errors are surfaced via onError to keep messages consistent.
     }
@@ -274,18 +389,53 @@ export default function TreasureTrovePage() {
     setEditingMovie(movie);
     setFormErrorMessage(null);
     setIsFormOpen(true);
-    setSelectedMovie(null);
   };
 
   const openAddForm = () => {
     setEditingMovie(null);
     setFormErrorMessage(null);
+    setDeepLinkErrorMessage(null);
     setIsFormOpen(true);
   };
+
+  const handleViewDetail = useCallback((movie: TroveMovieRecord) => {
+    setDeepLinkErrorMessage(null);
+    setSelectedMovie(movie);
+    setRouteTreasureId(movie.id);
+    pushTroveHistory(buildTreasureTrovePath(movie.id), 'in-app');
+  }, []);
+
+  const handleCloseDetail = useCallback(() => {
+    setSelectedMovie(null);
+    setRouteTreasureId(null);
+
+    if (getCurrentModalHistorySource() === 'in-app') {
+      window.history.back();
+      return;
+    }
+
+    replaceTroveHistory(buildTreasureTrovePath());
+  }, []);
 
   return (
     <>
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {deepLinkErrorMessage && (
+          <div className="mb-6 rounded-xl border border-amber-400/40 bg-amber-950/30 px-4 py-3 text-sm text-amber-100 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <AlertCircle size={16} />
+              <span>{deepLinkErrorMessage}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setDeepLinkErrorMessage(null)}
+              className="shrink-0 rounded-full border border-amber-200/30 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-amber-100 hover:bg-amber-200/10"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         {errorMessage && (
           <div className="mb-6 rounded-xl border border-red-500/50 bg-red-900/30 px-4 py-3 text-sm text-red-100 flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
@@ -351,16 +501,16 @@ export default function TreasureTrovePage() {
         ) : (
           <TroveMovieList
             movies={movies}
-            onViewDetail={setSelectedMovie}
+            onViewDetail={handleViewDetail}
           />
         )}
       </section>
 
-      {selectedMovie && (
+      {selectedMovie && !isFormOpen && (
         <TroveMovieDetail
           movie={selectedMovie}
           isLoggedIn={!!currentUser}
-          onClose={() => setSelectedMovie(null)}
+          onClose={handleCloseDetail}
           onEdit={openEditForm}
           onDelete={(id) => void handleDeleteMovie(id)}
         />

@@ -7,8 +7,28 @@ const main = async () => {
     Records: [
       {
         body: JSON.stringify({
-          type: "HISTORY_ADDED",
-          movieId: "69b8a1621ed6b9380318323b",
+          type: "TREASURE_UPDATED",
+          user: "Patio",
+          movieId: "69c1e70d15ab05d3e9cf7c57",
+          troveId: "69c1e70d15ab05d3e9cf7c59",
+          old: {
+            ratings: [
+              { user: "Ren", rating: 10 },
+              { user: "Patio", rating: 9 },
+              { user: "Greg", rating: 10 },
+              { user: "Max", rating: 10 },
+              { user: "Quinn", rating: 10 },
+            ],
+          },
+          new: {
+            ratings: [
+              { user: "Ren", rating: 10 },
+              { user: "Patio", rating: 10 },
+              { user: "Greg", rating: 10 },
+              { user: "Max", rating: 10 },
+              { user: "Quinn", rating: 10 },
+            ],
+          },
         }),
       },
     ],

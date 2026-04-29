@@ -150,3 +150,21 @@ export interface NewBlog {
   imageKey?: string;
   shortDescription?: string;
 }
+
+type SubscriptionKey = {
+  p256dh: string;
+  auth: string;
+};
+
+export interface PushSubscription {
+  endpoint: string;
+  keys: SubscriptionKey;
+}
+
+export interface TreasureActivity {
+  id: string;
+  troveId: string;
+  user: string;
+  message: string;
+  createdAt: string;
+}

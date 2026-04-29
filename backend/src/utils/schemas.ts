@@ -60,3 +60,11 @@ export const newBlogSchema = z.object({
   date: z.iso.date(),
   shortDescription: z.optional(z.string()),
 });
+
+export const pushSubscriptionSchema = z.object({
+  endpoint: z.string(),
+  keys: z.object({
+    p256dh: z.string(),
+    auth: z.string(),
+  }),
+});

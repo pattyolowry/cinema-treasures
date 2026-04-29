@@ -1,6 +1,39 @@
-import { Calendar, Edit2, Globe, Star, Trash2, X } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Calendar, Edit2, Globe, ScrollText, Star, Trash2, X } from 'lucide-react';
+import treasureService from '../../../services/treasures';
 import { TROVE_MEMBERS } from '../data';
 import type { TroveMovieRecord } from '../types';
+import type { TreasureActivity } from '../../../types';
+
+const TREASURE_ACTIVITY_QUERY_KEY = ['treasureActivity'] as const;
+
+function formatActivityDate(createdAt: string): string {
+  const parsedDate = new Date(createdAt);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return createdAt;
+  }
+
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(parsedDate);
+}
+
+function getActivityErrorMessage(error: unknown): string {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const response = (error as { response?: { data?: { error?: unknown } } }).response;
+    if (typeof response?.data?.error === 'string') {
+      return response.data.error;
+    }
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return 'Unable to load activity right now.';
+}
 
 function formatRunTime(minutes: number | null | undefined): string | null {
   if (!minutes || minutes <= 0) return null;
@@ -23,6 +56,15 @@ interface TroveMovieDetailProps {
 export function TroveMovieDetail({ movie, isLoggedIn, onClose, onEdit, onDelete }: TroveMovieDetailProps) {
   const formattedRunTime = formatRunTime(movie.runTime);
   const overview = movie.overview?.trim();
+  const activityQuery = useQuery({
+    queryKey: [...TREASURE_ACTIVITY_QUERY_KEY, movie.id],
+    queryFn: () => treasureService.getTreasureActivity(movie.id),
+    enabled: Boolean(movie.id),
+    staleTime: 5 * 60_000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
+  const activities = activityQuery.data ?? [];
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm" onClick={onClose}>
@@ -95,6 +137,42 @@ export function TroveMovieDetail({ movie, isLoggedIn, onClose, onEdit, onDelete 
                   </div>
                 ))}
               </div>
+            </div>
+
+            <div className="mb-8">
+              <h3 className="text-lg font-serif text-[var(--color-gold-400)] flex items-center gap-2 mb-4">
+                <ScrollText size={18} />
+                Activity Log
+              </h3>
+
+              {activityQuery.isPending ? (
+                <div className="rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-black)] px-4 py-3 text-sm text-[var(--color-silver-400)]">
+                  Loading activity...
+                </div>
+              ) : activityQuery.error ? (
+                <div className="rounded-xl border border-red-500/40 bg-red-900/20 px-4 py-3 text-sm text-red-100">
+                  {getActivityErrorMessage(activityQuery.error)}
+                </div>
+              ) : activities.length === 0 ? (
+                <div className="rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-black)] px-4 py-3 text-sm text-[var(--color-silver-400)]">
+                  No activity yet
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {activities.map((activity: TreasureActivity) => (
+                    <div
+                      key={activity.id}
+                      className="rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-black)] px-4 py-4"
+                    >
+                      <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs uppercase tracking-wider text-[var(--color-silver-500)]">
+                        <span>{formatActivityDate(activity.createdAt)}</span>
+                        <span className="text-[var(--color-gold-400)]">{activity.user}</span>
+                      </div>
+                      <p className="text-sm leading-6 text-[var(--color-silver-300)]">{activity.message}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-between pt-6 border-t border-[var(--color-cinema-gray)]">

@@ -4,6 +4,9 @@ const PORT = process.env.PORT || 3003;
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const AWS_REGION = process.env.AWS_REGION;
 const SQS_QUEUE_URL = process.env.SQS_QUEUE_URL;
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL;
 
 const MONGODB_URI =
   process.env.NODE_ENV === "test"
@@ -30,4 +33,7 @@ export default {
   TMDB_API_KEY,
   AWS_REGION,
   SQS_QUEUE_URL,
+  VAPID_PUBLIC_KEY,
+  VAPID_PRIVATE_KEY,
+  SUPPORT_EMAIL,
 };
