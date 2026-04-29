@@ -160,3 +160,11 @@ export interface PushSubscription {
   endpoint: string;
   keys: SubscriptionKey;
 }
+
+export interface TreasureActivity {
+  id: string;
+  troveId: string;
+  user: string;
+  message: string;
+  createdAt: string;
+}
