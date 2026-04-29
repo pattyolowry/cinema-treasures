@@ -14,7 +14,7 @@ const main = async () => {
           old: {
             ratings: [
               { user: "Ren", rating: 10 },
-              { user: "Patio", rating: 10 },
+              { user: "Patio", rating: 9 },
               { user: "Greg", rating: 10 },
               { user: "Max", rating: 10 },
               { user: "Quinn", rating: 10 },

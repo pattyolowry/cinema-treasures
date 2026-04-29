@@ -51,8 +51,16 @@ const addPushSubscription = async (
   if (!user) {
     throw Error("user not found");
   }
-  user.webPushSubscription = pushSubscription;
-  return await user.save();
+
+  const existingSubscriptions = user.webPushSubscriptions.map(
+    (s) => s.endpoint,
+  );
+  if (!existingSubscriptions.includes(pushSubscription.endpoint)) {
+    user.webPushSubscriptions.push(pushSubscription);
+    return await user.save();
+  } else {
+    return user;
+  }
 };
 
 export default {

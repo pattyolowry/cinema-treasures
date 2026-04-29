@@ -165,19 +165,20 @@ export const movieHandler = async (event: SQSEvent) => {
           );
 
           const users = await User.find({
-            webPushSubscription: { $exists: true, $ne: [] },
+            webPushSubscriptions: { $exists: true, $ne: [] },
           });
 
           for (const user of users) {
-            if (!user.webPushSubscription) continue;
-            await webpush.sendNotification(
-              user.webPushSubscription,
-              JSON.stringify({
-                title: "New movie added to Treasure Trove",
-                body: `${body.user} added ${movie.title} (${movie.yearReleased}) to the Treasure Trove. Seent it? Add your rating!`,
-                url: `/treasure-trove/${body.troveId}`,
-              }),
-            );
+            for (const subscription of user.webPushSubscriptions) {
+              await webpush.sendNotification(
+                subscription,
+                JSON.stringify({
+                  title: "New movie added to Treasure Trove",
+                  body: `${body.user} added ${movie.title} (${movie.yearReleased}) to the Treasure Trove. Seent it? Add your rating!`,
+                  url: `/treasure-trove/${body.troveId}`,
+                }),
+              );
+            }
           }
         }
 
@@ -207,20 +208,22 @@ export const movieHandler = async (event: SQSEvent) => {
             );
 
             const users = await User.find({
-              webPushSubscription: { $exists: true, $ne: [] },
+              webPushSubscriptions: { $exists: true, $ne: [] },
             });
 
             for (const user of users) {
-              if (!user.webPushSubscription) continue;
-              await webpush.sendNotification(
-                user.webPushSubscription,
-                JSON.stringify({
-                  title: "New movie added to Treasure Trove",
-                  body: `${body.user} updated his rating for ${movie.title} (${movie.yearReleased}): ${oldRating} --> ${newRating}`,
-                  url: `/treasure-trove/${body.troveId}`,
-                }),
-              );
-              console.log("Sent push notification");
+              for (const subscription of user.webPushSubscriptions) {
+                await webpush.sendNotification(
+                  subscription,
+                  JSON.stringify({
+                    title: "Treasure Trove Updated",
+                    body: `${body.user} updated his rating for ${movie.title} (${movie.yearReleased}): ${oldRating} --> ${newRating}`,
+                    url: `/treasure-trove/${body.troveId}`,
+                  }),
+                );
+                console.log("Sent push notification");
+                console.log(`/treasure-trove/${body.troveId}`);
+              }
             }
           }
         }
