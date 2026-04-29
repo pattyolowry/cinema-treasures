@@ -155,7 +155,7 @@ export function TroveMovieDetail({ movie, isLoggedIn, onClose, onEdit, onDelete 
                 </div>
               ) : activities.length === 0 ? (
                 <div className="rounded-xl border border-[var(--color-cinema-gray)] bg-[var(--color-cinema-black)] px-4 py-3 text-sm text-[var(--color-silver-400)]">
-                  No activity yet.
+                  No activity yet
                 </div>
               ) : (
                 <div className="space-y-3">

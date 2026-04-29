@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AlertCircle, Gem, Plus } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
 import { useAppSession } from '../../context/AppSessionContext';
 import treasureService from '../../services/treasures';
 import type { NewTreasure, Rating, Treasure } from '../../types';
@@ -17,6 +16,15 @@ const TREASURE_SAVE_ERROR_MESSAGE = 'Unable to save this treasure entry. Please 
 const TREASURE_DELETE_ERROR_MESSAGE = 'Unable to delete this treasure entry. Please try again.';
 const TREASURE_DUPLICATE_ERROR_MESSAGE =
   'This movie is already in the Treasure Trove (same title and year).';
+const TREASURE_TROVE_BASE_PATH = '/treasure-trove';
+
+type TroveHistoryState = {
+  idx?: number;
+  key?: string;
+  usr?: {
+    troveModalSource?: 'in-app';
+  } | null;
+};
 
 const createDefaultRatings = (): Record<TroveMember, number | null> =>
   TROVE_MEMBERS.reduce(
@@ -89,6 +97,63 @@ const movieRecordToTreasurePayload = (
 
 const normalizeTitle = (title: string) => title.trim().toLocaleLowerCase();
 
+const createHistoryKey = () => Math.random().toString(36).substring(2, 10);
+
+function buildTreasureTrovePath(treasureId?: string | null) {
+  return treasureId ? `${TREASURE_TROVE_BASE_PATH}/${treasureId}` : TREASURE_TROVE_BASE_PATH;
+}
+
+function getTreasureIdFromPath(pathname: string): string | null {
+  if (pathname === TREASURE_TROVE_BASE_PATH || pathname === `${TREASURE_TROVE_BASE_PATH}/`) {
+    return null;
+  }
+
+  const detailPrefix = `${TREASURE_TROVE_BASE_PATH}/`;
+  if (!pathname.startsWith(detailPrefix)) {
+    return null;
+  }
+
+  const treasureId = pathname.slice(detailPrefix.length).trim();
+  return treasureId || null;
+}
+
+function getCurrentTroveHistoryState(): TroveHistoryState {
+  if (typeof window.history.state === 'object' && window.history.state !== null) {
+    return window.history.state as TroveHistoryState;
+  }
+
+  return {};
+}
+
+function getCurrentHistoryIndex() {
+  const historyIndex = getCurrentTroveHistoryState().idx;
+  return typeof historyIndex === 'number' ? historyIndex : 0;
+}
+
+function getCurrentModalHistorySource() {
+  return getCurrentTroveHistoryState().usr?.troveModalSource ?? null;
+}
+
+function pushTroveHistory(path: string, troveModalSource?: 'in-app') {
+  const nextHistoryState: TroveHistoryState = {
+    idx: getCurrentHistoryIndex() + 1,
+    key: createHistoryKey(),
+    usr: troveModalSource ? { troveModalSource } : null,
+  };
+
+  window.history.pushState(nextHistoryState, '', path);
+}
+
+function replaceTroveHistory(path: string, troveModalSource?: 'in-app') {
+  const nextHistoryState: TroveHistoryState = {
+    idx: getCurrentHistoryIndex(),
+    key: createHistoryKey(),
+    usr: troveModalSource ? { troveModalSource } : null,
+  };
+
+  window.history.replaceState(nextHistoryState, '', path);
+}
+
 function getRequestErrorMessage(error: unknown, fallback: string): string {
   if (typeof error === 'object' && error !== null && 'response' in error) {
     const response = (error as { response?: { data?: { error?: unknown } } }).response;
@@ -106,14 +171,16 @@ function getRequestErrorMessage(error: unknown, fallback: string): string {
 
 export default function TreasureTrovePage() {
   const { currentUser } = useAppSession();
-  const navigate = useNavigate();
-  const { treasureId } = useParams<{ treasureId?: string }>();
   const queryClient = useQueryClient();
   const [actionErrorMessage, setActionErrorMessage] = useState<string | null>(null);
   const [formErrorMessage, setFormErrorMessage] = useState<string | null>(null);
   const [deepLinkErrorMessage, setDeepLinkErrorMessage] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingMovie, setEditingMovie] = useState<TroveMovieRecord | null>(null);
+  const [selectedMovie, setSelectedMovie] = useState<TroveMovieRecord | null>(null);
+  const [routeTreasureId, setRouteTreasureId] = useState<string | null>(() =>
+    getTreasureIdFromPath(window.location.pathname),
+  );
 
   const treasureQuery = useQuery({
     queryKey: TREASURE_ENTRIES_QUERY_KEY,
@@ -123,10 +190,6 @@ export default function TreasureTrovePage() {
     },
   });
   const movies = treasureQuery.data ?? [];
-  const selectedMovie = useMemo(
-    () => movies.find((movie) => movie.id === treasureId) ?? null,
-    [movies, treasureId],
-  );
 
   const addTreasureMutation = useMutation({
     mutationFn: (movieData: Omit<TroveMovieRecord, 'id' | 'averageRating'>) =>
@@ -189,6 +252,9 @@ export default function TreasureTrovePage() {
       queryClient.setQueryData<TroveMovieRecord[]>(TREASURE_ENTRIES_QUERY_KEY, (currentMovies = []) =>
         currentMovies.map((movie) => (movie.id === updatedMovie.id ? updatedMovie : movie)),
       );
+      if (selectedMovie?.id === updatedMovie.id) {
+        setSelectedMovie(updatedMovie);
+      }
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: TREASURE_ENTRIES_QUERY_KEY });
@@ -224,23 +290,38 @@ export default function TreasureTrovePage() {
   const isRefreshing = treasureQuery.isFetching && !!treasureQuery.data;
 
   useEffect(() => {
-    if (
-      !treasureId ||
-      treasureQuery.isPending ||
-      treasureQuery.error ||
-      deleteTreasureMutation.isPending ||
-      selectedMovie
-    ) {
+    const handlePopState = () => {
+      setRouteTreasureId(getTreasureIdFromPath(window.location.pathname));
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  useEffect(() => {
+    if (treasureQuery.isPending || treasureQuery.error || deleteTreasureMutation.isPending) {
+      return;
+    }
+
+    if (!routeTreasureId) {
+      setSelectedMovie(null);
+      return;
+    }
+
+    const matchingMovie = movies.find((movie) => movie.id === routeTreasureId);
+    if (matchingMovie) {
+      setSelectedMovie(matchingMovie);
       return;
     }
 
     setDeepLinkErrorMessage('That treasure trove entry could not be found.');
-    navigate('/treasure-trove', { replace: true });
+    setSelectedMovie(null);
+    setRouteTreasureId(null);
+    replaceTroveHistory(buildTreasureTrovePath());
   }, [
+    movies,
     deleteTreasureMutation.isPending,
-    navigate,
-    selectedMovie,
-    treasureId,
+    routeTreasureId,
     treasureQuery.error,
     treasureQuery.isPending,
   ]);
@@ -284,12 +365,20 @@ export default function TreasureTrovePage() {
     }
     try {
       await deleteTreasureMutation.mutateAsync(id);
+      if (selectedMovie?.id === id) {
+        setSelectedMovie(null);
+      }
       if (editingMovie?.id === id) {
         setEditingMovie(null);
         setIsFormOpen(false);
       }
-      if (treasureId === id) {
-        navigate('/treasure-trove', { replace: true });
+      if (routeTreasureId === id) {
+        setRouteTreasureId(null);
+        if (getCurrentModalHistorySource() === 'in-app') {
+          window.history.back();
+        } else {
+          replaceTroveHistory(buildTreasureTrovePath());
+        }
       }
     } catch {
       // Mutation errors are surfaced via onError to keep messages consistent.
@@ -311,12 +400,22 @@ export default function TreasureTrovePage() {
 
   const handleViewDetail = useCallback((movie: TroveMovieRecord) => {
     setDeepLinkErrorMessage(null);
-    navigate(`/treasure-trove/${movie.id}`);
-  }, [navigate]);
+    setSelectedMovie(movie);
+    setRouteTreasureId(movie.id);
+    pushTroveHistory(buildTreasureTrovePath(movie.id), 'in-app');
+  }, []);
 
   const handleCloseDetail = useCallback(() => {
-    navigate('/treasure-trove', { replace: true });
-  }, [navigate]);
+    setSelectedMovie(null);
+    setRouteTreasureId(null);
+
+    if (getCurrentModalHistorySource() === 'in-app') {
+      window.history.back();
+      return;
+    }
+
+    replaceTroveHistory(buildTreasureTrovePath());
+  }, []);
 
   return (
     <>
