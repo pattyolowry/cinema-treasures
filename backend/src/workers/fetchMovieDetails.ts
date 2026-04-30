@@ -149,15 +149,19 @@ export const movieHandler = async (event: SQSEvent) => {
         movie.mpaaRating = mpaaRating;
 
         // Fetch OMDB Ratings
-        const omdbDetails = await omdbService.getMovieDetails(movie.imdbId);
-        console.log("Fetched ratings from OMDB");
+        try {
+          const omdbDetails = await omdbService.getMovieDetails(movie.imdbId);
+          console.log("Fetched ratings from OMDB");
 
-        if (omdbDetails.ratings.imdb) {
-          movie.imdbRating = omdbDetails.ratings.imdb;
-        }
+          if (omdbDetails.ratings.imdb) {
+            movie.imdbRating = omdbDetails.ratings.imdb;
+          }
 
-        if (omdbDetails.ratings.rottenTomatoes) {
-          movie.rottenTomatoesRating = omdbDetails.ratings.rottenTomatoes;
+          if (omdbDetails.ratings.rottenTomatoes) {
+            movie.rottenTomatoesRating = omdbDetails.ratings.rottenTomatoes;
+          }
+        } catch {
+          console.error("Unable to fetch OMDB details");
         }
 
         // Save movie back to DB

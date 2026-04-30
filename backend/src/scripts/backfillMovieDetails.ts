@@ -97,9 +97,9 @@ const main = async () => {
 
       console.log(`Updated ${movie.title}`);
       count++;
-      if (count % 1 === 0) {
+      if (count % 50 === 0) {
         console.log(`${count} records complete`);
-        break;
+        //break;
       }
 
       await sleep(2000);
