@@ -83,6 +83,9 @@ export interface MovieInfo {
   genres?: string[];
   language?: string;
   directors?: string[];
+  imdbId?: string;
+  imdbRating?: number;
+  rottenTomatoesRating?: number;
 }
 
 export interface Rating {
