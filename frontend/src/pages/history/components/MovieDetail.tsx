@@ -61,7 +61,7 @@ export function MovieDetail({ movie, isLoggedIn, onClose, onEdit }: MovieDetailP
                 <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--color-silver-400)]">
                   {directorsLabel && (
                     <div className="flex items-center gap-1.5">
-                      <span className="font-semibold text-[var(--color-gold-500)]">Dir:</span>
+                      <span className="text-[var(--color-gold-500)]">Dir:</span>
                       <span>{directorsLabel}</span>
                     </div>
                   )}
@@ -85,7 +85,7 @@ export function MovieDetail({ movie, isLoggedIn, onClose, onEdit }: MovieDetailP
                         aria-hidden="true"
                         className="h-3.5 w-3.5 shrink-0"
                       />
-                      <span className="font-mono font-semibold text-white">
+                      <span>
                         {externalRatings.imdb.toFixed(1)}
                       </span>
                     </div>
@@ -98,14 +98,14 @@ export function MovieDetail({ movie, isLoggedIn, onClose, onEdit }: MovieDetailP
                         aria-hidden="true"
                         className="h-3.5 w-3.5 shrink-0"
                       />
-                      <span className="font-mono font-semibold text-white">
+                      <span>
                         {externalRatings.rottenTomatoes}%
                       </span>
                     </div>
                   )}
                   {movie.pickedBy && (
                     <div className="flex items-center gap-1.5">
-                      <span className="font-semibold text-[var(--color-gold-500)]">Picked By:</span>
+                      <span className="text-[var(--color-gold-500)]">Picked By:</span>
                       <span>{movie.pickedBy}</span>
                     </div>
                   )}

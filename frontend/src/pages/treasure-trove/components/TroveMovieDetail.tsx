@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Calendar, Edit2, Globe, ScrollText, Star, Trash2, X } from 'lucide-react';
+import { Calendar, Edit2, Globe, ScrollText, Star, Trash2, X, Timer } from 'lucide-react';
 import treasureService from '../../../services/treasures';
 import { getDummyExternalRatings, TROVE_MEMBERS } from '../data';
 import type { TroveMovieRecord } from '../types';
@@ -97,6 +97,7 @@ export function TroveMovieDetail({ movie, isLoggedIn, onClose, onEdit, onDelete 
                   </div>
                   {formattedRunTime && (
                     <div className="flex items-center gap-1.5">
+                      <Timer size={14} className="text-[var(--color-gold-500)]" />
                       <span>{formattedRunTime}</span>
                     </div>
                   )}
@@ -112,7 +113,7 @@ export function TroveMovieDetail({ movie, isLoggedIn, onClose, onEdit, onDelete 
                         aria-hidden="true"
                         className="h-3.5 w-3.5 shrink-0"
                       />
-                      <span className="font-mono font-semibold text-white">
+                      <span>
                         {externalRatings.imdb.toFixed(1)}
                       </span>
                     </div>
@@ -125,7 +126,7 @@ export function TroveMovieDetail({ movie, isLoggedIn, onClose, onEdit, onDelete 
                         aria-hidden="true"
                         className="h-3.5 w-3.5 shrink-0"
                       />
-                      <span className="font-mono font-semibold text-white">
+                      <span>
                         {externalRatings.rottenTomatoes}%
                       </span>
                     </div>
