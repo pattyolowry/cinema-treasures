@@ -7,6 +7,7 @@ import Movie from "../models/movie";
 import webpush from "web-push";
 import User from "../models/user";
 import TreasureActivity from "../models/treasureActivity";
+import omdbService from "../services/omdbService";
 
 let dbIsConnected = false;
 
@@ -78,6 +79,9 @@ export const movieHandler = async (event: SQSEvent) => {
 
         console.log("Fetched movie details from tmdb");
 
+        // IMDB ID
+        movie.imdbId = movieDetails.imdb_id;
+
         // Description / overview
         movie.overview = movieDetails.overview ? movieDetails.overview : "";
 
@@ -143,6 +147,18 @@ export const movieHandler = async (event: SQSEvent) => {
         }
 
         movie.mpaaRating = mpaaRating;
+
+        // Fetch OMDB Ratings
+        const omdbDetails = await omdbService.getMovieDetails(movie.imdbId);
+        console.log("Fetched ratings from OMDB");
+
+        if (omdbDetails.ratings.imdb) {
+          movie.imdbRating = omdbDetails.ratings.imdb;
+        }
+
+        if (omdbDetails.ratings.rottenTomatoes) {
+          movie.rottenTomatoesRating = omdbDetails.ratings.rottenTomatoes;
+        }
 
         // Save movie back to DB
         await movie.save();
