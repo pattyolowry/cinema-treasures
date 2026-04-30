@@ -2,7 +2,6 @@ import React from 'react';
 import { X, Edit2, Star, Calendar, Globe, MonitorPlay } from 'lucide-react';
 import { MEMBERS } from '../../../data';
 import type { LogEntry, Member } from '../../../types';
-import { getDummyExternalRatings } from '../data';
 
 interface MovieDetailProps {
   movie: LogEntry;
@@ -33,7 +32,6 @@ export function MovieDetail({ movie, isLoggedIn, onClose, onEdit }: MovieDetailP
   const overview = movie.movie.overview?.trim();
   const directors = movie.movie.directors?.map((director) => director.trim()).filter(Boolean) ?? [];
   const directorsLabel = directors.length > 0 ? directors.join(', ') : null;
-  const externalRatings = getDummyExternalRatings(movie.movie);
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm" onClick={onClose}>
@@ -77,7 +75,7 @@ export function MovieDetail({ movie, isLoggedIn, onClose, onEdit }: MovieDetailP
                       <span>{movie.movie.originCountry}</span>
                     </div>
                   )}
-                  {externalRatings && externalRatings.imdb !== null && (
+                  {movie.movie.imdbRating !== undefined && movie.movie.imdbRating !== null && (
                     <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-gold-600)]/30 bg-[var(--color-cinema-black)]/60 px-3 py-1 text-xs">
                       <img
                         src="/IMDb_Square_GoldBKG.svg"
@@ -86,11 +84,11 @@ export function MovieDetail({ movie, isLoggedIn, onClose, onEdit }: MovieDetailP
                         className="h-3.5 w-3.5 shrink-0"
                       />
                       <span>
-                        {externalRatings.imdb.toFixed(1)}
+                        {movie.movie.imdbRating.toFixed(1)}
                       </span>
                     </div>
                   )}
-                  {externalRatings && externalRatings.rottenTomatoes !== null && (
+                  {movie.movie.rottenTomatoesRating !== undefined && movie.movie.rottenTomatoesRating !== null && (
                     <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-gold-600)]/30 bg-[var(--color-cinema-black)]/60 px-3 py-1 text-xs">
                       <img
                         src="/Rotten_Tomatoes.svg"
@@ -99,7 +97,7 @@ export function MovieDetail({ movie, isLoggedIn, onClose, onEdit }: MovieDetailP
                         className="h-3.5 w-3.5 shrink-0"
                       />
                       <span>
-                        {externalRatings.rottenTomatoes}%
+                        {movie.movie.rottenTomatoesRating}%
                       </span>
                     </div>
                   )}
