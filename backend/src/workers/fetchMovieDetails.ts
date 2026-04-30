@@ -166,7 +166,10 @@ export const movieHandler = async (event: SQSEvent) => {
         console.log("Saved updates to DB");
 
         // Save activity and send notification for new Trove entries
-        if (body.type === "TREASURE_ADDED") {
+        if (
+          body.type === "TREASURE_ADDED" &&
+          process.env.NODE_ENV === "production"
+        ) {
           const activity = new TreasureActivity({
             troveId: body.troveId,
             user: body.user,
@@ -199,7 +202,10 @@ export const movieHandler = async (event: SQSEvent) => {
         }
 
         // Save activity and send notification for trove rating updates
-        if (body.type === "TREASURE_UPDATED") {
+        if (
+          body.type === "TREASURE_UPDATED" &&
+          process.env.NODE_ENV === "production"
+        ) {
           const oldRating =
             body.old.ratings?.find((r) => r.user === body.user)?.rating ??
             "None";
