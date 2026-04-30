@@ -59,7 +59,7 @@ export function MovieDetail({ movie, isLoggedIn, onClose, onEdit }: MovieDetailP
                 <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--color-silver-400)]">
                   {directorsLabel && (
                     <div className="flex items-center gap-1.5">
-                      <span className="font-semibold text-[var(--color-gold-500)]">Dir:</span>
+                      <span className="text-[var(--color-gold-500)]">Dir:</span>
                       <span>{directorsLabel}</span>
                     </div>
                   )}
@@ -75,9 +75,35 @@ export function MovieDetail({ movie, isLoggedIn, onClose, onEdit }: MovieDetailP
                       <span>{movie.movie.originCountry}</span>
                     </div>
                   )}
+                  {movie.movie.imdbRating !== undefined && movie.movie.imdbRating !== null && (
+                    <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-gold-600)]/30 bg-[var(--color-cinema-black)]/60 px-3 py-1 text-xs">
+                      <img
+                        src="/IMDb_Square_GoldBKG.svg"
+                        alt=""
+                        aria-hidden="true"
+                        className="h-3.5 w-3.5 shrink-0"
+                      />
+                      <span>
+                        {movie.movie.imdbRating.toFixed(1)}
+                      </span>
+                    </div>
+                  )}
+                  {movie.movie.rottenTomatoesRating !== undefined && movie.movie.rottenTomatoesRating !== null && (
+                    <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-gold-600)]/30 bg-[var(--color-cinema-black)]/60 px-3 py-1 text-xs">
+                      <img
+                        src="/Rotten_Tomatoes.svg"
+                        alt=""
+                        aria-hidden="true"
+                        className="h-3.5 w-3.5 shrink-0"
+                      />
+                      <span>
+                        {movie.movie.rottenTomatoesRating}%
+                      </span>
+                    </div>
+                  )}
                   {movie.pickedBy && (
                     <div className="flex items-center gap-1.5">
-                      <span className="font-semibold text-[var(--color-gold-500)]">Picked By:</span>
+                      <span className="text-[var(--color-gold-500)]">Picked By:</span>
                       <span>{movie.pickedBy}</span>
                     </div>
                   )}

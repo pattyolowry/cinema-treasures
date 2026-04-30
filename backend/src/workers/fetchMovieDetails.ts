@@ -7,6 +7,7 @@ import Movie from "../models/movie";
 import webpush from "web-push";
 import User from "../models/user";
 import TreasureActivity from "../models/treasureActivity";
+import omdbService from "../services/omdbService";
 
 let dbIsConnected = false;
 
@@ -78,6 +79,9 @@ export const movieHandler = async (event: SQSEvent) => {
 
         console.log("Fetched movie details from tmdb");
 
+        // IMDB ID
+        movie.imdbId = movieDetails.imdb_id;
+
         // Description / overview
         movie.overview = movieDetails.overview ? movieDetails.overview : "";
 
@@ -144,13 +148,32 @@ export const movieHandler = async (event: SQSEvent) => {
 
         movie.mpaaRating = mpaaRating;
 
+        // Fetch OMDB Ratings
+        try {
+          const omdbDetails = await omdbService.getMovieDetails(movie.imdbId);
+          console.log("Fetched ratings from OMDB");
+
+          if (omdbDetails.ratings.imdb) {
+            movie.imdbRating = omdbDetails.ratings.imdb;
+          }
+
+          if (omdbDetails.ratings.rottenTomatoes) {
+            movie.rottenTomatoesRating = omdbDetails.ratings.rottenTomatoes;
+          }
+        } catch {
+          console.error("Unable to fetch OMDB details");
+        }
+
         // Save movie back to DB
         await movie.save();
 
         console.log("Saved updates to DB");
 
         // Save activity and send notification for new Trove entries
-        if (body.type === "TREASURE_ADDED") {
+        if (
+          body.type === "TREASURE_ADDED" &&
+          process.env.NODE_ENV === "production"
+        ) {
           const activity = new TreasureActivity({
             troveId: body.troveId,
             user: body.user,
@@ -183,7 +206,10 @@ export const movieHandler = async (event: SQSEvent) => {
         }
 
         // Save activity and send notification for trove rating updates
-        if (body.type === "TREASURE_UPDATED") {
+        if (
+          body.type === "TREASURE_UPDATED" &&
+          process.env.NODE_ENV === "production"
+        ) {
           const oldRating =
             body.old.ratings?.find((r) => r.user === body.user)?.rating ??
             "None";

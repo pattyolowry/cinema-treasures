@@ -14,6 +14,9 @@ const movieSchema = new mongoose.Schema({
   genres: [String],
   language: String,
   directors: [String],
+  imdbId: String,
+  imdbRating: Number,
+  rottenTomatoesRating: Number,
 });
 
 movieSchema.set("toJSON", {

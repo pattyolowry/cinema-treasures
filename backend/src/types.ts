@@ -123,6 +123,7 @@ export interface TmdbMovieDetails {
   vote_average?: number;
   genres: Genre[];
   original_language?: string;
+  imdb_id: string;
 }
 
 type CastCredit = {
@@ -179,6 +180,15 @@ type SubscriptionKey = {
 export interface PushSubscription {
   endpoint: string;
   keys: SubscriptionKey;
+}
+
+type OMDBRating = {
+  Source: string;
+  Value: string;
+};
+
+export interface OMDBMovieDetails {
+  Ratings: OMDBRating[];
 }
 
 export {};
