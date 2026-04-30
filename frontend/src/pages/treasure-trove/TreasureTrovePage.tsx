@@ -65,6 +65,8 @@ const treasureToMovieRecord = (treasure: Treasure): TroveMovieRecord => {
     overview: treasure.movie.overview,
     mpaaRating: treasure.movie.mpaaRating ?? '',
     tmdbId: treasure.movie.tmdbId,
+    imdbRating: treasure.movie.imdbRating,
+    rottenTomatoesRating: treasure.movie.rottenTomatoesRating,
     posterUrl: treasure.movie.posterUrl ?? '',
     ratings,
     averageRating: calculateCTCSTM(ratings),

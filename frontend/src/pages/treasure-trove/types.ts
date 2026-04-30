@@ -15,6 +15,8 @@ export interface TroveMovieRecord {
   overview?: string;
   mpaaRating?: string;
   tmdbId?: number;
+  imdbRating?: number;
+  rottenTomatoesRating?: number;
   posterUrl?: string;
   ratings: Record<TroveMember, number | null>;
   averageRating: number | null;

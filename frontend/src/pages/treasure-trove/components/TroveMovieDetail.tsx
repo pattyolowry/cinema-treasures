@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Calendar, Edit2, Globe, ScrollText, Star, Trash2, X, Timer } from 'lucide-react';
 import treasureService from '../../../services/treasures';
-import { getDummyExternalRatings, TROVE_MEMBERS } from '../data';
+import { TROVE_MEMBERS } from '../data';
 import type { TroveMovieRecord } from '../types';
 import type { TreasureActivity } from '../../../types';
 
@@ -56,7 +56,6 @@ interface TroveMovieDetailProps {
 export function TroveMovieDetail({ movie, isLoggedIn, onClose, onEdit, onDelete }: TroveMovieDetailProps) {
   const formattedRunTime = formatRunTime(movie.runTime);
   const overview = movie.overview?.trim();
-  const externalRatings = getDummyExternalRatings(movie);
   const activityQuery = useQuery({
     queryKey: [...TREASURE_ACTIVITY_QUERY_KEY, movie.id],
     queryFn: () => treasureService.getTreasureActivity(movie.id),
@@ -105,7 +104,7 @@ export function TroveMovieDetail({ movie, isLoggedIn, onClose, onEdit, onDelete 
                     <Globe size={14} className="text-[var(--color-gold-500)]" />
                     <span>{movie.originCountry}</span>
                   </div>
-                  {externalRatings && externalRatings.imdb !== null && (
+                  {movie.imdbRating !== undefined && movie.imdbRating !== null && (
                     <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-gold-600)]/30 bg-[var(--color-cinema-black)]/60 px-3 py-1 text-xs">
                       <img
                         src="/IMDb_Square_GoldBKG.svg"
@@ -114,11 +113,11 @@ export function TroveMovieDetail({ movie, isLoggedIn, onClose, onEdit, onDelete 
                         className="h-3.5 w-3.5 shrink-0"
                       />
                       <span>
-                        {externalRatings.imdb.toFixed(1)}
+                        {movie.imdbRating.toFixed(1)}
                       </span>
                     </div>
                   )}
-                  {externalRatings && externalRatings.rottenTomatoes !== null && (
+                  {movie.rottenTomatoesRating !== undefined && movie.rottenTomatoesRating !== null && (
                     <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-gold-600)]/30 bg-[var(--color-cinema-black)]/60 px-3 py-1 text-xs">
                       <img
                         src="/Rotten_Tomatoes.svg"
@@ -127,7 +126,7 @@ export function TroveMovieDetail({ movie, isLoggedIn, onClose, onEdit, onDelete 
                         className="h-3.5 w-3.5 shrink-0"
                       />
                       <span>
-                        {externalRatings.rottenTomatoes}%
+                        {movie.rottenTomatoesRating}%
                       </span>
                     </div>
                   )}
