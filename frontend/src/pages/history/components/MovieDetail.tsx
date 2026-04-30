@@ -2,6 +2,7 @@ import React from 'react';
 import { X, Edit2, Star, Calendar, Globe, MonitorPlay } from 'lucide-react';
 import { MEMBERS } from '../../../data';
 import type { LogEntry, Member } from '../../../types';
+import { getDummyExternalRatings } from '../data';
 
 interface MovieDetailProps {
   movie: LogEntry;
@@ -32,6 +33,7 @@ export function MovieDetail({ movie, isLoggedIn, onClose, onEdit }: MovieDetailP
   const overview = movie.movie.overview?.trim();
   const directors = movie.movie.directors?.map((director) => director.trim()).filter(Boolean) ?? [];
   const directorsLabel = directors.length > 0 ? directors.join(', ') : null;
+  const externalRatings = getDummyExternalRatings(movie.movie);
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm" onClick={onClose}>
@@ -73,6 +75,32 @@ export function MovieDetail({ movie, isLoggedIn, onClose, onEdit }: MovieDetailP
                     <div className="flex items-center gap-1.5">
                       <Globe size={14} className="text-[var(--color-gold-500)]" />
                       <span>{movie.movie.originCountry}</span>
+                    </div>
+                  )}
+                  {externalRatings && externalRatings.imdb !== null && (
+                    <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-gold-600)]/30 bg-[var(--color-cinema-black)]/60 px-3 py-1 text-xs">
+                      <img
+                        src="/IMDb_Square_GoldBKG.svg"
+                        alt=""
+                        aria-hidden="true"
+                        className="h-3.5 w-3.5 shrink-0"
+                      />
+                      <span className="font-mono font-semibold text-white">
+                        {externalRatings.imdb.toFixed(1)}
+                      </span>
+                    </div>
+                  )}
+                  {externalRatings && externalRatings.rottenTomatoes !== null && (
+                    <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-gold-600)]/30 bg-[var(--color-cinema-black)]/60 px-3 py-1 text-xs">
+                      <img
+                        src="/Rotten_Tomatoes.svg"
+                        alt=""
+                        aria-hidden="true"
+                        className="h-3.5 w-3.5 shrink-0"
+                      />
+                      <span className="font-mono font-semibold text-white">
+                        {externalRatings.rottenTomatoes}%
+                      </span>
                     </div>
                   )}
                   {movie.pickedBy && (
