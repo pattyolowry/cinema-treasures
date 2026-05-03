@@ -38,8 +38,7 @@ jobs:
 
       - name: Create deployment zip
         run: |
-          cd build
-          zip -r ../lambda.zip .
+          zip -r lambda.zip build node_modules package.json
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
