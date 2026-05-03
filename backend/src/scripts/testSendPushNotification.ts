@@ -14,6 +14,7 @@ const main = async () => {
 
   console.log("Set vapid details");
 
+  // Send to all users in DB
   const users = await User.find({
     webPushSubscriptions: { $exists: true },
   });
@@ -33,6 +34,25 @@ const main = async () => {
       console.log("Sent push notification");
     }
   }
+
+  // Send to single user
+  // const subscription = {
+  //   endpoint: "https://web.push.apple.com/testendpoint",
+  //   keys: {
+  //     p256dh: "testkey",
+  //     auth: "testauth",
+  //   },
+  // };
+
+  // await webpush.sendNotification(
+  //   subscription,
+  //   JSON.stringify({
+  //     title: "Test Notification",
+  //     body: `Patio updated his rating for Test Movie (1969): 6 --> 9`,
+  //     url: `/treasure-trove/69c1e70d15ab05d3e9cf7c59`,
+  //   }),
+  // );
+
   await mongoose.connection.close();
 };
 
